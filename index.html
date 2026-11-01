@@ -355,7 +355,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 <div class="chips" id="chips"></div>
 <form class="sendrow" id="sendForm"><input type="text" id="chatIn" maxlength="60" placeholder="輸入訊息…" autocomplete="off"><button class="btn" type="submit">送出</button></form></aside>
 <div class="toast" id="toast" hidden></div>
-<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。目前這局會結束，回到首頁重新開始。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room');localStorage.removeItem('ab_solo')}catch(e){};location.reload()">重新載入</button></div></div>
+<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room');localStorage.removeItem('ab_solo')}catch(e){};location.reload()">重新載入</button></div></div>
 <div class="upd" id="help" hidden><div class="card helpc">
 <div class="dhead"><h2 style="flex:1 1 auto;margin:0">遊戲說明</h2><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
 <h3>1A2B 怎麼玩</h3>
@@ -425,7 +425,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.01-7';
+const APP_VERSION='2026.11.01-8';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -529,7 +529,7 @@ function paint(html){
   lastHTML=html; lastHTML='';app.innerHTML=html; bind();
   if(!app.querySelector('svg.podium'))for(const k in POS)delete POS[k];
   for(const k in POS){const c=charOf(k);if(c)c.style.translate=POS[k]+'px 0';}
-  keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('circle[r="22"]');if(hd)hs.forEach(n=>hd.parentNode.appendChild(n));const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
+  keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('.hd');if(hd)hs.forEach(n=>hd.parentNode.appendChild(n));const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
 }
 app.addEventListener('focusout',()=>setTimeout(()=>{if(pendingPaint!==null&&!(document.activeElement&&app.contains(document.activeElement)&&document.activeElement.tagName==='SELECT')){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
 function render(){
@@ -903,8 +903,18 @@ async function checkUpdate(){
   if(updShown||location.protocol==='file:')return;
   try{const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});const t=await r.text();
     const m=t.match(/const APP_VERSION='([^']+)'/);
-    if(m&&m[1]!==APP_VERSION){updShown=true;document.getElementById('upd').hidden=false;}}catch(e){}
+    if(m&&m[1]!==APP_VERSION){updShown=true;updTick();}}catch(e){}
 }
+/* 有新版本時：正在玩就等這場結束，再跳出更新畫面 */
+function gameBusy(){try{
+  if(solo)return !solo.result;
+  if(code&&R){if(R.phase==='coop'){const C=coopState();return !C.over;}const st=derive().status;return st!=='lobby'&&st!=='over';}
+}catch(e){}return false;}
+let updWarned=false;
+function updTick(){if(!updShown)return;const el=document.getElementById('upd');if(!el.hidden)return;
+  if(gameBusy()){if(!updWarned){updWarned=true;toast('有新版本了，這場結束後會更新');}return;}
+  el.hidden=false;}
+setInterval(updTick,2000);
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
@@ -953,52 +963,158 @@ const PCOL=['#f2b544','#6fd39a','#ff8fa3','#7cc4ff','#c9a0ff','#ffa36b','#5fd0c8
 const LINES=['就這樣？😏','承讓了🙏','太簡單了吧','下面的跟上啊','我是不是太強了','你們有在努力嗎','再練練吧','站在上面空氣比較好','叫我 1A2B 之王👑','不好意思又是我','下一局讓你們一點','這題閉著眼睛都猜得到','跪安吧','冠軍的位置有點擠喔'];
 function hashStr(s){let x=0;for(const c of String(s))x=(x*31+c.charCodeAt(0))>>>0;return x;}
 function svgLying(x,y,name,color,flip,i,gave,prop,look,who){
-  if(look)color=LOOK.shirt[look.shirt]; const lh=look?hairOf(look):null;
-  const s=flip?-1:1, fs=Math.min(10,64/Math.max(2,[...name].length));
-  return `<g class="squish" ${who?`data-who="${esc(who)}"`:''} style="animation-delay:${i*.2}s"><g transform="translate(${x} ${y}) scale(${s} 1)">
-   <ellipse cx="-30" cy="5" rx="9" ry="4" fill="${color}" opacity=".85"/><ellipse cx="-30" cy="-3" rx="9" ry="4" fill="${color}" opacity=".85"/>
-   <ellipse cx="0" cy="0" rx="30" ry="10" fill="${color}"/>
-   <path d="M18 5 L46 9" stroke="${color}" stroke-width="5" stroke-linecap="round"/><path d="M14 -6 L40 -12" stroke="${color}" stroke-width="5" stroke-linecap="round"/>
-   ${prop==='dino'?`<path d="M26 -11 l3 -7 l3 6 z M32 -13 l3 -7 l3 7 z" fill="${DD}"/><circle cx="34" cy="-2" r="11" fill="${DG}"/><path d="M38 -8 h10 q6 0 6 6 q0 6 -6 6 h-10 z" fill="${DG}"/><path d="M31 -7 l5 5 m0 -5 l-5 5" stroke="#2f3a2f" stroke-width="1.6" stroke-linecap="round"/><path d="M42 4 l2 3 l2 -3 l2 3 l2 -3" stroke="#fff" stroke-width="1.2" fill="none"/>`:`${lh&&lh.b?`<g transform="translate(34 -2) scale(.5)">${lh.b}</g>`:''}<circle cx="34" cy="-2" r="11" fill="${look?LOOK.skin[look.skin]:'#ffe0c2'}"/>
-   <path d="M29 -6 l4 4 m0 -4 l-4 4 M36 -6 l4 4 m0 -4 l-4 4" stroke="#333" stroke-width="1.6" stroke-linecap="round"/>
-   <ellipse cx="35" cy="5" rx="3" ry="1.6" fill="#333"/>${costume(prop)?`<g transform="translate(34 -2) scale(.5)">${costume(prop).h}${costume(prop).o}</g>`:''}${look?`<g transform="translate(34 -2) scale(.5)">${lh.f}${accOf(look)}</g>`:''}`}
-   ${gave?`<path d="M-14 -8 L-20 -40" stroke="#8a6a4a" stroke-width="2.2" stroke-linecap="round"/><path d="M-20 -40 q8 2 16 -2 q-2 7 2 13 q-8 3 -15 0 z" fill="#fff" stroke="#ccc" stroke-width=".8"/>`:''}
-  </g>
-  <text x="${x-4*s}" y="${y+3.5}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#1b2331" font-family="Noto Sans TC,sans-serif">${esc(name)}</text>
-  <g transform="translate(${x+34*s} ${y-20})"><g class="spin"><text x="-8" y="0" font-size="8" fill="#ffe066">★</text><text x="3" y="-4" font-size="7" fill="#ffe066">★</text><text x="-2" y="5" font-size="6" fill="#ffe066">★</text></g></g></g>`;
+  const L=pxLying({look,color,prop,gave,boss:!!prop},3), s=flip?-1:1, fs=Math.min(10,64/Math.max(2,[...name].length));
+  return `<g class="squish" ${who?`data-who="${esc(who)}"`:''} style="animation-delay:${i*.2}s"><g transform="translate(${x} ${y}) scale(${s} 1)">${L.svg}</g>
+  <text x="${x+L.bodyX*s}" y="${y+3.5}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#1b2331" font-family="Noto Sans TC,sans-serif">${esc(name)}</text>
+  <g transform="translate(${x+L.headX*s} ${y-L.h/2-6})"><g class="spin"><text x="-8" y="0" font-size="8" fill="#ffe066">★</text><text x="3" y="-4" font-size="7" fill="#ffe066">★</text><text x="-2" y="5" font-size="6" fill="#ffe066">★</text></g></g></g>`;
 }
-const DG='#7cc576', DD='#4f9a52';
-const HC={blk:'#2b2b33',brn:'#5a3b2a',gry:'#8d939c',wht:'#e9e9ee',prm:'#6b3f5e'};
-const cap=c=>`<path d="M-22 1 C-24 -33 24 -33 22 1 C18 -10 10 -14 0 -13 C-10 -14 -18 -10 -22 1Z" fill="${c}"/>`;
-const shine=`<path d="M-4 -19 q8 -3 15 2" stroke="#fff" stroke-width="1.6" fill="none" opacity=".35" stroke-linecap="round"/>`;
-const bald=c=>`<path d="M-21 6 q-4 -15 6 -19 q-4 10 -1 19z M21 6 q4 -15 -6 -19 q4 10 1 19z" fill="${c}"/><path d="M-8 -17 q6 -4 13 -2" stroke="#fff" stroke-width="2" fill="none" opacity=".6" stroke-linecap="round"/>`;
-const spiky=c=>`<path d="M-22 1 L-25 -11 L-17 -14 L-20 -25 L-9 -20 L-6 -31 L1 -21 L8 -30 L10 -19 L20 -24 L17 -13 L25 -10 L22 1 C18 -10 10 -13 0 -12 C-10 -13 -18 -10 -22 1Z" fill="${c}"/>`;
-const perm=c=>{let s='';for(let i=0;i<=8;i++){const a=Math.PI*(1+i/8);s+=`<circle cx="${(Math.cos(a)*20).toFixed(1)}" cy="${(Math.sin(a)*20-1).toFixed(1)}" r="8.5" fill="${c}"/>`;}return s+`<circle cx="-8" cy="-22" r="7" fill="${c}"/><circle cx="8" cy="-22" r="7" fill="${c}"/>`;};
-const gRound=`<g fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="1.8"><circle cx="-8" cy="-2" r="6.5"/><circle cx="8" cy="-2" r="6.5"/></g><path d="M-1.5 -2 h3 M-14.5 -3 l-7 -2 M14.5 -3 l7 -2" stroke="#222" stroke-width="1.6"/>`;
-const gRect=`<g fill="rgba(255,255,255,.15)" stroke="#222" stroke-width="2"><rect x="-15" y="-7" width="13" height="9" rx="2"/><rect x="2" y="-7" width="13" height="9" rx="2"/></g><path d="M-2 -4 h4 M-15 -4 l-6 -2 M15 -4 l6 -2" stroke="#222" stroke-width="1.6"/>`;
-const gSun=`<path d="M-17 -6 h15 q0 9 -7 9 q-8 0 -8 -9z M2 -6 h15 q0 9 -8 9 q-7 0 -7 -9z" fill="#1a1a1a"/><path d="M-17 -6 h34" stroke="#1a1a1a" stroke-width="2"/><path d="M-13 -4 h4 M6 -4 h4" stroke="#fff" stroke-width="1.3" opacity=".6"/>`;
-const stache=c=>`<path d="M-10 6 q4 -5 10 -1 q6 -4 10 1 q-4 3 -10 1 q-6 2 -10 -1z" fill="${c}"/>`;
-const beard=c=>`<path d="M-18 6 q1 19 18 19 q17 0 18 -19 q-6 9 -18 9 q-12 0 -18 -9z" fill="${c}"/>`;
-const lapels=(x,t)=>`<path d="M${x-15} ${t+54} L${x-4} ${t+70} L${x-9} ${t+95} L${x-18} ${t+92}Z M${x+15} ${t+54} L${x+4} ${t+70} L${x+9} ${t+95} L${x+18} ${t+92}Z" fill="#000" opacity=".28"/><path d="M${x-8} ${t+52} L${x} ${t+59} L${x+8} ${t+52}Z" fill="#fff"/>`;
-const badge=(x,t,c)=>`<path d="M${x-9} ${t+53} L${x-13} ${t+62} M${x+9} ${t+53} L${x-9} ${t+63}" stroke="${c}" stroke-width="1.6"/><rect x="${x-17}" y="${t+62}" width="9" height="11" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1"/><path d="M${x-15} ${t+68} h5 M${x-15} ${t+70.5} h4" stroke="${c}" stroke-width=".9"/>`;
-const COS={
- yuan:{h:`<circle cx="0" cy="-25" r="9" fill="${HC.brn}"/>`+cap(HC.brn),o:gRound,b:(x,t)=>`<path d="M${x-13} ${t+62} h26 v29 q-13 5 -26 0z" fill="#fff" opacity=".9"/><path d="M${x-7} ${t+84} h14" stroke="#e8a0b4" stroke-width="2"/><circle cx="${x-8}" cy="${t+66}" r="2.2" fill="#ff8fa3"/><circle cx="${x+8}" cy="${t+66}" r="2.2" fill="#7cc4ff"/>`},
- creepy:{h:`<path d="M-22 2 C-25 -34 22 -35 23 -2 C14 -16 -2 -10 -8 -18 C-10 -10 -18 -6 -22 2Z" fill="${HC.blk}"/>`,o:`<path d="M-15 -15 q-7 -9 -3 -17 q3 9 9 12z M15 -15 q7 -9 3 -17 q-3 9 -9 12z" fill="#d6455a"/>`,ra:1,b:(x,t)=>`<rect x="${x+36}" y="${t+53}" width="11" height="13" rx="2" fill="#fff" stroke="#b8c2d6" stroke-width="1"/><path d="M${x+47} ${t+56} q5 1 0 7" stroke="#b8c2d6" stroke-width="1.8" fill="none"/><path d="M${x+39} ${t+50} q2 -3 0 -6 M${x+43} ${t+50} q2 -3 0 -6" stroke="#bbb" stroke-width="1.2" fill="none"/>`},
- chief:{h:cap(HC.blk)+`<path d="M-9 -21 q8 3 24 4" stroke="#fff" stroke-width="1.3" fill="none" opacity=".4"/>`,o:gRect,b:(x,t)=>badge(x,t,'#3a7bd5')},
- principal:{h:bald(HC.gry),o:stache(HC.gry),ra:1,b:(x,t)=>`<path d="M${x+42} ${t+67} L${x+45} ${t+51}" stroke="#333" stroke-width="5" stroke-linecap="round"/><circle cx="${x+45.5}" cy="${t+47}" r="5.5" fill="#9aa3b5" stroke="#555" stroke-width="1.2"/><path d="M${x+42.5} ${t+45} h6 M${x+41.5} ${t+48} h8" stroke="#555" stroke-width=".8"/>`},
- dean:{h:cap(HC.gry)+shine,o:gRect,b:lapels},
- reviewer:{h:spiky(HC.gry),o:gRound+beard(HC.gry),ra:1,la:1,b:(x,t)=>`<path d="M${x+38} ${t+72} L${x+49} ${t+50}" stroke="#d63b3b" stroke-width="4" stroke-linecap="round"/><path d="M${x+49} ${t+50} l1.5 -5 l-4 3.5z" fill="#222"/><rect x="${x-51}" y="${t+50}" width="16" height="20" rx="1.5" fill="#fff"/><path d="M${x-48} ${t+55} h10 M${x-48} ${t+59} h10 M${x-48} ${t+63} h7" stroke="#bbb" stroke-width="1"/><path d="M${x-48} ${t+54} l9 11 M${x-39} ${t+54} l-9 11" stroke="#d63b3b" stroke-width="1.8"/>`},
- slacker:{h:spiky(HC.brn),o:`<path d="M-23 2 q0 -32 23 -32 q23 0 23 32" stroke="#444" stroke-width="4" fill="none"/><rect x="-28" y="-5" width="9" height="15" rx="3.5" fill="#ff6b5f"/><rect x="19" y="-5" width="9" height="15" rx="3.5" fill="#ff6b5f"/><text x="26" y="-26" font-size="12" font-weight="800" fill="#9cc1ff" font-family="sans-serif">Z</text><text x="35" y="-34" font-size="8" font-weight="800" fill="#9cc1ff" font-family="sans-serif">z</text>`,ra:1,b:(x,t)=>`<path d="M${x-5} ${t+54} v12 M${x+5} ${t+54} v12" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="${x-5}" cy="${t+67}" r="1.6" fill="#fff"/><circle cx="${x+5}" cy="${t+67}" r="1.6" fill="#fff"/><rect x="${x+37}" y="${t+50}" width="9" height="15" rx="2" fill="#222"/><rect x="${x+38.5}" y="${t+52}" width="6" height="10" fill="#7cc4ff"/>`},
- prof:{h:bald(HC.wht),o:gRound+beard(HC.wht),ra:1,b:(x,t)=>`<path d="M${x-19} ${t+60} v34 h10 l-1 -30z M${x+19} ${t+60} v34 h-10 l1 -30z" fill="#fff" opacity=".85"/><path d="M${x+40} ${t+67} L${x+62} ${t+34}" stroke="#a0703a" stroke-width="2.4" stroke-linecap="round"/><circle cx="${x+62}" cy="${t+34}" r="2" fill="#d63b3b"/>`},
- tycoon:{h:cap(HC.blk)+shine+shine.replace('M-4 -19','M-12 -15'),o:stache(HC.blk)+`<rect x="6" y="7.5" width="14" height="3.4" rx="1.7" fill="#8a5a3a"/><circle cx="20" cy="9.2" r="1.8" fill="#ff7a3a"/><path d="M21 5 q3 -4 0 -8 q-3 -4 1 -8" stroke="#ccc" stroke-width="1.3" fill="none" opacity=".7"/>`,b:(x,t)=>lapels(x,t)+`<path d="M${x-11} ${t+53} q11 15 22 0" stroke="#ffd34d" stroke-width="2.4" fill="none" stroke-dasharray="2.5 1.5"/>`},
- pm:{h:cap(HC.brn),o:`<path d="M-23 0 q0 -30 23 -30 q23 0 23 30" stroke="#444" stroke-width="2.6" fill="none"/><rect x="-27" y="-6" width="8" height="12" rx="3" fill="#444"/><path d="M-23 5 q2 11 14 10" stroke="#444" stroke-width="2" fill="none"/><circle cx="-8" cy="15" r="2.6" fill="#444"/>`,la:1,b:(x,t)=>`<rect x="${x-53}" y="${t+50}" width="17" height="22" rx="2" fill="#a0703a"/><rect x="${x-51}" y="${t+53}" width="13" height="17" fill="#fff"/><rect x="${x-47.5}" y="${t+48}" width="6" height="4" rx="1" fill="#888"/><path d="M${x-49} ${t+57} h9 M${x-49} ${t+61} h9 M${x-49} ${t+65} h6" stroke="#f2b544" stroke-width="1.4"/>`},
- client:{h:cap(HC.blk)+shine,o:`<path d="M-15 -17 h12 q0 6 -6 6 q-6 0 -6 -6z M3 -17 h12 q0 6 -6 6 q-6 0 -6 -6z" fill="#1a1a1a"/><path d="M-15 -17 h30" stroke="#1a1a1a" stroke-width="1.6"/>`,b:(x,t)=>`<path d="M${x-11} ${t+53} q11 16 22 0" stroke="#ffd34d" stroke-width="2.6" fill="none" stroke-dasharray="2.5 1.5"/><circle cx="${x}" cy="${t+62}" r="3.2" fill="#ffd34d" stroke="#e0a800"/><circle cx="${x-16}" cy="${t+86}" r="2.6" fill="#ffd34d" stroke="#e0a800"/>`},
- banker:{h:cap(HC.blk)+`<path d="M6 -22 q-2 5 -2 9" stroke="#fff" stroke-width="1.2" opacity=".4" fill="none"/>`,o:gRect,b:(x,t)=>`<path d="M${x-17} ${t+57} L${x-5} ${t+72} L${x-6} ${t+95} L${x-16} ${t+93}Z M${x+17} ${t+57} L${x+5} ${t+72} L${x+6} ${t+95} L${x+16} ${t+93}Z" fill="#2f3d5c" opacity=".75"/>`+badge(x,t,'#d6455a')},
- karen:{h:perm(HC.prm),o:gSun,b:(x,t)=>`<path d="M${x-43} ${t+76} h15 l3 15 h-21z" fill="#b5476a"/><path d="M${x-40} ${t+76} q5 -11 9 0" stroke="#b5476a" stroke-width="2.2" fill="none"/><circle cx="${x-35}" cy="${t+82}" r="1.8" fill="#ffd34d"/>`},
- official:{h:cap(HC.gry)+`<path d="M-9 -21 q8 3 24 4" stroke="#fff" stroke-width="1.3" fill="none" opacity=".4"/>`,o:gRect,la:1,b:(x,t)=>lapels(x,t)+`<path d="M${x-52} ${t+52} h18 v20 h-18z" fill="#e8d8a8"/><path d="M${x-52} ${t+52} l9 7 l9 -7" stroke="#c8b888" fill="none"/>`},
- rep:{h:cap(HC.blk)+shine,o:'',b:(x,t)=>`<path d="M${x-17} ${t+56} L${x-9} ${t+53} L${x+19} ${t+86} L${x+17} ${t+95}Z" fill="#e53935"/><text transform="translate(${x+5} ${t+76}) rotate(48)" font-size="6.5" font-weight="800" fill="#fff" text-anchor="middle" font-family="Noto Sans TC,sans-serif">當選</text>`}
+/* ===== 像素風角色引擎 ===== 每格一個字元，'.' 不動、'_' 擦掉；外框自動補 */
+const PXO='#1e1b2e', PXS=5;
+function shadeC(h,f){let n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const t=f<0?0:255,k=Math.abs(f);r=Math.round(r+(t-r)*k);g=Math.round(g+(t-g)*k);b=Math.round(b+(t-b)*k);return '#'+((1<<24)|(r<<16)|(g<<8)|b).toString(16).slice(1);}
+function pxPut(M,rows,pal,ox,oy){rows.forEach((r,y)=>{for(let x=0;x<r.length;x++){const c=r[x];if(c==='.')continue;const k=(x+(ox||0))+','+(y+(oy||0));if(c==='_')M.delete(k);else if(pal[c])M.set(k,pal[c]);}});return M;}
+const pxCells=M=>[...M].map(([k,c])=>{const i=k.indexOf(',');return{x:+k.slice(0,i),y:+k.slice(i+1),c};});
+function pxBox(M){let a=1e9,b=1e9,c=-1e9,d=-1e9;for(const k of M.keys()){const i=k.indexOf(','),x=+k.slice(0,i),y=+k.slice(i+1);if(x<a)a=x;if(y<b)b=y;if(x>c)c=x;if(y>d)d=y;}return{x0:a,y0:b,x1:c,y1:d};}
+function pxOutline(M){const O=new Map();for(const k of M.keys()){const i=k.indexOf(','),x=+k.slice(0,i),y=+k.slice(i+1);[[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{const q=(x+dx)+','+(y+dy);if(!M.has(q))O.set(q,PXO);});}return O;}
+function pxPaths(M){const by={};pxCells(M).forEach(p=>{(by[p.c]=by[p.c]||{})[p.y]=(by[p.c][p.y]||[]).concat(p.x);});
+  let s='';for(const c in by){let d='';for(const y in by[c]){const xs=by[c][y].sort((a,b)=>a-b);let i=0;while(i<xs.length){let j=i;while(j+1<xs.length&&xs[j+1]===xs[j]+1)j++;d+=`M${xs[i]} ${y}h${j-i+1.05}v1.05h${-(j-i+1.05)}z`;i=j+1;}}s+=`<path fill="${c}" d="${d}"/>`;}return s;}
+/* 身體模板（16 寬、22 高；頭在第 5–13 行，身體 14–21 行） */
+const PX_BODY=["","","","","",
+"...SSSSSSSSSS...","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","..SSSSSSSSSSSS..","...ssssssssss...",
+"....OOOOOOOO....","...OOOOOOOOOO...","...oOOOOOOOOo...","...SoOOOOOOoS...","....oooooooo....","....PPPPPPPP....","....PPP..PPP....","...DDDD..DDDD..."];
+/* 表情（第 7–12 行） */
+const PX_FACE={
+ normal:["","",".....K....K.....",".....K....K.....","...C........C...",".......KK......."],
+ wink:  ["","","..........K.....","....KK....K.....","...C........C...",".......KK......."],
+ A:     ["","....KK....KK....",".....K....K.....",".....K....K.....","................","........KKK....."],
+ laugh: ["","",".....K....K.....","....K.K..K.K....","...C...MM...C...",".......MM......."],
+ B:     ["","","...KKKKKKKKKK...","...KWKK..KWKK...","....KK....KK....",".......KK......."],
+ calm:  ["","","","....KK....KK....","...C........C...",".......KK......."],
+ boss:  ["....KK....KK....","......K..K......",".....K....K.....",".....K....K.....",".......KK.......","......K..K......"],
+ hurt:  ["","....K.K..K.K....",".....K....K.....","....K.K..K.K....","................",".......MM......."]
 };
-const costume=k=>k&&COS[k]||null;
+PX_FACE.C=PX_FACE.laugh;
+const PX_FPAL={K:'#1e1b2e',W:'#ffffff',C:'#ff8f8f',M:'#7a2a2a'};
+/* 髮型（[起始行, 格子]） */
+const PX_HAIR={
+ none:[6,["....LL.........."]],
+ short:[3,["....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHH..","..HHHHHHHHHHHH..","..HH........HH..","..H..........H.."]],
+ side:[3,["...HHHHHHHHH....","..HHhhHHHHHHH...","..HHHHHHHHHHHH..","..HHHHHHHHHHHH..","..HHHHHHH...HH..","..HHHH.......H..","..H............."]],
+ spiky:[1,["...H..H...H..H..","...HH.HH.HH.HH..","..HHHHHHHHHHHH..","..HHhHHHHHHHHH..","..HHHHHHHHHHHH..","..HHH.HHH.HHHH..","..HH.........H.."]],
+ long:[3,["....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHH..",".HHHHHHHHHHHHHH.",".HHH........HHH.",".HH..........HH.",".HH..........HH.",".HH..........HH.",".HH..........HH.",".HH..........HH.",".HH..........HH.",".HH..........HH.",".H............H.",".H............H."]],
+ pony:[3,["....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHHHH","..HHHHHHHHHHHHHh","..HH........HHHH","..H..........HHH","..............HH","..............Hh","..............HH","...............H"]],
+ bun:[0,["......HHHH......",".....HHhHHH.....","......HHHH......","....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHH..","..HHHHHHHHHHHH..","..HH........HH..","..H..........H.."]],
+ curly:[2,["...HH.HHHH.HH...","..HHHHHHHHHHHH..",".HHhHHHhHHHHhHH.",".HHHHHHHHHHHHHH.",".HHHhHHHHhHHHHH.",".HHH........HHH.",".HH..........HH.",".H............H."]],
+ bald:[6,["....LL..........","..H..........H..","..HH........HH..","..H..........H.."]]
+};
+/* 配件／服裝／道具（[起始行, 格子, 起始欄]） */
+const PX_PART={
+ glasses:[8,["...GGGG..GGGG...","...G..GGGG..G...","...G..G..G..G...","...GGGG..GGGG..."]],
+ cap:[1,["......RR........","....RRRRRR......","...RRRRRRRRR....","..RRRRWRRRRRR...","..rrrrrrrrrrrrrr"]],
+ beanie:[0,[".......WW.......","......WWWW......",".....TTTTTT.....","...TTTTTTTTTT...","..TTtTTtTTtTTT..","..tttttttttttt..","..tttttttttttt.."]],
+ bow:[2,["..........BB.BB.","..........BBbBB.","..........BB.BB."]],
+ phones:[2,[".....NNNNNN.....","...NN......NN...","..N..........N..","..N..........N..","..N..........N..","..N..........N..",".QQ..........QQ.",".QQ..........QQ.",".QQ..........QQ."]],
+ phonesR:[2,[".....NNNNNN.....","...NN......NN...","..N..........N..","..N..........N..","..N..........N..","..N..........N..",".RR..........RR.",".RR..........RR.",".RR..........RR."]],
+ headset:[2,[".....NNNNNN.....","...NN......NN...","..N..........N..","..N..........N..","..N..........N..","..N..........N..",".NN..........NN.",".NN..........NN.",".NN..............","..N.............","...NNK.........."]],
+ zz:[-2,["..............ZZZZ","................Z.","...............Z..","..............ZZZZ"]],
+ horns:[0,["..R..........R..","..RR........RR..","...RR......RR..."]],
+ stache:[11,[".....HHHHHH.....","....H......H...."]],
+ beard:[11,["..H..........H..","..HH........HH..","...HHHHHHHHHH...",".....HHHHHH....."]],
+ cigar:[12,["..........NNNNF."]],
+ shades:[4,["...KKKK..KKKK..."]],
+ tie:[14,[".......RR.......",".......RR.......","......RRRR......",".......rr......."]],
+ suit:[14,["....JJW..WJJ....","...JJJW..WJJJ...","...JJJ....JJJ...","...SJJ....JJS...","....JJ....JJ...."]],
+ badge:[14,[".....B..........","....B...........","....WW..........","....BW.........."]],
+ apron:[15,[".....WWWWWW.....",".....WCWWBW.....",".....WWWWWW.....","....WWWWWWWW...."]],
+ coat:[14,["....WW....WW....","...WWW....WWW...","...WWW....WWW...","...SWW....WWS...","....WW....WW...."]],
+ chain:[15,["....Y......Y....",".....Y....Y.....","......YYYY......"]],
+ vest:[15,["...JJJ....JJJ...","...JJJJ..JJJJ...","...SJJJ..JJJS...","....JJJ..JJJ...."]],
+ sash:[14,["....RR..........",".....RR.........","......RWR.......","........RR......",".........RR....."]],
+ mug:[12,[".............L..","............L...",".............WW.",".............WWL",".............WWL",".............WW."]],
+ mic:[13,[".............LL.",".............LL.",".............K..",".............K..",".............K.."]],
+ pen:[13,["................K","...............R.","..............R..",".............R..."]],
+ phone:[14,[".............KK.",".............BB.",".............BB.",".............KK."]],
+ pointer:[12,[".................R","................N.","...............N..","..............N...",".............N....","............N....."]],
+ paper:[13,["WWW.","RWR.","WRW.","RWR."],-1],
+ clip:[12,[".L..","NNN.","NWN.","NWN.","NWN.","NNN."],-1],
+ bag:[15,["E.E.","EEE.","EeE.","EEE."],-1],
+ env:[15,["EEEE","eEEe","EeeE"],-2],
+ flag:[9,["WWWN","WWWN","WW.N","...N","...N","...N","...N","...N","...NN"],-2]
+};
+const PX_PPAL=(hc,shirt)=>({H:hc,h:shadeC(hc,.28),G:'#2a2438',R:'#e04a4a',r:'#a83232',W:'#ffffff',T:'#5fd0c8',t:'#3fa8a0',B:'#3a7bd5',b:'#b8326a',
+  N:'#4a4a55',Q:'#7cc4ff',Z:'#9cc1ff',K:'#1e1b2e',F:'#ff7a3a',J:shadeC(shirt||'#9aa3b5',-.45),S:'#f7cba2',C:'#ff8fa3',Y:'#ffd23f',L:'#c9ced8',E:'#e8d8a8',e:'#c8b07a'});
+const PX_CROWN=["...B...RR...B...","...Y...YY...Y...","...YY.YYYY.YY...","...YYYYRRYYYY...","...yyyyyyyyyy..."];
+/* 恐龍家長（20 寬、21 高；眼睛另畫在表情層） */
+const PX_DINO=["....F..F..F.........","...FF.FF.FF.........","...GGGGGGGGGG.......","..GGGGGGGGGGGGG.....","..GHGGgGGGGgGGGGG...","..GHGGGgGGgGGGGGGGG.","..GGGGGGGGGGGGGGGGGG","..GgGGGGGGGGGGGGGGgG","..GGGGGGGGGGGGGGGGGG","..GgGGKKKKKKKKKKKKKK","..GGGGLTLTLTLTLTLTL.","..gGGLLLLLLLLLLLLL..","...gggllllllllll....",".....UUWRRWUU.......","....UUUWRRWUUU......","....UUUURRUUUU......","....SUUURRUUUS......",".....uuuuuuuu.......",".....PPPPPPPP.......",".....PPP..PPP.......","....DDDD..DDDD......"];
+const PX_DPAL={G:'#5cbf4a',g:'#3a8a3a',H:'#8de070',L:'#c4ea8f',l:'#9ccc6a',T:'#ffffff',F:'#f28c3a',U:'#4a6fc0',u:'#33508e',W:'#ffffff',R:'#e03a4a',S:'#f7cba2',P:'#2c3550',D:'#5a4a62',K:'#1e1b2e'};
+const PX_DFACE={normal:["","","","","","",".......K..K.........",".......K..K........."],
+ boss:["","","","",".....K......K.......","......KK..KK........",".......K..K.........",".......K..K........."],
+ hurt:["","","","","",".....K.KK.K.........","......K..K..........",".....K.KK.K........."]};
+/* 魔王造型 */
+const PX_VIL={
+ yuan:{hair:'bun',hc:'#5a3b2a',parts:['glasses','apron']},
+ creepy:{hair:'side',hc:'#2b2b33',parts:['horns','mug']},
+ chief:{hair:'short',hc:'#2b2b33',parts:['glasses','badge']},
+ principal:{hair:'bald',hc:'#8d939c',parts:['stache','mic']},
+ dean:{hair:'short',hc:'#8d939c',parts:['glasses','suit']},
+ reviewer:{hair:'spiky',hc:'#8d939c',parts:['glasses','beard','pen','paper']},
+ slacker:{hair:'spiky',hc:'#5a3b2a',parts:['phonesR','zz','phone'],notie:1},
+ prof:{hair:'bald',hc:'#e9e9ee',parts:['glasses','beard','coat','pointer']},
+ tycoon:{hair:'short',hc:'#2b2b33',parts:['stache','cigar','suit','chain']},
+ pm:{hair:'short',hc:'#5a3b2a',parts:['headset','clip']},
+ client:{hair:'short',hc:'#2b2b33',parts:['shades','chain']},
+ banker:{hair:'side',hc:'#2b2b33',parts:['glasses','vest','badge']},
+ karen:{hair:'curly',hc:'#6b3f5e',face:'B',parts:['bag'],notie:1},
+ official:{hair:'short',hc:'#8d939c',parts:['glasses','suit','env']},
+ rep:{hair:'short',hc:'#2b2b33',parts:['sash'],notie:1}
+};
+const PX_HAT=['cap','beanie'];
+/* 組出一個角色：回傳 {M, faces:{名稱:Map}, cx, hd:[x0,y0,x1,y1]} */
+function pxBuild(o){o=o||{};
+  if(o.prop==='dino'){const M=pxPut(new Map(),PX_DINO,PX_DPAL);const F={};for(const k in PX_DFACE)F[k]=pxPut(new Map(),PX_DFACE[k],{K:'#1e1b2e'});
+    if(o.gave)pxPut(M,PX_PART.flag[1],PX_PPAL('#000'),PX_PART.flag[2]+1,PX_PART.flag[0]+4);
+    return{M,F,cx:9,hd:[2,2,15,12],face:o.boss?'boss':'normal'};}
+  const lk=o.look, v=PX_VIL[o.prop]||null;
+  const skin=lk?LOOK.skin[lk.skin]:'#f7cba2', shirt=lk?LOOK.shirt[lk.shirt]:(o.color||'#9aa3b5');
+  const hc=v?v.hc:lk?LOOK.hc[lk.hc]:'#2b2b33', pal=PX_PPAL(hc,shirt);
+  const M=pxPut(new Map(),PX_BODY,{S:skin,s:shadeC(skin,-.16),O:shirt,o:shadeC(shirt,-.22),P:'#4b5a8e',D:'#6b3e2a'});
+  const hair=v?v.hair:lk?LOOK.hair[lk.hair][0]:'short';
+  const H=PX_HAIR[hair]; if(H)pxPut(M,H[1],Object.assign({},pal,{L:shadeC(skin,.45)}),0,H[0]);
+  const parts=v?v.parts.slice():[]; if(o.boss&&!(v&&v.notie))parts.unshift('tie');
+  if(lk){const a=LOOK.acc[lk.acc][0];if(a!=='none')parts.push(a);}
+  if(o.gave)parts.push('flag');
+  parts.forEach(p=>{const d=PX_PART[p];if(d)pxPut(M,d[1],Object.assign({},pal,p==='suit'||p==='vest'||p==='coat'?{S:skin}:{}),d[2]||0,d[0]);});
+  if(o.crown){let top=99;for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12&&y<top)top=y;}pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
+  const F={};for(const k in PX_FACE)F[k]=pxPut(new Map(),PX_FACE[k],PX_FPAL,0,7);
+  const face=o.face||(v&&v.face)||(o.boss?'boss':lk?LOOK.face[lk.face][0]:'normal');
+  return{M,F,cx:8,hd:[2,3,14,14],face};
+}
+/* 站姿（雙腳底部在 feetY、中心在 x） */
+function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-b.cx*px,y0=feetY-(bx.y1+1)*px;
+  const T=`transform="translate(${x0} ${y0}) scale(${px})"`;
+  const body=`<g ${T} shape-rendering="crispEdges">${pxPaths(pxOutline(b.M))}${pxPaths(b.M)}</g>`;
+  const fn=`<g class="fn" ${T} shape-rendering="crispEdges">${pxPaths(b.F[b.face]||b.F.normal)}</g>`+(b.face==='C'?`<text class="fn" x="${x+30}" y="${y0+7*px}" font-size="13" font-weight="800" fill="#ffd34d" stroke="#1e1b2e" stroke-width="3" paint-order="stroke" font-family="Noto Sans TC,sans-serif">哈哈</text>`:'');
+  const fh=`<g class="fh" ${T} shape-rendering="crispEdges">${pxPaths(b.F.hurt)}</g>`;
+  const [a,c,d,e]=b.hd, hd=`<rect class="hd" x="${x0+a*px}" y="${y0+c*px}" width="${(d-a)*px}" height="${(e-c)*px}" fill="none"/>`;
+  return{svg:body+fn+fh+hd,top:y0+bx.y0*px};
+}
+/* 倒地（旋轉 90 度，頭朝右） */
+function pxLying(o,px){const b=pxBuild(o),M=new Map(b.M);(b.F.hurt||new Map()).forEach((c,k)=>M.set(k,c));
+  const bx=pxBox(M),R=new Map();const up=o.prop==='dino';M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);R.set((bx.y1-y)+','+(up?-x:x),c);});
+  const rb=pxBox(R),w=rb.x1-rb.x0+1,h=rb.y1-rb.y0+1;
+  const headX=(bx.y1-(b.hd[1]+b.hd[3])/2-rb.x0-w/2)*px, bodyX=(bx.y1-16.5-rb.x0-w/2)*px;
+  return{svg:`<g transform="translate(${-(rb.x0+w/2)*px} ${-(rb.y0+h/2)*px}) scale(${px})" shape-rendering="crispEdges">${pxPaths(pxOutline(R))}${pxPaths(R)}</g>`,headX,bodyX,h:h*px};
+}
+/* 只取頭部的小圖示 */
+function pxHead(o){const b=pxBuild(o),lim=o.prop==='dino'?12:13,M=new Map();
+  b.M.forEach((c,k)=>{if(+k.split(',')[1]<=lim)M.set(k,c);});const F=b.F[b.face]||b.F.normal;
+  const bx=pxBox(M),w=bx.x1-bx.x0+3,h=bx.y1-bx.y0+3,s=Math.max(w,h);
+  return `<svg viewBox="${bx.x0-1-(s-w)/2} ${bx.y0-1-(s-h)/2} ${s} ${s}" shape-rendering="crispEdges" aria-hidden="true">${pxPaths(pxOutline(M))}${pxPaths(M)}${pxPaths(F)}</svg>`;}
+function pxIcon(rows,pal){const M=pxPut(new Map(),rows,pal),O=pxOutline(M),bx=pxBox(O);
+  return `<svg viewBox="${bx.x0} ${bx.y0} ${bx.x1-bx.x0+1} ${bx.y1-bx.y0+1}" shape-rendering="crispEdges" aria-hidden="true">${pxPaths(O)}${pxPaths(M)}</svg>`;}
+const PX_GHOST=[".....WWWWWW.....","...WWWWWWWWWW...","..WWWWWWWWWWWW..",".WWWWWWWWWWWWWW.",".WWWWWWWWWWWWWW.",".WWWKKWWWWKKWWW.",".WWWKKWWWWKKWWW.",".WWWKKWWWWKKWWW.","WWCWWWWWWWWWWCWW","WWWWWWWKKWWWWWWW",".WWWWWWKKWWWWWW.",".WWWWWWKKWWWWWW.",".wWWWWWWWWWWWWw.",".wwWWWWWWWWWWww.",".wwwWWWwwWWWwww.",".ww.wwwwwwwwwww.",".w...ww..ww..ww."];
+const PX_ANGEL=["....yYYYYYYy....","................",".....HHHHHH.....","....HHHHHHHH....","WW..HSSSSSSH..WW","WWW.SSSSSSSS.WWW","WWWWSKSSSSKSWWWW",".WWWSKSSSSKSWWW.","..WWSCSSSSCSWW..","...WSSSKKSSSW...","....wRRRRRRw....",".....RRRRRR.....","....RRRRRRRR....","....RrRRRRrR....","...RRRRRRRRRR...","...rrrrrrrrrr..."];
+function ghostSVG(){return pxIcon(PX_GHOST,{W:'#f4f6fb',w:'#c9d1e2',K:'#1e1b2e',C:'#ffb3c1'});}
+function angelSVG(){return pxIcon(PX_ANGEL,{Y:'#ffd34d',y:'#e0a800',W:'#ffffff',w:'#d9e2f2',H:'#f2c94c',S:'#ffe0c2',K:'#1e1b2e',C:'#ff9a9a',R:'#fff4c2',r:'#e9d58a'});}
 const LOOK={
  skin:['#ffe0c2','#f7cfa4','#e3a97c','#c08559','#8d5a3b'],
  shirt:['#f2b544','#6fd39a','#ff8fa3','#7cc4ff','#c9a0ff','#ffa36b','#5fd0c8','#e0e36a','#f4f4f4','#b8c2d6'],
@@ -1013,28 +1129,7 @@ const lookStr=o=>LK.map(k=>o[k]).join('.');
 function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):hashStr('look_'+seed);const o={};LK.forEach((k,i)=>{o[k]=x%LOOK[k].length;x=Math.floor(x/LOOK[k].length)+(seed==null?Math.floor(Math.random()*997):i*131);});if(o.hair===0&&o.acc===0)o.hair=1;return o;}
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();ls.set('ab_look',lookStr(o));}return o;}
 function lookOf(id){const st=(typeof g==='function'&&g()&&g().seats)||{};return parseLook(st[id]&&st[id].look)||parseLook(((g()&&g().watchers)||{})[id]&&g().watchers[id].look)||(id===me?myLook():randLook(id));}
-function hairOf(o){const c=LOOK.hc[o.hc], t=LOOK.hair[o.hair][0];
-  const part=`<path d="M-9 -21 q8 3 24 4" stroke="#fff" stroke-width="1.3" fill="none" opacity=".35"/>`;
-  switch(t){
-   case 'short': return {b:'',f:cap(c)+shine};
-   case 'side': return {b:'',f:`<path d="M-22 1 C-24 -33 24 -33 22 1 C20 -9 14 -12 6 -12 C-2 -15 -12 -16 -22 1Z" fill="${c}"/>`+part};
-   case 'spiky': return {b:'',f:spiky(c)};
-   case 'long': return {b:`<path d="M-25 -2 C-27 -30 27 -30 25 -2 L27 30 Q15 36 9 27 L-9 27 Q-15 36 -27 30Z" fill="${c}"/>`,f:`<path d="M-22 4 C-24 -33 24 -33 22 4 C19 -6 14 -12 8 -12 C4 -6 -4 -6 -8 -12 C-14 -12 -19 -6 -22 4Z" fill="${c}"/>`};
-   case 'pony': return {b:`<path d="M14 -17 q24 -4 21 24 q-1 10 -8 14 q4 -18 -13 -30z" fill="${c}"/>`,f:cap(c)};
-   case 'bun': return {b:`<circle cx="0" cy="-25" r="9.5" fill="${c}"/>`,f:cap(c)};
-   case 'curly': return {b:'',f:perm(c)};
-   default: return {b:'',f:''};
-  }}
-function accOf(o){switch(LOOK.acc[o.acc][0]){
-   case 'glasses': return gRound;
-   case 'cap': return `<path d="M-22 -9 C-22 -33 22 -33 22 -9Z" fill="#e04a4a"/><path d="M6 -11 q20 -5 30 2 q-12 4 -30 3z" fill="#b83232"/><circle cx="0" cy="-30" r="2" fill="#b83232"/><path d="M-6 -27 q6 -3 12 0" stroke="#fff" stroke-width="1.4" fill="none" opacity=".4"/>`;
-   case 'beanie': return `<path d="M-22 -9 C-22 -36 22 -36 22 -9Z" fill="#5fd0c8"/><rect x="-23" y="-13" width="46" height="8" rx="4" fill="#3fb0a8"/><path d="M-12 -14 v-10 M-4 -14 v-14 M4 -14 v-14 M12 -14 v-10" stroke="#3fb0a8" stroke-width="1.4"/><circle cx="0" cy="-33" r="5.5" fill="#fff"/>`;
-   case 'bow': return `<path d="M13 -18 l-10 -7 q-2 7 0 14z M13 -18 l10 -7 q2 7 0 14z" fill="#ff5c8a"/><circle cx="13" cy="-18" r="3.2" fill="#d63b6a"/>`;
-   case 'phones': return `<path d="M-23 2 q0 -32 23 -32 q23 0 23 32" stroke="#555" stroke-width="4" fill="none"/><rect x="-28" y="-5" width="9" height="15" rx="3.5" fill="#7cc4ff"/><rect x="19" y="-5" width="9" height="15" rx="3.5" fill="#7cc4ff"/>`;
-   default: return '';
-  }}
-function headSVG(o,face){const hr=hairOf(o);
-  return `<svg viewBox="-36 -42 72 72" aria-hidden="true">${hr.b}<circle cx="0" cy="0" r="22" fill="${LOOK.skin[o.skin]}"/>${hr.f}${faceSVG(face||LOOK.face[o.face][0],0,-30)}${accOf(o)}</svg>`;}
+function headSVG(o,face){return pxHead({look:o,face:face||null});}
 function openLook(){
   if(document.getElementById('nick'))readNick();
   let cur=Object.assign({},myLook());
@@ -1062,54 +1157,12 @@ function openLook(){
       lastHTML='';render();}};
   draw(); el.hidden=false;
 }
-function vilIcon(v){const k=v.p, c=costume(k);
-  if(k==='dino') return `<svg viewBox="-28 -36 70 70" aria-hidden="true">${dinoHead(0,-30)}${dinoFace('boss',0,-30)}</svg>`;
-  return `<svg viewBox="-32 -38 64 66" aria-hidden="true"><circle cx="0" cy="0" r="22" fill="#ffe0c2"/>${c?c.h:''}${faceSVG('boss',0,-30)}${c?c.o:''}</svg>`;}
-function dinoHead(x,t){
-  return `<path d="M${x-15} ${t+14} l5 -15 l6 13 z M${x-5} ${t+9} l6 -16 l6 15 z M${x+6} ${t+10} l6 -13 l4 14 z" fill="${DD}"/>
-   <circle cx="${x}" cy="${t+30}" r="22" fill="${DG}"/>
-   <path d="M${x+4} ${t+24} h22 q12 0 12 11 q0 11 -12 11 h-22 z" fill="${DG}"/>
-   <circle cx="${x+31}" cy="${t+30}" r="1.6" fill="#2f5a32"/><circle cx="${x+26}" cy="${t+29}" r="1.6" fill="#2f5a32"/>
-   <path d="M${x+10} ${t+46} l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4 l3 4 l3 -4" fill="#fff" stroke="#fff" stroke-width=".6"/>
-   <circle cx="${x-12}" cy="${t+36}" r="3" fill="#ff9a9a" opacity=".5"/>`;
-}
-function dinoFace(type,x,t){
-  const L=(d,w)=>`<path d="${d}" stroke="#2f3a2f" stroke-width="${w||2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-  if(type==='hurt') return L(`M${x-2} ${t+16} l9 9 M${x+7} ${t+16} l-9 9`,2.6)+`<path d="M${x+20} ${t+46} q4 10 9 2 z" fill="#ff7b9a"/>`;
-  const eye=`<circle cx="${x+3}" cy="${t+20}" r="6.5" fill="#fff"/><circle cx="${x+5}" cy="${t+21}" r="3.2" fill="#222"/>`;
-  if(type==='boss') return eye+L(`M${x-6} ${t+11} l16 6`,2.8)+L(`M${x+12} ${t+40} q12 3 22 -4`);
-  return eye+L(`M${x+12} ${t+40} q12 5 22 -2`);
-}
-function faceSVG(type,x,t){
-  const L=(d,w)=>`<path d="${d}" stroke="#333" stroke-width="${w||2.2}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const cheek=`<circle cx="${x-14}" cy="${t+35}" r="3" fill="#ff9a9a" opacity=".6"/><circle cx="${x+15}" cy="${t+35}" r="3" fill="#ff9a9a" opacity=".6"/>`;
-  switch(type){
-   case 'hurt': return L(`M${x-13} ${t+23} l6 4 l-6 4 M${x+13} ${t+23} l-6 4 l6 4`,2.4)+`<ellipse cx="${x}" cy="${t+40}" rx="4" ry="5" fill="#5a2a2a"/>`;
-   case 'A': return L(`M${x-13} ${t+28} h9 M${x+4} ${t+28} h9`,2.4)+`<circle cx="${x-6}" cy="${t+29.5}" r="1.8" fill="#333"/><circle cx="${x+11}" cy="${t+29.5}" r="1.8" fill="#333"/>`+L(`M${x-13} ${t+20} l9 2 M${x+4} ${t+17} q5 -3 10 1`)+L(`M${x-5} ${t+40} q9 2 14 -5`,2.4);
-   case 'B': return `<path d="M${x-17} ${t+24} h34" stroke="#111" stroke-width="2"/><path d="M${x-16} ${t+24} h13 q0 9 -7 9 q-6 0 -6 -9z M${x+3} ${t+24} h13 q0 9 -7 9 q-6 0 -6 -9z" fill="#111"/><path d="M${x-12} ${t+26} h4 M${x+7} ${t+26} h4" stroke="#fff" stroke-width="1.4" opacity=".7"/>`+L(`M${x-4} ${t+40} q8 3 13 -3`,2.4);
-   case 'C': return L(`M${x-13} ${t+27} q4.5 -6 9 0 M${x+4} ${t+27} q4.5 -6 9 0`,2.4)+`<path d="M${x-8} ${t+35} h16 q0 10 -8 10 q-8 0 -8 -10z" fill="#5a2a2a"/><path d="M${x-5} ${t+41} q5 3 10 0" stroke="#ff8a8a" stroke-width="3" fill="none"/><text x="${x+24}" y="${t+8}" font-size="13" font-weight="700" fill="#ffd34d" font-family="Noto Sans TC,sans-serif">哈哈</text>`;
-   case 'laugh': return L(`M${x-13} ${t+27} q4.5 -6 9 0 M${x+4} ${t+27} q4.5 -6 9 0`,2.4)+`<path d="M${x-8} ${t+35} h16 q0 10 -8 10 q-8 0 -8 -10z" fill="#5a2a2a"/><path d="M${x-5} ${t+41} q5 3 10 0" stroke="#ff8a8a" stroke-width="3" fill="none"/>`+cheek;
-   case 'wink': return L(`M${x-12} ${t+28} q4 -4 8 0`)+`<circle cx="${x+8}" cy="${t+28}" r="2.3" fill="#333"/>`+L(`M${x-6} ${t+37} q6 6 12 0`)+cheek;
-   case 'calm': return L(`M${x-12} ${t+28} h8 M${x+4} ${t+28} h8`)+L(`M${x-4} ${t+38} h8`)+cheek;
-   case 'boss': return L(`M${x-12} ${t+27} q5 -4 10 0 M${x+3} ${t+27} q5 -4 10 0`)+L(`M${x-14} ${t+20} l10 4 M${x+14} ${t+20} l-10 4`,2.4)+L(`M${x-6} ${t+39} q8 6 15 -3`)+cheek;
-   default: return `<circle cx="${x-8}" cy="${t+28}" r="2.3" fill="#333"/><circle cx="${x+8}" cy="${t+28}" r="2.3" fill="#333"/>`+L(`M${x-6} ${t+37} q6 5 12 0`)+cheek;
-  }
-}
+function vilIcon(v){return pxHead({prop:v.p,boss:true,color:v.c});}
 function charSVG(x,feetY,name,color,o){
-  o=o||{}; const lk=o.look||null; if(lk)color=LOOK.shirt[lk.shirt]; const hl=lk?hairOf(lk):null, skin=lk?LOOK.skin[lk.skin]:'#ffe0c2'; const dino=o.prop==='dino', cs=dino?null:costume(o.prop), s=o.scale||1, top=feetY-118, fs=Math.min(12,34/Math.max(2,[...name].length));
-  const inner=`${hl&&hl.b?`<g transform="translate(${x} ${top+30})">${hl.b}</g>`:''}<rect x="${x-11}" y="${feetY-30}" width="8" height="30" rx="4" fill="#3b4a66"/>
-   <path d="M${x+4} ${feetY-30} q ${o.step?'6 18 14 22':'1 16 0 30'}" stroke="#3b4a66" stroke-width="8" fill="none" stroke-linecap="round"/>
-   <ellipse cx="${x-7}" cy="${feetY}" rx="8" ry="4" fill="#222"/><ellipse cx="${x+(o.step?21:8)}" cy="${feetY+1}" rx="8" ry="4" fill="#222"/>
-   <rect x="${x-19}" y="${top+52}" width="38" height="44" rx="14" fill="${color}"/>
-   <path d="M${x-18} ${top+60} L${x-34} ${top+76} ${cs&&cs.la?`L${x-42} ${top+64}`:`L${x-16} ${top+86}`}" stroke="${color}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-   <path d="M${x+18} ${top+60} L${x+34} ${top+76} ${cs&&cs.ra?`L${x+42} ${top+64}`:`L${x+16} ${top+86}`}" stroke="${color}" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-   ${cs&&cs.b?cs.b(x,top):''}${cs&&cs.ra?`<circle cx="${x+42}" cy="${top+64}" r="4.2" fill="${skin}"/>`:''}${cs&&cs.la?`<circle cx="${x-42}" cy="${top+64}" r="4.2" fill="${skin}"/>`:''}
-   ${dino?dinoHead(x,top):`<circle cx="${x}" cy="${top+30}" r="22" fill="${skin}"/>`}${hl?`<g transform="translate(${x} ${top+30})">${hl.f}</g>`:''}${cs?`<g transform="translate(${x} ${top+30})">${cs.h}</g>`:''}
-   <g class="fn">${dino?dinoFace(o.boss?'boss':'normal',x,top):faceSVG(o.face||(o.boss?'boss':lk?LOOK.face[lk.face][0]:'normal'),x,top)}</g><g class="fh">${dino?dinoFace('hurt',x,top):faceSVG('hurt',x,top)}</g>${cs&&cs.o?`<g transform="translate(${x} ${top+30})">${cs.o}</g>`:''}${lk?`<g transform="translate(${x} ${top+30})">${accOf(lk)}</g>`:''}
-   ${o.boss?`<path d="M${x} ${top+53} l-4 6 l4 22 l4 -22 z" fill="#d6455a"/>`:''}
-   ${o.crown?`<g transform="translate(0 ${lk&&(['cap','beanie'].includes(LOOK.acc[lk.acc][0])||['bun','curly','spiky'].includes(LOOK.hair[lk.hair][0]))?-9:0})"><path d="M${x-18} ${top+12} L${x-20} ${top-6} L${x-9} ${top+3} L${x} ${top-10} L${x+9} ${top+3} L${x+20} ${top-6} L${x+18} ${top+12} Z" fill="#ffd34d" stroke="#e0a800" stroke-width="1.5"/><circle cx="${x}" cy="${top-10}" r="2.5" fill="#ff6b5f"/></g>`:''}
-   <text x="${x}" y="${top+80}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#1b2331" font-family="Noto Sans TC,sans-serif">${esc(name)}</text>
-   ${o.target?`<rect x="${x-36}" y="${top-12}" width="72" height="${feetY-top+18}" fill="transparent"/>`:''}`;
+  o=o||{}; const s=o.scale||1, fs=Math.min(12,34/Math.max(2,[...name].length));
+  const P=pxStand(x,feetY,{look:o.look,color,prop:o.prop,boss:o.boss,face:o.face,crown:o.crown});
+  const inner=`${P.svg}<text x="${x}" y="${feetY-22}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="#1b2331" font-family="Noto Sans TC,sans-serif">${esc(name)}</text>
+   ${o.target?`<rect x="${x-36}" y="${P.top-6}" width="72" height="${feetY-P.top+12}" fill="transparent"/>`:''}`;
   const sc=s!==1?`<g transform="translate(${x} ${feetY}) scale(${s}) translate(${-x} ${-feetY})">${inner}</g>`:inner;
   return `<g class="char ${o.cls||''}" ${o.who?`data-who="${esc(o.who)}"`:''} ${o.target?`data-target="${esc(o.target)}"`:''} style="${o.delay?`animation-delay:${o.delay}s`:''}">${sc}</g>`;
 }
@@ -1132,11 +1185,11 @@ function scene(ws,ls,line,label,opt){ opt=opt||{};
   if(!layers.length) layers.push([]);
   let gs='', idx=0;
   layers.forEach((row,k)=>{
-    const y=ground-10-k*20, step=Math.min(86,(W-30)/Math.max(1,row.length));
+    const y=ground-24-k*26, step=Math.min(86,(W-30)/Math.max(1,row.length));
     const x0=W/2-step*(row.length-1)/2-(row.length>1?14*(k%2?-1:1):0);
     row.forEach((p,j)=>{gs+=svgLying(x0+j*step,y,p.name,p.color,k%2===1,idx++,p.gave,p.prop,p.look,p.who);});
   });
-  const layerTop=ground-10-(layers.length-1)*20-10;
+  const layerTop=ground-24-(layers.length-1)*26-18;
   let w='', topY, bx, by;
   if(ws.length){
     const wstep=Math.min(90,(W-80)/ws.length), wx0=W/2-wstep*(ws.length-1)/2;
@@ -1555,8 +1608,6 @@ async function coopAngel(){
   angelBusy=false; lastHTML=''; render();
 }
 const GHOSTS=5;
-function ghostSVG(){return `<svg viewBox="0 0 120 140" aria-hidden="true"><path d="M14 68 q-13 -4 -11 -20 M106 68 q13 -4 11 -20" stroke="#dfe4ee" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M60 8 C28 8 14 34 14 62 L14 120 q8 -11 15 0 q8 11 16 0 q7 -11 15 0 q8 11 16 0 q7 -11 15 0 q7 11 15 0 L106 62 C106 34 92 8 60 8Z" fill="#f4f6fb" stroke="#cfd6e4" stroke-width="3"/><ellipse cx="44" cy="58" rx="9" ry="13" fill="#1b2331"/><ellipse cx="76" cy="58" rx="9" ry="13" fill="#1b2331"/><circle cx="41" cy="53" r="3" fill="#fff"/><circle cx="73" cy="53" r="3" fill="#fff"/><ellipse cx="60" cy="92" rx="10" ry="13" fill="#1b2331"/><circle cx="31" cy="76" r="5" fill="#ffb3c1" opacity=".6"/><circle cx="89" cy="76" r="5" fill="#ffb3c1" opacity=".6"/></svg>`;}
-function angelSVG(){return `<svg viewBox="0 0 120 130" aria-hidden="true"><ellipse cx="60" cy="16" rx="24" ry="8" fill="none" stroke="#ffd34d" stroke-width="6"/><path d="M40 62 C10 40 4 70 14 86 C22 98 36 92 44 84Z M80 62 C110 40 116 70 106 86 C98 98 84 92 76 84Z" fill="#fff" stroke="#d9e2f2" stroke-width="3"/><path d="M38 128 L48 78 L72 78 L82 128Z" fill="#fff4c2" stroke="#e9d58a" stroke-width="3"/><circle cx="60" cy="58" r="24" fill="#ffe0c2"/><path d="M38 52 C38 34 82 34 82 52 C76 44 66 42 60 42 C54 42 44 44 38 52Z" fill="#f2c94c"/><path d="M50 60 q3 -3 6 0 M64 60 q3 -3 6 0" stroke="#333" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M53 69 q7 6 14 0" stroke="#333" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="46" cy="67" r="3.5" fill="#ff9a9a" opacity=".6"/><circle cx="74" cy="67" r="3.5" fill="#ff9a9a" opacity=".6"/></svg>`;}
 function angelsLeft(){const w=(g().watchers||{})[me]||{},u=w.an&&w.an.r===g().round?w.an.n:0;return Math.max(0,ANGELS-u);}
 async function sendAngel(t){
   if(!isWatcher(me)||!ghostTargets().includes(t))return; const left=angelsLeft(); if(left<=0){toast('這局的天使用完了');return;}
@@ -1722,7 +1773,7 @@ function itemBar(where){
 }
 function tgtEl(t){return app.querySelector(`[data-who="${CSS.escape(t)}"]`)||app.querySelector(`[data-target="${CSS.escape(t)}"]`);}
 function stickOn(g,item){
-  const head=g.querySelector('circle[r="22"]'); if(!head||!head.getBBox)return;
+  const head=g.querySelector('.hd'); if(!head||!head.getBBox)return;
   const b=head.getBBox(), hx=b.x+b.width/2, hy=b.y+b.height/2, par=head.parentNode, NS='http://www.w3.org/2000/svg';
   const wrap=document.createElementNS(NS,'g');wrap.setAttribute('class','stuck hit'+(item==='hammer'||item==='slipper'?' lumpg':''));par.appendChild(wrap);
   const capN=String(g.dataset.who||'').startsWith('p:')?14:5, old=[...par.querySelectorAll(':scope > g.hit:not(.lumpg)')];if(old.length>capN)old.slice(0,old.length-capN).forEach(o=>o.remove());
@@ -1778,7 +1829,7 @@ const myStageId=()=>solo?'you':me;
 const isDown=w=>!!(KST[w]&&KST[w].down);
 const RAGEL=['夠了喔！！','忍你很久了！','全部還給你！','真的生氣了！'];
 const BACKL=['丟什麼丟！','很敢喔？','換我了','你完了','還敢丟啊？','給我記住！'];
-function sayAt(who,text){const g=charOf(who),hd=g&&g.querySelector('circle[r="22"]');if(!hd)return;const r=hd.getBoundingClientRect();
+function sayAt(who,text){const g=charOf(who),hd=g&&g.querySelector('.hd');if(!hd)return;const r=hd.getBoundingClientRect();
   const b=document.createElement('div');b.className='sayb';b.innerHTML=`<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 2 q1 5 -5 5 M13 2 q-1 5 5 5 M7 18 q1 -5 -5 -5 M13 18 q-1 -5 5 -5" stroke="#e53935" stroke-width="2.6" fill="none" stroke-linecap="round"/></svg>${esc(text)}`;
   b.style.left=Math.min(innerWidth-20,Math.max(20,r.left+r.width/2))+'px';b.style.top=(r.top-8)+'px';document.getElementById('fxl').appendChild(b);setTimeout(()=>b.remove(),1900);}
 function bossBack(st,nb){
@@ -1805,7 +1856,7 @@ const PODHIT={}, AIC={}, PODCLR={};
 const PODREC={};
 const podRes=t=>{const now=Date.now(),a=(PODREC[t]||[]).filter(x=>now-x<3000);a.push(now);if(t)PODREC[t]=a;
   const hp=Math.min(.85,.25+.07*(a.length-1)), r=Math.random();return r<hp?'h':r<hp+(1-hp)*.65?'d':'b';};
-function showLid(g,side,ms){const head=g.querySelector('circle[r="22"]');if(!head)return;const b=head.getBBox(),hx=b.x+b.width/2,hy=b.y+b.height/2,NS='http://www.w3.org/2000/svg';
+function showLid(g,side,ms){const head=g.querySelector('.hd');if(!head)return;const b=head.getBBox(),hx=b.x+b.width/2,hy=b.y+b.height/2,NS='http://www.w3.org/2000/svg';
   const w=document.createElementNS(NS,'g');w.setAttribute('class','lid');const cx=hx+side*24,cy=hy+12;w.innerHTML=`<path d="M${hx+side*10} ${hy+40} L${cx-side*4} ${cy+6}" stroke="${LOOK.skin[0]}" stroke-width="6" stroke-linecap="round"/><ellipse cx="${cx}" cy="${cy}" rx="12" ry="30" fill="#c3cad6" stroke="#6d7686" stroke-width="2.5"/><ellipse cx="${cx}" cy="${cy}" rx="7" ry="20" fill="none" stroke="#eef1f6" stroke-width="2" opacity=".9"/><path d="M${cx-side*3} ${cy-18} q${side*4} 8 0 16" stroke="#fff" stroke-width="2.5" fill="none" opacity=".7" stroke-linecap="round"/><rect x="${cx+(side>0?9:-14)}" y="${cy-5}" width="5" height="10" rx="2" fill="#444"/>`;
   head.parentNode.appendChild(w);setTimeout(()=>w.remove(),ms||750);}
 const POS={};
