@@ -293,6 +293,10 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .char{transform-box:fill-box;transform-origin:50% 100%}
 .char[data-target]{cursor:pointer}
 .char .fh{display:none}
+.brz{animation:brz 1.4s steps(1,end) infinite}
+@keyframes brz{0%{transform:none}50%{transform:translateY(var(--p))}}
+.char.down .brz,.char.ku .brz{animation:none}
+@media (prefers-reduced-motion:reduce){.brz{animation:none}}
 .char.down{transform:rotate(calc(var(--d,-1)*76deg))}
 .char.down .fn,.char.ku .fn{display:none}.char.down .fh,.char.ku .fh{display:inline}
 .char.down.kf{animation:kf .5s ease-out}
@@ -425,7 +429,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-1';
+const APP_VERSION='2026.11.02-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -1014,7 +1018,8 @@ const PX_HAIR={
  bowl:[3,["....HHHHHHHH....","...HHhhHHHHHH...","..HHHHHHHHHHHH..",".HHHHHHHHHHHHHH.",".HHHHHHHHHHHHHH.",".HHHHHHHHHHHHHH.",".HH..........HH.",".HH..........HH.",".hh..........hh."]],
  twin:[3,["......HHHHHHHH......",".....HHHhhHHHHH.....","....HHHHHHHHHHHH....","....HHHHHHHHHHHH....",".HHBHH........HHBHH.","HHH..............HHH","HHH..............HHH","HhH..............HhH",".HH..............HH.",".HH..............HH.","..H..............H.."],-2],
  afro:[0,["....HHHHHHHH....","..HHHHHHHHHHHH..",".HHHhHHHHHhHHHH.","HHHHHHHHHHHHHHHH","HHhHHHHHHhHHHHhH","HHHHHHHHHHHHHHHH","HHHHHHHHHHHHHHHH","HHHH........HHHH","HHH..........HHH",".HH..........HH."]],
- mohawk:[0,[".......HH.......","......HHHH......","......HhHH......","......HHHH......","......HHHH......","......HHHH......","......HHHH......"]]
+ mohawk:[0,["....H...H...H...","....HH..HH..HH..",".....HH..HH..HH.",".....HHHHHHHHHH.","......HHhHHHHH..","...L...HHHHH.L..","..L..........L.."]],
+ baby:[1,["........HH......",".......H..H.....",".......H........","........H.......","......h.h.h....."]]
 };
 /* 配件／服裝／道具（[起始行, 格子, 起始欄]） */
 const PX_PART={
@@ -1106,11 +1111,14 @@ function pxBuild(o){o=o||{};
 /* 站姿（雙腳底部在 feetY、中心在 x） */
 function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-b.cx*px,y0=feetY-(bx.y1+1)*px;
   const T=`transform="translate(${x0} ${y0}) scale(${px})"`;
-  const body=`<g ${T} shape-rendering="crispEdges">${pxPaths(pxOutline(b.M))}${pxPaths(b.M)}</g>`;
+  const O=pxOutline(b.M),cut=bx.y1-2,sp=(A,lo)=>{const R=new Map();A.forEach((c,k)=>{if((+k.split(',')[1]>=cut)===lo)R.set(k,c);});return R;};
+  const legs=`<g ${T} shape-rendering="crispEdges">${pxPaths(sp(O,true))}${pxPaths(sp(b.M,true))}</g>`;
+  const body=`<g ${T} shape-rendering="crispEdges">${pxPaths(sp(O,false))}${pxPaths(sp(b.M,false))}</g>`;
   const fn=`<g class="fn" ${T} shape-rendering="crispEdges">${pxPaths(b.F[b.face]||b.F.normal)}</g>`+(b.face==='C'?`<text class="fn" x="${x+30}" y="${y0+7*px}" font-size="13" font-weight="800" fill="#ffd34d" stroke="#1e1b2e" stroke-width="3" paint-order="stroke" font-family="Noto Sans TC,sans-serif">哈哈</text>`:'');
   const fh=`<g class="fh" ${T} shape-rendering="crispEdges">${pxPaths(b.F.hurt)}</g>`;
   const [a,c,d,e]=b.hd, hd=`<rect class="hd" x="${x0+a*px}" y="${y0+c*px}" width="${(d-a)*px}" height="${(e-c)*px}" fill="none"/>`;
-  return{svg:body+fn+fh+hd,top:y0+bx.y0*px};
+  const dl=((Math.round(x*7+feetY*3)%11)/11*1.4).toFixed(2);
+  return{svg:legs+`<g class="brz" style="--p:${px}px;animation-delay:-${dl}s">${body+fn+fh}</g>`+hd,top:y0+bx.y0*px};
 }
 /* 倒地（旋轉 90 度，頭朝右） */
 function pxLying(o,px){const b=pxBuild(o),M=new Map(b.M);(b.F.hurt||new Map()).forEach((c,k)=>M.set(k,c));
@@ -1133,7 +1141,7 @@ function angelSVG(){return pxIcon(PX_ANGEL,{Y:'#ffd34d',y:'#e0a800',W:'#ffffff',
 const LOOK={
  skin:['#ffe0c2','#f7cfa4','#e3a97c','#c08559','#8d5a3b'],
  shirt:['#f2b544','#6fd39a','#ff8fa3','#7cc4ff','#c9a0ff','#ffa36b','#5fd0c8','#e0e36a','#f4f4f4','#b8c2d6'],
- hair:[['none','光頭'],['short','短髮'],['side','旁分'],['spiky','刺刺頭'],['long','長髮'],['pony','馬尾'],['bun','包包頭'],['curly','捲髮'],['medit','地中海'],['bowl','西瓜皮'],['twin','雙馬尾'],['afro','爆炸頭'],['mohawk','龐克頭']],
+ hair:[['none','光頭'],['short','短髮'],['side','旁分'],['spiky','刺刺頭'],['long','長髮'],['pony','馬尾'],['bun','包包頭'],['curly','捲髮'],['medit','地中海'],['bowl','西瓜皮'],['twin','雙馬尾'],['afro','爆炸頭'],['mohawk','龐克頭'],['baby','寶寶呆毛']],
  hc:['#2b2b33','#4a3020','#8a5a32','#e6c15a','#ff9cc0','#6aa8ff','#c2c7cf'],
  face:[['normal','微笑'],['wink','眨眼'],['A','酷'],['laugh','大笑'],['B','墨鏡'],['calm','淡定'],['angry','生氣'],['kind','慈祥'],['blank','呆滯'],['wow','驚訝'],['cry','哭哭']],
  acc:[['none','無'],['glasses','眼鏡'],['cap','棒球帽'],['beanie','毛帽'],['bow','蝴蝶結'],['phones','耳機'],['ptie','領帶'],['bowtie','領結'],['scarf','圍巾']],
