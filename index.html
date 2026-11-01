@@ -425,7 +425,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.01-8';
+const APP_VERSION='2026.11.02-1';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -990,10 +990,15 @@ const PX_FACE={
  B:     ["","","...KKKKKKKKKK...","...KWKK..KWKK...","....KK....KK....",".......KK......."],
  calm:  ["","","","....KK....KK....","...C........C...",".......KK......."],
  boss:  ["....KK....KK....","......K..K......",".....K....K.....",".....K....K.....",".......KK.......","......K..K......"],
- hurt:  ["","....K.K..K.K....",".....K....K.....","....K.K..K.K....","................",".......MM......."]
+ hurt:  ["","....K.K..K.K....",".....K....K.....","....K.K..K.K....","................",".......MM......."],
+ angry: ["...K........K...","....KK....KK....",".....K....K.....",".....K....K.....","...R...KK...R...","......K..K......"],
+ kind:  ["","",".....K....K.....","....K.K..K.K....","...C..K..K..C...",".......KK......."],
+ blank: ["","","....KKK..KKK....",".....K....K.....","................","......KKKK......","..........Q....."],
+ wow:   ["....KK....KK....","",".....K....K.....",".....K....K.....",".......KK.......","......KMMK......",".......KK......."],
+ cry:   ["","....K......K....","....KK....KK....","....Q......Q....","....Q..KK..Q....","....Q.K..K.Q...."]
 };
 PX_FACE.C=PX_FACE.laugh;
-const PX_FPAL={K:'#1e1b2e',W:'#ffffff',C:'#ff8f8f',M:'#7a2a2a'};
+const PX_FPAL={K:'#1e1b2e',W:'#ffffff',C:'#ff8f8f',M:'#7a2a2a',R:'#ff5a5a',Q:'#7cc4ff'};
 /* 髮型（[起始行, 格子]） */
 const PX_HAIR={
  none:[6,["....LL.........."]],
@@ -1004,7 +1009,12 @@ const PX_HAIR={
  pony:[3,["....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHHHH","..HHHHHHHHHHHHHh","..HH........HHHH","..H..........HHH","..............HH","..............Hh","..............HH","...............H"]],
  bun:[0,["......HHHH......",".....HHhHHH.....","......HHHH......","....HHHHHHHH....","...HHHhhHHHHH...","..HHHHHHHHHHHH..","..HHHHHHHHHHHH..","..HH........HH..","..H..........H.."]],
  curly:[2,["...HH.HHHH.HH...","..HHHHHHHHHHHH..",".HHhHHHhHHHHhHH.",".HHHHHHHHHHHHHH.",".HHHhHHHHhHHHHH.",".HHH........HHH.",".HH..........HH.",".H............H."]],
- bald:[6,["....LL..........","..H..........H..","..HH........HH..","..H..........H.."]]
+ bald:[6,["....LL..........","..H..........H..","..HH........HH..","..H..........H.."]],
+ medit:[3,["........H.......",".......H.H......","........H.......","....LL..........",".HHH........HHH.",".HHHH......HHHH.",".HHH........HHH.","..H..........H.."]],
+ bowl:[3,["....HHHHHHHH....","...HHhhHHHHHH...","..HHHHHHHHHHHH..",".HHHHHHHHHHHHHH.",".HHHHHHHHHHHHHH.",".HHHHHHHHHHHHHH.",".HH..........HH.",".HH..........HH.",".hh..........hh."]],
+ twin:[3,["......HHHHHHHH......",".....HHHhhHHHHH.....","....HHHHHHHHHHHH....","....HHHHHHHHHHHH....",".HHBHH........HHBHH.","HHH..............HHH","HHH..............HHH","HhH..............HhH",".HH..............HH.",".HH..............HH.","..H..............H.."],-2],
+ afro:[0,["....HHHHHHHH....","..HHHHHHHHHHHH..",".HHHhHHHHHhHHHH.","HHHHHHHHHHHHHHHH","HHhHHHHHHhHHHHhH","HHHHHHHHHHHHHHHH","HHHHHHHHHHHHHHHH","HHHH........HHHH","HHH..........HHH",".HH..........HH."]],
+ mohawk:[0,[".......HH.......","......HHHH......","......HhHH......","......HHHH......","......HHHH......","......HHHH......","......HHHH......"]]
 };
 /* 配件／服裝／道具（[起始行, 格子, 起始欄]） */
 const PX_PART={
@@ -1019,6 +1029,11 @@ const PX_PART={
  horns:[0,["..R..........R..","..RR........RR..","...RR......RR..."]],
  stache:[11,[".....HHHHHH.....","....H......H...."]],
  beard:[11,["..H..........H..","..HH........HH..","...HHHHHHHHHH...",".....HHHHHH....."]],
+ bigbeard:[10,["..H..........H..","..HH........HH..","..HHHH....HHHH..","..HHHHHHHHHHHH..","...HHHhHHhHHH...",".....HHhHHH.....","......HHHH......"]],
+ goatee:[13,[".......HH.......",".......HH.......","........H......."]],
+ ptie:[14,["......RRRR......",".......RR.......",".......RR.......","......RRRR......",".......rr......."]],
+ bowtie:[14,[".....RR..RR.....",".....RRrrRR.....",".....RR..RR....."]],
+ scarf:[13,["...TTTTTTTTTT...","...TtTTTTTTtT...","..........TT....","..........Tt....","..........TT...."]],
  cigar:[12,["..........NNNNF."]],
  shades:[4,["...KKKK..KKKK..."]],
  tie:[14,[".......RR.......",".......RR.......","......RRRR......",".......rr......."]],
@@ -1078,9 +1093,9 @@ function pxBuild(o){o=o||{};
   const hc=v?v.hc:lk?LOOK.hc[lk.hc]:'#2b2b33', pal=PX_PPAL(hc,shirt);
   const M=pxPut(new Map(),PX_BODY,{S:skin,s:shadeC(skin,-.16),O:shirt,o:shadeC(shirt,-.22),P:'#4b5a8e',D:'#6b3e2a'});
   const hair=v?v.hair:lk?LOOK.hair[lk.hair][0]:'short';
-  const H=PX_HAIR[hair]; if(H)pxPut(M,H[1],Object.assign({},pal,{L:shadeC(skin,.45)}),0,H[0]);
+  const H=PX_HAIR[hair]; if(H)pxPut(M,H[1],Object.assign({},pal,{L:shadeC(skin,.45)}),H[2]||0,H[0]);
   const parts=v?v.parts.slice():[]; if(o.boss&&!(v&&v.notie))parts.unshift('tie');
-  if(lk){const a=LOOK.acc[lk.acc][0];if(a!=='none')parts.push(a);}
+  if(lk){const a=LOOK.acc[lk.acc][0];if(a!=='none')parts.push(a);const bd=LOOK.beard[lk.beard||0][0];if(bd!=='none')parts.push(bd);}
   if(o.gave)parts.push('flag');
   parts.forEach(p=>{const d=PX_PART[p];if(d)pxPut(M,d[1],Object.assign({},pal,p==='suit'||p==='vest'||p==='coat'?{S:skin}:{}),d[2]||0,d[0]);});
   if(o.crown){let top=99;for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12&&y<top)top=y;}pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
@@ -1118,15 +1133,16 @@ function angelSVG(){return pxIcon(PX_ANGEL,{Y:'#ffd34d',y:'#e0a800',W:'#ffffff',
 const LOOK={
  skin:['#ffe0c2','#f7cfa4','#e3a97c','#c08559','#8d5a3b'],
  shirt:['#f2b544','#6fd39a','#ff8fa3','#7cc4ff','#c9a0ff','#ffa36b','#5fd0c8','#e0e36a','#f4f4f4','#b8c2d6'],
- hair:[['none','光頭'],['short','短髮'],['side','旁分'],['spiky','刺刺頭'],['long','長髮'],['pony','馬尾'],['bun','包包頭'],['curly','捲髮']],
+ hair:[['none','光頭'],['short','短髮'],['side','旁分'],['spiky','刺刺頭'],['long','長髮'],['pony','馬尾'],['bun','包包頭'],['curly','捲髮'],['medit','地中海'],['bowl','西瓜皮'],['twin','雙馬尾'],['afro','爆炸頭'],['mohawk','龐克頭']],
  hc:['#2b2b33','#4a3020','#8a5a32','#e6c15a','#ff9cc0','#6aa8ff','#c2c7cf'],
- face:[['normal','微笑'],['wink','眨眼'],['A','酷'],['laugh','大笑'],['B','墨鏡'],['calm','淡定']],
- acc:[['none','無'],['glasses','眼鏡'],['cap','棒球帽'],['beanie','毛帽'],['bow','蝴蝶結'],['phones','耳機']]
+ face:[['normal','微笑'],['wink','眨眼'],['A','酷'],['laugh','大笑'],['B','墨鏡'],['calm','淡定'],['angry','生氣'],['kind','慈祥'],['blank','呆滯'],['wow','驚訝'],['cry','哭哭']],
+ acc:[['none','無'],['glasses','眼鏡'],['cap','棒球帽'],['beanie','毛帽'],['bow','蝴蝶結'],['phones','耳機'],['ptie','領帶'],['bowtie','領結'],['scarf','圍巾']],
+ beard:[['none','無'],['stache','八字鬍'],['bigbeard','大鬍子'],['goatee','山羊鬍']]
 };
-const LK=['skin','shirt','hair','hc','face','acc'];
-function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length!==6||a.some(x=>!(x>=0)))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
+const LK=['skin','shirt','hair','hc','face','acc','beard'];
+function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length===6)a.push(0);if(a.length!==7||a.some(x=>!(x>=0)))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
 const lookStr=o=>LK.map(k=>o[k]).join('.');
-function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):hashStr('look_'+seed);const o={};LK.forEach((k,i)=>{o[k]=x%LOOK[k].length;x=Math.floor(x/LOOK[k].length)+(seed==null?Math.floor(Math.random()*997):i*131);});if(o.hair===0&&o.acc===0)o.hair=1;return o;}
+function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):hashStr('look_'+seed);const o={};LK.forEach((k,i)=>{o[k]=x%LOOK[k].length;x=Math.floor(x/LOOK[k].length)+(seed==null?Math.floor(Math.random()*997):i*131);});if(o.hair===0&&o.acc===0)o.hair=1;if(o.beard&&x%3)o.beard=0;return o;}
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();ls.set('ab_look',lookStr(o));}return o;}
 function lookOf(id){const st=(typeof g==='function'&&g()&&g().seats)||{};return parseLook(st[id]&&st[id].look)||parseLook(((g()&&g().watchers)||{})[id]&&g().watchers[id].look)||(id===me?myLook():randLook(id));}
 function headSVG(o,face){return pxHead({look:o,face:face||null});}
@@ -1143,6 +1159,7 @@ function openLook(){
      <span class="lbl">髮型</span><div class="thr">${th('hair')}</div>
      <span class="lbl">髮色</span><div class="swr">${sw('hc')}</div>
      <span class="lbl">表情</span><div class="thr">${th('face')}</div>
+     <span class="lbl">鬍子</span><div class="thr">${th('beard')}</div>
      <span class="lbl">配件</span><div class="thr">${th('acc')}</div>
      <span class="lbl">膚色</span><div class="swr">${sw('skin')}</div>
      <span class="lbl">衣服顏色</span><div class="swr">${sw('shirt')}</div>
