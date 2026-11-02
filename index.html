@@ -300,6 +300,10 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 @keyframes gswoop{0%{transform:translateY(70vh) scale(.3) rotate(-20deg)}22%{transform:translateY(0) scale(1.08) rotate(6deg)}35%{transform:scale(1) rotate(-4deg)}50%{transform:translateX(-14px) rotate(4deg)}65%{transform:translateX(14px) rotate(-4deg)}80%{transform:translateX(0) scale(1.02)}100%{transform:translateY(-8vh) scale(1.05)}}
 @keyframes gboo{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.ghostov .gbody,.ghostov .gboo,.minighost{animation:none}}
+.namecard{max-width:400px;width:100%;margin:12vh auto 0;box-sizing:border-box}
+.namecard .err:empty{display:none}
+.homemenu{display:flex;flex-direction:column;gap:12px}
+.homemenu .btn{padding:18px;font-size:18px}
 .lookrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
 .lookav svg{width:58px;height:58px;display:block}
 .lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
@@ -546,7 +550,7 @@ function progress(D){
 }
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
-let lastHTML='', pendingPaint=null;
+let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false;
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
 const WIDE=900; let wasWide=innerWidth>=WIDE;
 function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
@@ -577,15 +581,17 @@ function render(){
   if(!code){
     const pre=(location.hash||'').replace('#','').toUpperCase();
     h=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">你還要猜多久😴</p></header>`+h+
-    `<div class="card"><label class="lbl" for="nick">你的暱稱</label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字"></div>
-    <div class="card"><div class="lookrow"><span class="lookav">${headSVG(myLook())}</span><div style="flex:1 1 auto;min-width:0"><span class="lbl">我的角色</span><p class="sub" style="margin:2px 0 0">髮型、表情、衣服自己選</p></div><button class="btn" id="lookBtn" style="width:auto;padding:12px 18px">換造型</button></div></div>
-    ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
-    <div class="card"><h2>開新房間</h2><p class="sub">你會是房主，負責設定規則和開始遊戲</p><button class="btn" id="create" ${busy?'disabled':''}>建立房間</button></div>
-    <div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
-    <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>
-    <p class="err">${esc(homeErr)}</p>
-    ${soloCard()}
-    ${fbCard()}`;
+    (()=>{
+      if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
+      const back=`<button class="peek" id="homeBack">← 返回</button>`, err=homeErr?`<p class="err">${esc(homeErr)}</p>`:'';
+      if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
+      if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
+        <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
+      if(homeStep==='solo') return soloCard()+back;
+      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row"><button class="btn ghost" id="nameBtn">換名字</button><button class="btn ghost" id="lookBtn">換造型</button></div></div>
+      ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
+      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}`;
+    })();
     paint(h); sideUI(false,false); return;
   }
   if(roomMissing){ls.del('ab_room');lastHTML='';app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>房間 ${esc(code)} 已關閉</h2><p class="hand">房主已經關閉這個房間，聊天和遊戲紀錄都清除了。</p><button class="btn" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
@@ -1278,7 +1284,7 @@ function stageSVG(list){
   let out='';
   list.forEach((p,i)=>{const isMe=p.self||p.id===me;
     out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':''});
-    if(isMe&&p.name!=='你') out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
+    if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
   return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
 }
 function scene(ws,ls,line,label,opt){ opt=opt||{};
@@ -1432,7 +1438,11 @@ function bind(){
   if($('mpAngel')) $('mpAngel').onclick=mpAngel;
   if($('coopAngel')) $('coopAngel').onclick=coopAngel;
   app.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();});
-  const ni=$('nick'); if(ni) ni.oninput=()=>{nick=ni.value;};
+  const ni=$('nick'); if(ni){ni.oninput=()=>{nick=ni.value;};const ok=()=>{const v=ni.value.trim();if(!v){$('nickErr').textContent='先取個名字';ni.focus();return;}nick=v;ls.set('ab_nick',v);homeEdit=false;render();};$('nickOk').onclick=ok;ni.onkeydown=e=>{if(e.key==='Enter')ok();};}
+  if($('nameBtn')) $('nameBtn').onclick=()=>{homeEdit=true;render();};
+  if($('goJoin')) $('goJoin').onclick=()=>{homeErr='';homeStep='join';render();window.scrollTo(0,0);};
+  if($('goSolo')) $('goSolo').onclick=()=>{homeErr='';homeStep='solo';render();window.scrollTo(0,0);};
+  if($('homeBack')) $('homeBack').onclick=()=>{homeErr='';homeStep='menu';render();window.scrollTo(0,0);};
   const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');};ci.onkeydown=e=>{if(e.key==='Enter')joinRoom(ci.value);};}
   if($('create')) $('create').onclick=()=>createRoom();
   if($('lookBtn')) $('lookBtn').onclick=()=>openLook();
