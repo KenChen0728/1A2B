@@ -445,7 +445,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-7';
+const APP_VERSION='2026.11.02-8';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -968,7 +968,7 @@ async function checkUpdate(){
 }
 /* 有新版本時：正在玩就等這場結束，再跳出更新畫面 */
 function gameBusy(){try{
-  if(solo)return !solo.result;
+  if(solo)return !solo.result&&solo.hist.length>0;
   if(code&&R){if(R.phase==='coop'){const C=coopState();return !C.over;}const st=derive().status;return st!=='lobby'&&st!=='over';}
 }catch(e){}return false;}
 let updWarned=false;
