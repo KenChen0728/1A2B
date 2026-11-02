@@ -2223,31 +2223,47 @@ function exPlain(x,len){const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
   if(!hit)return `${ds} 全都不在答案裡。`;
   const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
   return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:`，但位置${x.B>1?'都':''}不對。`);}
-function exKnown(c,len){if(!c.length)return '';const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
+/* 人類推理：互不重複的幾次猜測可以算出「各組數字有幾個」，例如 1234 有 2 個、5678 有 1 個 → 9、0 有 1 個 */
+function exGroups(clues,len){const used=new Set(),G=[];clues.filter(x=>!x.hint).forEach(x=>{const ds=[...new Set(x.g)];if(ds.length!==x.g.length||ds.some(d=>used.has(d)))return;ds.forEach(d=>used.add(d));G.push({ds,n:x.A+x.B});});
+  if(G.length<2)return [];const rest='1234567890'.split('').filter(d=>!used.has(d)),sum=G.reduce((t,g)=>t+g.n,0);if(rest.length)G.push({ds:rest,n:len-sum});return G;}
+const exGroupTxt=G=>G.filter(g=>g.n>0).map(g=>`${g.ds.join('、')} 裡有 ${g.n} 個`).join('；');
+function exKnown(c,len,clues,rep){if(!c.length)return '';const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
   const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
-  const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
+  const t=[];const gt=rep||yes.length===len?'':exGroupTxt(exGroups(clues||[],len));if(gt)t.push(gt);if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
   if(!t.length&&!pos.some(Boolean))return '';
   return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;}
 const exHead=(i,g,sc,left)=>`<div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(g)}</b>${sc}${left==null?'':`<span class="exn">剩 ${left} 種</span>`}</div>`;
 const exSc=x=>`<span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>`;
-function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[],hard=s.diff==='hard';let left=all,seen=[];
-  const rows=L.map((x,i)=>{const before=left,after=before.filter(c=>mindFits(s,c,[x])),gone=before.filter(c=>!mindFits(s,c,[x])),win=x.A===len;left=after;seen.push(x);
+const ex0A=x=>x.A===0&&x.B>0?`因為是 0A，所以 ${[...x.g].map((d,i)=>`${d} 不在第 ${i+1} 位`).join('、')}。`:'';
+/* 說明 g 為什麼不可能：從最近的線索往回找，優先用「數字個數」和「0A 位置」這種人想得到的理由 */
+function exConflict(g,seen,len){for(let k=seen.length-1;k>=0;k--){const q=seen[k],no=q.i+1;
+    if(q.hint){if(g[+q.pos]!==q.g)return `第 ${no} 次的提示說第 ${+q.pos+1} 位是 ${esc(q.g)}，但這次放的是 ${g[+q.pos]}`;continue;}
+    const com=[...new Set(g)].filter(d=>q.g.includes(d)),hit=q.A+q.B;
+    if(com.length>hit)return `第 ${no} 次說 ${q.g} 裡只有 ${hit} 個對，但這次用了 ${com.join('、')} 共 ${com.length} 個`;
+    if(com.length<hit)return `第 ${no} 次說 ${q.g} 裡有 ${hit} 個對，但這次只用了 ${com.length} 個${com.length?`（${com.join('、')}）`:''}`;
+    if(q.A===0){const p=[...g].findIndex((d,i)=>q.g[i]===d);if(p>=0)return `第 ${no} 次 ${q.g} 是 0A，所以 ${g[p]} 不能放第 ${p+1} 位`;}
+    if(!fits(g,[q])){const r=score(g,q.g);return `位置對不上：第 ${no} 次猜 ${q.g} 實際是 ${q.A}A${q.B}B，假如答案是 ${g}，應該是 ${r.A}A${r.B}B`;}}
+  return '';}
+function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[],hard=s.diff==='hard';let left=all;const seen=[];
+  const rows=L.map((x,i)=>{const before=left,after=before.filter(c=>mindFits(s,c,[x])),gone=before.filter(c=>!mindFits(s,c,[x])),win=x.A===len,probe=!hard&&P[i]===x.g;
+    const G=s.rep?[]:exGroups(seen,len);
+    const pickTxt=G.length?`所以這次${G.filter(g=>g.n>0).map(g=>`從 ${g.ds.join('、')} 挑 ${g.n} 個（${[...x.g].filter(d=>g.ds.includes(d)).join('、')}）`).join('，')}${seen.some(y=>y.A===0&&y.B>0)?'，並且避開 0A 排除的位置':''}。`:'從它心裡還可能的答案裡挑一個。';
+    const why0=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時${hard?'':'它心裡'}還有 ${before.length} 種可能，它從裡面挑一個就中了，這次有運氣成分（機率 1/${before.length}）。`):probe?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:hard?'從還可能的答案裡，挑一個最能縮小範圍的。':pickTxt;
     const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
-    const why=!ex?'':hard||r.A+r.B!==x.A+x.B?(hard?`猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B`:`${x.g} 裡會有 ${r.A+r.B} 個數字對，但實際是 ${x.A+x.B} 個`):`${x.g} 會有數字在同一個位置，但實際是 0A`;
-    const eg=ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，${why}，對不上，所以 ${ex} 不可能。${before.length} 種全部都這樣比過，${after.length&&after.length<=6?`只有 ${after.join('、')} 還可能`:`留下 ${after.length} 種`}。</p>`:'';
-    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時${hard?'':'它心裡'}還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):!hard&&P[i]===x.g?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:hard?'從還可能的答案裡，挑一個最能縮小範圍的。':'從它心裡還可能的答案裡挑一個。';
-    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}</p><p class="exw">${note}</p>${eg}${win||!after.length?'':exKnown(after,len)}</li>`;}).join('');
-  const intro=hard?`${esc(n)}用電腦硬算：列出全部 ${all.length} 種可能，每猜一次，就把幾A幾B 對不上的刪掉。它沒有看你的題目。`:`${esc(n)}像人一樣想，只記兩件事：每次猜的數字裡有幾個對，還有 0A 時那些數字不能放在原本的位置。它不會比對到更細，但每條線索都記得，也沒有看你的題目。下面的「剩幾種」是它心裡覺得還可能的數量。`;
+    const eg=hard&&ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B，所以 ${ex} 不可能。全部 ${before.length} 種都這樣比過。</p>`:'';
+    left=after;seen.push(Object.assign({i},x));
+    const only=!win&&after.length&&after.length<=6?`<p class="exw">${after.length===1?`算到這裡只剩 ${after[0]}。`:`只剩 ${after.join('、')} 還可能。`}</p>`:'';
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exw">${why0}</p><p class="exp">結果：${exPlain(x,len)}${win?'':ex0A(x)}</p>${eg}${only}${win||!after.length?'':exKnown(after,len,seen,s.rep)}</li>`;}).join('');
+  const intro=hard?`${esc(n)}用電腦硬算：列出全部 ${all.length} 種可能，每猜一次，就把幾A幾B 對不上的刪掉。它沒有看你的題目。`:`${esc(n)}像人一樣想：先算每組數字有幾個對，再用 0A 排除位置，線索都記得，也沒有看你的題目。「剩幾種」是它心裡覺得還可能的數量。`;
   return `<div class="expl"><p class="exi">${intro}</p><ol>${rows}</ol></div>`;}
 function myExplain(s){const all=allCands(s.len,s.rep),len=s.len;let left=all,bad=0;const seen=[];
   const rows=s.hist.map((x,i)=>{
-    if(x.hint){left=left.filter(c=>c[+x.pos]===x.g);seen.push(Object.assign({i},x));return `<li>${exHead(i,'提示','',left.length)}<p class="exp">用提示知道第 ${+x.pos+1} 位是 ${esc(x.g)}。</p>${exKnown(left,len)}</li>`;}
+    if(x.hint){left=left.filter(c=>c[+x.pos]===x.g);seen.push(Object.assign({i},x));return `<li>${exHead(i,'提示','',left.length)}<p class="exp">用提示知道第 ${+x.pos+1} 位是 ${esc(x.g)}。</p>${exKnown(left,len,seen,s.rep)}</li>`;}
     const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),win=x.A===len;left=after;let note='';
     if(win)note=before.length===1?'前面已經推到只剩這一種，漂亮！':`當時還有 ${before.length} 種可能，這次猜中有運氣成分（機率 1/${before.length}）。`;
-    else if(!legal){bad++;const q=seen.find(y=>y.hint?x.g[+y.pos]!==y.g:!fits(x.g,[y]));
-      if(q){const r=q.hint?null:score(x.g,q.g);const tail=after.length<before.length?'不過它還是幫你排除了一些可能，可以當作篩數字用。':'而且它也沒有幫你排除新的可能。';note=(q.hint?`${x.g} 不可能是答案：第 ${q.i+1} 次的提示說第 ${+q.pos+1} 位是 ${esc(q.g)}。`:`${x.g} 不可能是答案：假如答案是它，第 ${q.i+1} 次猜 ${q.g} 應該得到 ${r.A}A${r.B}B，但實際是 ${q.A}A${q.B}B。`)+tail;}}
+    else if(!legal){bad++;const why=exConflict(x.g,seen,len);note=`${x.g} 不可能是答案：${why}。`+(after.length<before.length?'不過它還是幫你排除了一些可能，可以當作篩數字用。':'而且它也沒有幫你排除新的可能。');}
     seen.push(Object.assign({i},x));
-    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}</p>${note?`<p class="exw">${note}</p>`:''}${!win&&after.length&&after.length<=6?`<p class="exw">只剩 ${after.join('、')} 還可能。</p>`:''}${win||!after.length?'':exKnown(after,len)}</li>`;}).join('');
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}${win?'':ex0A(x)}</p>${note?`<p class="exw">${note}</p>`:''}${!win&&after.length&&after.length<=6?`<p class="exw">只剩 ${after.join('、')} 還可能。</p>`:''}${win||!after.length?'':exKnown(after,len,seen,s.rep)}</li>`;}).join('');
   return `<div class="expl"><p class="exi">電腦幫你算的：每猜一次，還可能是答案的數字剩幾種。猜「還可能是答案」的數字才有機會直接中；不可能的數字雖然中不了，但有時可以用來篩數字。${bad?`這局有 ${bad} 次猜的數字已經不可能是答案。`:'這局你每次猜的都還可能是答案。'}</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
