@@ -306,7 +306,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .homemenu .btn,.homeact .btn{color:#fff;font-size:21px;padding:18px;border-radius:14px;box-shadow:0 5px 0 var(--bs);transition:transform .08s,box-shadow .08s}
 .homemenu .btn:active,.homeact .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--bs)}
 .homemenu{gap:16px;padding-bottom:6px}
-.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:#7a4fc0;--bs:#58368f}
+.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
 .homeact{gap:12px;padding-bottom:5px}
 .homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
@@ -1292,7 +1292,7 @@ function stageSVG(list){
   list.forEach((p,i)=>{const isMe=p.self||p.id===me;
     out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':''});
     if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
-  return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
+  return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${n===1?54:W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
 }
 function scene(ws,ls,line,label,opt){ opt=opt||{};
   const W=360, ground=246, per=4, layers=[];
