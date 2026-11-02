@@ -306,9 +306,14 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .homemenu .btn,.homeact .btn{color:#fff;font-size:21px;padding:18px;border-radius:14px;box-shadow:0 5px 0 var(--bs);transition:transform .08s,box-shadow .08s}
 .homemenu .btn:active,.homeact .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--bs)}
 .homemenu{gap:16px;padding-bottom:6px}
-.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
+.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:#000}
 .homeact{gap:12px;padding-bottom:5px}
 .homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.expl li{display:flex;flex-direction:column;gap:2px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
+.exh{display:flex;align-items:baseline;gap:10px}.exh b{font-family:var(--f-num);font-size:18px;letter-spacing:.1em}
+.exn{margin-left:auto;font-size:14px;color:var(--ink);font-weight:700;white-space:nowrap}
+.exw{font-size:14px;color:var(--muted)}.exl{font-family:var(--f-num);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
 .looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
@@ -1499,6 +1504,7 @@ function bind(){
   if($('again')) $('again').onclick=backToLobby;
   if($('copyCode')) $('copyCode').onclick=copyCode;
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
+  if($('explainBtn')) $('explainBtn').onclick=()=>{explainOpen=!explainOpen;render();};
   if($('randSecret')) $('randSecret').onclick=()=>{input=soloSecret(g().len,g().rep);err='';render();};
 }
 document.addEventListener('keydown',e=>{
@@ -1596,7 +1602,7 @@ function soloNew(len,rep){
   const duel=soloCfg.mode==='duel';
   solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff||'normal',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.says)}};
-  input='';err='';peek=false;notesOpen=false;notesKey=null;
+  input='';err='';peek=false;notesOpen=false;notesKey=null;explainOpen=false;
   render(); window.scrollTo(0,0);
 }
 /* ---------- 合作模式：全隊輪流猜，一起打魔王 ---------- */
@@ -2122,7 +2128,7 @@ function cpuPick(s){
     const found=clues.reduce((t,x)=>PROBES[s.len]&&PROBES[s.len].includes(x.g)?t+x.A+x.B:t,0);
     if(clues.length<pr.length&&found<s.len&&!clues.some(x=>x.g===pr[clues.length])) return {g:pr[clues.length],left:cands.length};
     // 之後只記得最近幾次的線索（人會漏看舊的）
-    const k=s.diff==='easy'?(Math.random()<.7?2:3):3, loose=all.filter(c=>fits(c,clues.slice(-k)));
+    const k=s.diff==='easy'?2:(Math.random()<.5?2:3), loose=all.filter(c=>fits(c,clues.slice(-k)));
     return {g:pick(loose.length?loose:cands),left:cands.length};
   }
   if(cands.length>2){
@@ -2200,6 +2206,15 @@ function soloGiveUp(){
   if(!confirmTap('giveUp','確定放棄？再按一次'))return;
   s.end=Date.now(); s.result='gave'; render();
 }
+/* 結算詳解：把魔王每一步重算一次，只用當時的幾A幾B，看得出有沒有偷看 */
+let explainOpen=false;
+function cpuExplain(s){const all=allCands(s.len,s.rep),P=PROBES[s.len]||[],L=s.chist,n=s.vil.n;let left=all;
+  const rows=L.map((x,i)=>{const before=left.length,legal=left.includes(x.g),after=left.filter(c=>fits(c,[x]));left=after;
+    const win=x.A===s.len, probe=P.includes(x.g)&&i<P.length;
+    const why=win?(before===1?'只剩這一種，不用猜了':`從 ${before} 種可能裡猜中，這一步的機率是 1/${before}${before>20?'，算是運氣好':''}`):probe&&i<2?'開局固定的猜法，先篩出有哪些數字':legal?(s.diff==='hard'?'從可能的答案裡，挑最能縮小範圍的一個':'從符合線索的答案裡挑一個'):'它忘了比較舊的線索，這個數字其實已經不可能了';
+    const list=!win&&after.length>0&&after.length<=6?`<span class="exl">剩下：${after.join('、')}</span>`:'';
+    return `<li><div class="exh"><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span><span class="exn">${before} → ${win?1:after.length} 種</span></div><span class="exw">${why}</span>${list}</li>`;}).join('');
+  return `<div class="expl"><p class="rules">${esc(n)}只用幾A幾B 推理，沒有看你的題目。「${all.length} → 幾種」是每猜一次後，還可能是答案的數量，你也可以自己對照驗算。</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
@@ -2237,7 +2252,7 @@ function renderSolo(){
     h+=`<div class="card center" style="padding-block:24px"><h1>${title}</h1><p class="hand">${sub}${used?`（用了 ${used} 次提示）`:''}，花了 ${fmtTime(s.end-s.start)}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${duel?esc(vil.n)+'的題目':'答案'}</span><b>${esc(s.secret)}</b></div>${duel?`<div><span class="sub">你的題目</span><b>${esc(s.mine)}</b></div>`:''}</div></div>
       <div class="card"><span class="lbl">${duel?`你猜${esc(vil.n)}的題`:'這局的紀錄'}</span>${histHTML(s.hist)}</div>
-      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}</div>`:''}
+      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}<button class="btn ghost" id="explainBtn">${explainOpen?'收起詳解':`看${esc(vil.n)}是怎麼推理的`}</button>${explainOpen?cpuExplain(s):''}</div>`:''}
       <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>`;
   }
   paint(h); sideUI(false,!s.result);
