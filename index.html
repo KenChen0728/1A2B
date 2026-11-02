@@ -43,6 +43,10 @@ body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);fon
 h1{font-family:var(--f-disp);font-weight:400;font-size:30px;margin:0;color:var(--ink);text-wrap:balance}
 h2{font-family:var(--f-disp);font-weight:400;font-size:24px;margin:0;color:var(--ink);text-wrap:balance}
 .sub{color:var(--muted);font-size:15px;margin:0}
+.wrap:has(>.colL){max-width:980px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);align-items:start;gap:16px 20px}
+.wrap:has(>.colL)>header{grid-column:1/-1}
+.colL,.colR{display:flex;flex-direction:column;gap:16px;min-width:0}
+.colL,.colR{position:sticky;top:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
 label.lbl,.lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
 .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -447,7 +451,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-11';
+const APP_VERSION='2026.11.02-12';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -541,6 +545,13 @@ function progress(D){
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
 let lastHTML='', pendingPaint=null;
+/* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
+const WIDE=900; let wasWide=innerWidth>=WIDE;
+function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
+  const L=document.createElement('div'),R=document.createElement('div');L.className='colL';R.className='colR';
+  [...app.children].forEach(c=>{if(c.tagName==='HEADER')return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
+  app.append(L,R);}
+window.addEventListener('resize',()=>{const w=innerWidth>=WIDE;if(w!==wasWide){wasWide=w;lastHTML='';render();}});
 function paint(html){
   const ae=document.activeElement;
   // 下拉選單或輸入框正在使用中：先不要重畫，等使用者選完再更新
@@ -548,7 +559,7 @@ function paint(html){
   pendingPaint=null;
   if(html===lastHTML) return;
   const keep=[];app.querySelectorAll('g.char[data-who]').forEach(c=>{const hs=[...c.querySelectorAll('g.hit:not(.shed)')];const st=KST[c.dataset.who];if(hs.length||(st&&st.down))keep.push([c.dataset.who,hs]);});
-  lastHTML=html; lastHTML='';app.innerHTML=html; bind();
+  lastHTML=html; lastHTML='';app.innerHTML=html; twoCol(); bind();
   if(!app.querySelector('svg.podium'))for(const k in POS)delete POS[k];
   for(const k in POS){const c=charOf(k);if(c)c.style.translate=POS[k]+'px 0';}
   keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('.hd');if(hd)hs.forEach(n=>hd.parentNode.appendChild(n));const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
@@ -2193,7 +2204,7 @@ function renderSolo(){
     h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · `:''}你猜${esc(vil.n)}的題</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}`+
       (waiting?'':`${slots(false)}<p class="err">${esc(err)}</p>${pad(true)}
       <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div>`)+`</div>`;
-    if(duel) h+=`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
+    if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
     h+=`<button class="peek" id="soloQuit">回首頁</button>`;
   } else {
     const r=s.result, n=s.hist.length;
