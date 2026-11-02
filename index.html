@@ -91,6 +91,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .reveal div{flex:1;text-align:center;min-width:0}
 .reveal b{display:block;font-family:var(--f-num);font-size:26px;letter-spacing:.15em;color:var(--ink)}
 .peek{font:inherit;font-size:14px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center}
+.peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
 .rules{font-size:13px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
@@ -444,7 +445,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-5';
+const APP_VERSION='2026.11.02-6';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -620,7 +621,7 @@ function render(){
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
     if(inGame&&!hasSecret(me)){
-      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p>${slots(true)}<button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><p class="err">${esc(err)}</p>${pad(false)}</div>`;
+      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>`;
     } else if(inGame){
       h+=`<div class="card center"><h2>你的題目已送出</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}），全部到齊就自動分配開始</p></div>`;
     } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`;
@@ -1462,6 +1463,7 @@ function bind(){
   if($('again')) $('again').onclick=backToLobby;
   if($('copyCode')) $('copyCode').onclick=copyCode;
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
+  if($('randSecret')) $('randSecret').onclick=()=>{input=soloSecret(g().len,g().rep);err='';render();};
 }
 document.addEventListener('keydown',e=>{
   if(e.target&&['INPUT','BUTTON','TEXTAREA','SELECT'].includes(e.target.tagName))return;
@@ -2154,7 +2156,7 @@ function renderSolo(){
   let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${{easy:'簡單',normal:'普通',hard:'困難'}[s.diff]}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><p class="err">${esc(err)}</p>${pad(false)}</div>
+      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
       <button class="peek" id="soloQuit">回首頁</button>`;
     paint(h); sideUI(false,false); return;
   }
