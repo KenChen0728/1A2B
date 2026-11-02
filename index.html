@@ -309,11 +309,15 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:#000}
 .homeact{gap:12px;padding-bottom:5px}
 .homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
-.expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
-.expl li{display:flex;flex-direction:column;gap:2px;padding-bottom:8px;border-bottom:1px dashed var(--line)}
-.exh{display:flex;align-items:baseline;gap:10px}.exh b{font-family:var(--f-num);font-size:18px;letter-spacing:.1em}
-.exn{margin-left:auto;font-size:14px;color:var(--ink);font-weight:700;white-space:nowrap}
-.exw{font-size:14px;color:var(--muted)}.exl{font-family:var(--f-num);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.expl li{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.exi{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--fg)}
+.exh{display:flex;align-items:baseline;gap:8px}.exh b{font-family:var(--f-num);font-size:18px;letter-spacing:.1em}
+.exn{margin-left:auto;font-size:15px;color:var(--ink);font-weight:700;white-space:nowrap}
+.exp{margin:0;font-size:16px;line-height:1.55}
+.exw{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
+.exk{display:flex;flex-direction:column;gap:6px;font-size:15px;margin-top:2px}
+.exk .hrow i{width:32px;height:32px;font-size:18px}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
 .looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
@@ -2206,15 +2210,26 @@ function soloGiveUp(){
   if(!confirmTap('giveUp','確定放棄？再按一次'))return;
   s.end=Date.now(); s.result='gave'; render();
 }
-/* 結算詳解：把魔王每一步重算一次，只用當時的幾A幾B，看得出有沒有偷看 */
+/* 結算詳解：把魔王每一步重算一次，只用當時的幾A幾B，用白話講給一般人看 */
 let explainOpen=false;
-function cpuExplain(s){const all=allCands(s.len,s.rep),P=PROBES[s.len]||[],L=s.chist,n=s.vil.n;let left=all;
-  const rows=L.map((x,i)=>{const before=left.length,legal=left.includes(x.g),after=left.filter(c=>fits(c,[x]));left=after;
-    const win=x.A===s.len, probe=P.includes(x.g)&&i<P.length;
-    const why=win?(before===1?'只剩這一種，不用猜了':`從 ${before} 種可能裡猜中，這一步的機率是 1/${before}${before>20?'，算是運氣好':''}`):probe&&i<2?'開局固定的猜法，先篩出有哪些數字':legal?(s.diff==='hard'?'從可能的答案裡，挑最能縮小範圍的一個':'從符合線索的答案裡挑一個'):'它忘了比較舊的線索，這個數字其實已經不可能了';
-    const list=!win&&after.length>0&&after.length<=6?`<span class="exl">剩下：${after.join('、')}</span>`:'';
-    return `<li><div class="exh"><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span><span class="exn">${before} → ${win?1:after.length} 種</span></div><span class="exw">${why}</span>${list}</li>`;}).join('');
-  return `<div class="expl"><p class="rules">${esc(n)}只用幾A幾B 推理，沒有看你的題目。「${all.length} → 幾種」是每猜一次後，還可能是答案的數量，你也可以自己對照驗算。</p><ol>${rows}</ol></div>`;}
+function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n;let left=all;
+  const plain=x=>{const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
+    if(x.A===len)return '全部都對，猜中了！';
+    if(!hit)return `${ds} 全都不在答案裡。`;
+    const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
+    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置都對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:'，但位置都不對。');};
+  const known=c=>{const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
+    const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
+    const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
+    if(!t.length&&!pos.some(Boolean))return '';
+    return `<div class="exk">${pos.some(Boolean)?`<span class="hrow">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;};
+  const rows=L.map((x,i)=>{const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),gone=before.filter(c=>!fits(c,[x])),win=x.A===len;left=after;
+    const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
+    const eg=ex&&!win?`<p class="exw">怎麼刪的：如果答案是 ${ex}，猜 ${x.g} 應該得到 ${r.A}A${r.B}B，和這次的結果對不上，所以刪掉。${esc(n)}把 ${before.length} 種都這樣比一遍。</p>`:'';
+    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):legal?'':'它忘了比較舊的線索，這個數字其實已經不可能了，所以這一步是浪費的。';
+    return `<li><div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>${win?'':`<span class="exn">剩 ${after.length} 種</span>`}</div>
+      <p class="exp">${plain(x)}</p>${note?`<p class="exw">${note}</p>`:''}${eg}${win||!after.length?'':known(after)}</li>`;}).join('');
+  return `<div class="expl"><p class="exi">${esc(n)}的做法很單純：先列出全部 ${all.length} 種可能，每猜一次，就把對不上結果的刪掉，再從剩下的挑一個。它只用幾A幾B，沒有看你的題目。</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
