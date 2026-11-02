@@ -478,7 +478,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.03-1';
+const APP_VERSION='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -1072,7 +1072,7 @@ function hashStr(s){let x=0;for(const c of String(s))x=(x*31+c.charCodeAt(0))>>>
 function svgLying(x,y,name,color,flip,i,gave,prop,look,who){
   const L=pxLying({look,color,prop,gave,boss:!!prop},3), s=flip?-1:1, fs=Math.min(10,64/Math.max(2,[...name].length));
   return `<g class="squish" ${who?`data-who="${esc(who)}"`:''} style="animation-delay:${i*.2}s"><g transform="translate(${x} ${y}) scale(${s} 1)">${L.svg}</g>
-  ${nameTag(x+L.bodyX*s,y+3.5,name,fs)}
+  ${nameTag(x+L.bodyX*s,y+6,name,fs)}
   <g transform="translate(${x+L.headX*s} ${y-L.h/2-6})"><g class="spin"><text x="-8" y="0" font-size="8" fill="#ffe066">★</text><text x="3" y="-4" font-size="7" fill="#ffe066">★</text><text x="-2" y="5" font-size="6" fill="#ffe066">★</text></g></g></g>`;
 }
 /* ===== 像素風角色引擎 ===== 每格一個字元，'.' 不動、'_' 擦掉；外框自動補 */
@@ -1209,7 +1209,7 @@ function pxBuild(o){o=o||{};
   if(o.crown){let top=99;for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12&&y<top)top=y;}pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
   const F={};for(const k in PX_FACE)F[k]=pxPut(new Map(),PX_FACE[k],PX_FPAL,0,7);
   const face=o.face||(v&&v.face)||(o.boss?'boss':lk?LOOK.face[lk.face][0]:'normal');
-  return{M,F,cx:8,hd:[2,3,14,14],face,back:hair==='none'||hair==='bald'?skin:hc};
+  return{M,F,cx:8,hd:[2,3,14,14],face,back:hair==='none'||hair==='bald'?skin:hc,skin,shirt};
 }
 /* 站姿（雙腳底部在 feetY、中心在 x） */
 function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-b.cx*px,y0=feetY-(bx.y1+1)*px;
@@ -1225,12 +1225,30 @@ function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-
   return{svg:legs+`<g ${bz}>${body+fn+fh}</g>`+hd,top:y0+bx.y0*px,bz};
 }
 /* 倒地（旋轉 90 度，頭朝右） */
-function pxLying(o,px){const b=pxBuild(o),M=new Map(b.M);
-  if(b.back)M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);if(y>=7&&y<=13&&x>=2&&x<=13)M.set(k,y===13?shadeC(b.back,-.16):b.back);});
-  const bx=pxBox(M),R=new Map();const up=false;M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);R.set((bx.y1-y)+','+(up?-x:x),c);});
-  const rb=pxBox(R),w=rb.x1-rb.x0+1,h=rb.y1-rb.y0+1;
-  const headX=(bx.y1-(b.hd[1]+b.hd[3])/2-rb.x0-w/2)*px, bodyX=(bx.y1-16.5-rb.x0-w/2)*px;
-  return{svg:`<g transform="translate(${-(rb.x0+w/2)*px} ${-(rb.y0+h/2)*px}) scale(${px})" shape-rendering="crispEdges">${pxPaths(pxOutline(R))}${pxPaths(R)}</g>`,headX,bodyX,h:h*px};
+/* 趴著（側面看，整個人貼在地上：腳在左、頭在右、手往前伸） */
+const PX_PRONE=[
+"................HHHHHH....",
+"...............HHHHHHHH...",
+"DD............HHHHHHHHHH..",
+"DD....OOOOOOOOHHHHHHHHHS..",
+"DPPPPPOOOOOOOOHHHHHHHSSS..",
+"DPPPPPOOOOOOOOHHHHHSSSSS..",
+"DPPPPPoooooooSSHHSSSSSKK..",
+".ppppp.oooooSSSSSSSSSSSSSS"];
+const PX_PRONE_D=[
+"............F..F..F.......",
+"...........GGGGGGGGGGGG...",
+"........GGGGGGGGGGGGGGGGG.",
+"....GGGGGGGGGGGGGGGGgGGGGG",
+"GGGGGGGGgGGGGGgGGGGGGGGKKG",
+".ggggUUUUUUUUUUGGGGGGGGGGG",
+"....PPPPUUUUuuuLLLLLLLLLLL",
+"...DDDPPPuuuuu.LTLTLTLTLTL"];
+function pxLying(o,px){const dino=o.prop==='dino',b=pxBuild(o);
+  const M=pxPut(new Map(),dino?PX_PRONE_D:PX_PRONE,dino?PX_DPAL:{H:b.back,S:b.skin,O:b.shirt,o:shadeC(b.shirt,-.22),P:'#4b5a8e',p:shadeC('#4b5a8e',-.25),D:'#6b3e2a',K:'#1e1b2e'});
+  if(o.gave){for(let y=2;y<7;y++)M.set('25,'+y,'#8a6a45');for(let y=2;y<5;y++)for(let x=26;x<29;x++)M.set(x+','+y,'#ffffff');}
+  const rb=pxBox(M),w=26,h=rb.y1-rb.y0+1;
+  return{svg:`<g transform="translate(${-(rb.x0+w/2)*px} ${-(rb.y0+h/2)*px}) scale(${px})" shape-rendering="crispEdges">${pxPaths(pxOutline(M))}${pxPaths(M)}</g>`,headX:(dino?7:6.5)*px,bodyX:(dino?-2:-2.5)*px,h:h*px};
 }
 /* 只取頭部的小圖示 */
 function pxHead(o){const b=pxBuild(o),lim=o.lim||(o.prop==='dino'?12:13),M=new Map();
@@ -1315,11 +1333,11 @@ function scene(ws,ls,line,label,opt){ opt=opt||{};
   if(!layers.length) layers.push([]);
   let gs='', idx=0;
   layers.forEach((row,k)=>{
-    const y=ground-24-k*26, step=Math.min(86,(W-30)/Math.max(1,row.length));
+    const y=ground-14-k*22, step=Math.min(86,(W-30)/Math.max(1,row.length));
     const x0=W/2-step*(row.length-1)/2-(row.length>1?14*(k%2?-1:1):0);
-    row.forEach((p,j)=>{gs+=svgLying(x0+j*step,y,p.name,p.color,k%2===1,idx++,p.gave,p.prop,p.look,p.who);});
+    row.forEach((p,j)=>{gs+=svgLying(x0+j*step+(k%2?-14:14),y,p.name,p.color,k%2===1,idx++,p.gave,p.prop,p.look,p.who);});
   });
-  const layerTop=ground-24-(layers.length-1)*26-18;
+  const layerTop=ground-14-(layers.length-1)*22-2;
   let w='', topY, bx, by;
   if(ws.length){
     const wstep=Math.min(90,(W-80)/ws.length), wx0=W/2-wstep*(ws.length-1)/2;
@@ -1919,7 +1937,7 @@ function itemBar(where){
   return `<div class="items"><span class="lbl">${where==='podium'?'選道具，點站在上面的人':where==='solo'?'選道具，點魔王出氣':where==='coop'?'選道具，點魔王出氣（隊友也可以丟）':'選道具，點朋友丟過去'}</span><div class="ibar">${keys.map(k=>`<button type="button" data-item="${k}" aria-pressed="${fxItem===k}" aria-label="${k}">${itemIcon(k)}</button>`).join('')}</div></div>`;
 }
 function tgtEl(t){return app.querySelector(`[data-who="${CSS.escape(t)}"]`)||app.querySelector(`[data-target="${CSS.escape(t)}"]`);}
-const BODYK=1.25, randHit=()=>{const h=Math.random()<.45;return{head:h,u:h?Math.random()*.5-.25:.55+Math.random()*.65,v:Math.random()*.5-.25};};
+const BODYK=1.25, randHit=()=>{const h=Math.random()<.7;return{head:h,u:h?Math.random()*.45-.25:.25+Math.random()*.2,v:Math.random()*.6-.3};};
 function stickOn(g,item,hit){
   const head=g.querySelector('.hd'); if(!head||!head.getBBox)return;
   const b=head.getBBox(), hx=b.x+b.width/2, hy=b.y+b.height/2, par=head.parentNode, NS='http://www.w3.org/2000/svg';
