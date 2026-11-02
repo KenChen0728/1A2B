@@ -320,6 +320,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .exk{display:flex;flex-direction:column;gap:6px;font-size:15px;margin-top:2px}
 .exk .htile i{width:32px;height:32px;font-size:18px}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
+.looktabs.two{grid-template-columns:repeat(2,1fr)}
 .looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
@@ -643,7 +644,7 @@ function render(){
       ${seg('data-gmode',[['battle','互相猜（對戰）'],['coop','合作打魔王']],s.mode||'battle',!isHost())}
       ${coopM?`<p class="rules" style="margin-top:-6px">全隊對抗一個魔王：大家輪流猜魔王的題，其他人可以語音或在聊天室出主意，筆記全隊共用；魔王每回合也猜一次全隊的題。先猜中的一方獲勝。</p>
       <span class="opt">每人猜題時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],s.turnSec===0?0:(s.turnSec||60),!isHost())}
-      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單'],['normal','普通'],['hard','困難（全力推理）']],s.diff||'normal',!isHost())}
+      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],s.diff==='hard'?'hard':'easy',!isHost())}
       <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel" ${isHost()?'':'disabled'}><option value="random" ${(s.stage||'random')==='random'?'selected':''}>🎲 隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
       <span class="opt">題目是幾位數字（不是人數）</span>
       ${seg('data-len',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],s.len,!isHost())}
@@ -1514,6 +1515,7 @@ function bind(){
   if($('copyCode')) $('copyCode').onclick=copyCode;
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
   if($('explainBtn')) $('explainBtn').onclick=()=>{explainOpen=!explainOpen;render();};
+  app.querySelectorAll('[data-rtab]').forEach(b=>b.onclick=()=>{resTab=b.dataset.rtab;render();});
   if($('randSecret')) $('randSecret').onclick=()=>{input=soloSecret(g().len,g().rep);err='';render();};
 }
 document.addEventListener('keydown',e=>{
@@ -1537,7 +1539,7 @@ function localPid(){
   render();
 })();
 /* ---------- 邊緣人模式（單機） ---------- */
-let soloCfg={len:4,rep:false,stage:'random',mode:'duel',diff:'normal'};
+let soloCfg={len:4,rep:false,stage:'random',mode:'duel',diff:'easy'};
 const V=(n,p,c,says,back)=>({n,p,c,says,back});
 const OFF=['今天準時下班！','這週不加班了','假日不回訊息','辭職信已寫好','週末是我的','上班時間再說','已讀，明天回'];
 const S=(label,group,v)=>({label,group,v});
@@ -1589,7 +1591,7 @@ function soloCard(){
     <span class="opt">怎麼玩</span>
     ${seg('data-smode',[['practice','練習模式'],['duel','挑戰模式']],soloCfg.mode,false)}
     <p class="rules" style="margin-top:-6px">${duel?'挑戰：你和魔王各出一題，輪流猜對方的。魔王只看得到幾A幾B，一步步推理，不會偷看你的題目。':'練習：電腦出題，你自己慢慢猜，沒有對手、不會被嗆、不限次數。'}</p>
-    ${duel?`<span class="opt">魔王有多聰明</span>${seg('data-diff',[['easy','簡單'],['normal','普通'],['hard','困難（全力推理）']],soloCfg.diff,false)}`:''}
+    ${duel?`<span class="opt">魔王有多聰明</span>${seg('data-diff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],soloCfg.diff==='hard'?'hard':'easy',false)}`:''}
     <span class="opt">題目是幾位數字</span>
     ${seg('data-slen',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],soloCfg.len,false)}
     <span class="opt">題目裡的數字能不能重複</span>
@@ -1609,9 +1611,9 @@ function soloNew(len,rep){
   const sel=soloCfg.stage||'random', vl=villainFor(sel), stg=sel==='custom'?'custom':(vl.stageKey||sel);
   if(sel==='custom'&&soloCfg.share!==false){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
   const duel=soloCfg.mode==='duel';
-  solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff||'normal',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
+  solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff==='hard'?'hard':'easy',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.says)}};
-  input='';err='';peek=false;notesOpen=false;notesKey=null;explainOpen=false;
+  input='';err='';peek=false;notesOpen=false;notesKey=null;explainOpen=false;resTab='me';
   render(); window.scrollTo(0,0);
 }
 /* ---------- 合作模式：全隊輪流猜，一起打魔王 ---------- */
@@ -2127,18 +2129,18 @@ function allCands(len,rep){
 }
 const fits=(c,clues)=>clues.every(x=>{const r=score(c,x.g);return r.A===x.A&&r.B===x.B;});
 const PROBES={3:['123','456','789'],4:['1234','5678'],5:['12345','67890']};
+const softFits=(c,clues)=>clues.every(x=>{const r=score(c,x.g);return r.A+r.B===x.A+x.B&&(x.A>0||r.A===0);});
+const mindFits=(s,c,clues)=>s.diff==='hard'?fits(c,clues):softFits(c,clues);
 function cpuPick(s){
   const all=allCands(s.len,s.rep), clues=s.chist;
   let cands=all.filter(c=>fits(c,clues));
   if(!cands.length) cands=all;
   if(s.diff!=='hard'){
-    // 像人一樣：先用 1234、5678 篩數字
-    const pr=(PROBES[s.len]||[]).slice(0,s.diff==='easy'?1:9);
-    const found=clues.reduce((t,x)=>PROBES[s.len]&&PROBES[s.len].includes(x.g)?t+x.A+x.B:t,0);
-    if(clues.length<pr.length&&found<s.len&&!clues.some(x=>x.g===pr[clues.length])) return {g:pr[clues.length],left:cands.length};
-    // 之後只記得最近幾次的線索（人會漏看舊的）
-    const k=s.diff==='easy'?2:(Math.random()<.5?2:3), loose=all.filter(c=>fits(c,clues.slice(-k)));
-    return {g:pick(loose.length?loose:cands),left:cands.length};
+    // 像人一樣想：先用 1234、5678 篩數字，之後只看「幾個數字對」和「0A 的位置不能放」，線索不會忘
+    const pr=PROBES[s.len]||[], mind=all.filter(c=>softFits(c,clues));
+    const found=clues.reduce((t,x)=>pr.includes(x.g)?t+x.A+x.B:t,0);
+    if(clues.length<pr.length&&found<s.len&&!clues.some(x=>x.g===pr[clues.length])) return {g:pr[clues.length],left:mind.length};
+    return {g:pick(mind.length?mind:cands),left:mind.length};
   }
   if(cands.length>2){
     const sample=a=>{if(a.length<=260)return a;const o=[];for(let i=0;i<260;i++)o.push(a[Math.floor(Math.random()*a.length)]);return o;};
@@ -2152,8 +2154,7 @@ function cpuPick(s){
 function cpuThink(s,last){
   if(!last) return '先猜一個試試看';
   const clues=(s.chist||[]).concat([last]);
-  if(s.diff==='easy'&&Math.random()<.5) return pick(['嗯…讓我想想','應該是這樣吧？','感覺快猜到了','我猜猜看']);
-  const c=allCands(s.len,s.rep).filter(x=>fits(x,clues)), yes=[], no=[];
+  const c=allCands(s.len,s.rep).filter(x=>mindFits(s,x,clues)), yes=[], no=[];
   for(let d=0;d<10;d++){const D=String(d), k=c.filter(x=>x.includes(D)).length; if(c.length&&k===c.length)yes.push(D); else if(!k)no.push(D);}
   const hit=last.A+last.B;
   if(last.A===s.len) return `${last.g}，猜中了！`;
@@ -2215,26 +2216,39 @@ function soloGiveUp(){
   if(!confirmTap('giveUp','確定放棄？再按一次'))return;
   s.end=Date.now(); s.result='gave'; render();
 }
-/* 結算詳解：把魔王每一步重算一次，只用當時的幾A幾B，用白話講給一般人看 */
-let explainOpen=false;
-function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[];let left=all;
-  const plain=x=>{const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
-    if(x.A===len)return '全部都對，猜中了！';
-    if(!hit)return `${ds} 全都不在答案裡。`;
-    const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
-    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:`，但位置${x.B>1?'都':''}不對。`);};
-  const known=c=>{const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
-    const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
-    const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
-    if(!t.length&&!pos.some(Boolean))return '';
-    return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;};
-  const rows=L.map((x,i)=>{const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),gone=before.filter(c=>!fits(c,[x])),win=x.A===len;left=after;
+/* 結算解析：用白話講給一般人看。魔王的「剩幾種」是它自己心裡的候選，和它實際選數字用的是同一套 */
+let explainOpen=false, resTab='me';
+function exPlain(x,len){const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
+  if(x.A===len)return '全部都對，猜中了！';
+  if(!hit)return `${ds} 全都不在答案裡。`;
+  const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
+  return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:`，但位置${x.B>1?'都':''}不對。`);}
+function exKnown(c,len){if(!c.length)return '';const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
+  const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
+  const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
+  if(!t.length&&!pos.some(Boolean))return '';
+  return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;}
+const exHead=(i,g,sc,left)=>`<div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(g)}</b>${sc}${left==null?'':`<span class="exn">剩 ${left} 種</span>`}</div>`;
+const exSc=x=>`<span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>`;
+function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[],hard=s.diff==='hard';let left=all,seen=[];
+  const rows=L.map((x,i)=>{const before=left,after=before.filter(c=>mindFits(s,c,[x])),gone=before.filter(c=>!mindFits(s,c,[x])),win=x.A===len;left=after;seen.push(x);
     const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
-    const eg=ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B，對不上，所以 ${ex} 不可能。${before.length} 種全部都這樣比過，${after.length&&after.length<=6?`只有 ${after.join('、')} 對得上`:`留下 ${after.length} 種`}。</p>`:'';
-    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):P[i]===x.g?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:legal?'':'它忘了比較舊的線索，這個數字其實已經不可能了，所以這一步是浪費的。';
-    return `<li><div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>${win?'':`<span class="exn">剩 ${after.length} 種</span>`}</div>
-      <p class="exp">${plain(x)}</p>${note?`<p class="exw">${note}</p>`:''}${eg}${win||!after.length?'':known(after)}</li>`;}).join('');
-  return `<div class="expl"><p class="exi">${esc(n)}的做法很單純：先列出全部 ${all.length} 種可能，每猜一次，就把對不上結果的刪掉，再從剩下的挑一個。它只用幾A幾B，沒有看你的題目。</p><ol>${rows}</ol></div>`;}
+    const why=!ex?'':hard||r.A+r.B!==x.A+x.B?(hard?`猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B`:`${x.g} 裡會有 ${r.A+r.B} 個數字對，但實際是 ${x.A+x.B} 個`):`${x.g} 會有數字在同一個位置，但實際是 0A`;
+    const eg=ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，${why}，對不上，所以 ${ex} 不可能。${before.length} 種全部都這樣比過，${after.length&&after.length<=6?`只有 ${after.join('、')} 還可能`:`留下 ${after.length} 種`}。</p>`:'';
+    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時${hard?'':'它心裡'}還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):!hard&&P[i]===x.g?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:hard?'從還可能的答案裡，挑一個最能縮小範圍的。':'從它心裡還可能的答案裡挑一個。';
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}</p><p class="exw">${note}</p>${eg}${win||!after.length?'':exKnown(after,len)}</li>`;}).join('');
+  const intro=hard?`${esc(n)}用電腦硬算：列出全部 ${all.length} 種可能，每猜一次，就把幾A幾B 對不上的刪掉。它沒有看你的題目。`:`${esc(n)}像人一樣想，只記兩件事：每次猜的數字裡有幾個對，還有 0A 時那些數字不能放在原本的位置。它不會比對到更細，但每條線索都記得，也沒有看你的題目。下面的「剩幾種」是它心裡覺得還可能的數量。`;
+  return `<div class="expl"><p class="exi">${intro}</p><ol>${rows}</ol></div>`;}
+function myExplain(s){const all=allCands(s.len,s.rep),len=s.len;let left=all,bad=0;const seen=[];
+  const rows=s.hist.map((x,i)=>{
+    if(x.hint){left=left.filter(c=>c[+x.pos]===x.g);seen.push(Object.assign({i},x));return `<li>${exHead(i,'提示','',left.length)}<p class="exp">用提示知道第 ${+x.pos+1} 位是 ${esc(x.g)}。</p>${exKnown(left,len)}</li>`;}
+    const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),win=x.A===len;left=after;let note='';
+    if(win)note=before.length===1?'前面已經推到只剩這一種，漂亮！':`當時還有 ${before.length} 種可能，這次猜中有運氣成分（機率 1/${before.length}）。`;
+    else if(!legal){bad++;const q=seen.find(y=>y.hint?x.g[+y.pos]!==y.g:!fits(x.g,[y]));
+      if(q){const r=q.hint?null:score(x.g,q.g);const tail=after.length<before.length?'不過它還是幫你排除了一些可能，可以當作篩數字用。':'而且它也沒有幫你排除新的可能。';note=(q.hint?`${x.g} 不可能是答案：第 ${q.i+1} 次的提示說第 ${+q.pos+1} 位是 ${esc(q.g)}。`:`${x.g} 不可能是答案：假如答案是它，第 ${q.i+1} 次猜 ${q.g} 應該得到 ${r.A}A${r.B}B，但實際是 ${q.A}A${q.B}B。`)+tail;}}
+    seen.push(Object.assign({i},x));
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}</p>${note?`<p class="exw">${note}</p>`:''}${!win&&after.length&&after.length<=6?`<p class="exw">只剩 ${after.join('、')} 還可能。</p>`:''}${win||!after.length?'':exKnown(after,len)}</li>`;}).join('');
+  return `<div class="expl"><p class="exi">電腦幫你算的：每猜一次，還可能是答案的數字剩幾種。猜「還可能是答案」的數字才有機會直接中；不可能的數字雖然中不了，但有時可以用來篩數字。${bad?`這局有 ${bad} 次猜的數字已經不可能是答案。`:'這局你每次猜的都還可能是答案。'}</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
@@ -2242,7 +2256,7 @@ function cpuHistHTML(L){
 function renderSolo(){
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil, stLabel=s.stage==='custom'?'自訂魔王':(STAGES[s.stage]||{label:''}).label;
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${{easy:'簡單',normal:'普通',hard:'困難'}[s.diff]}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
+  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
       <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
@@ -2271,8 +2285,9 @@ function renderSolo(){
       :scene([{who:'p:boss',tg:true,name:vil.n,color:vil.c,boss:true,prop:vil.p}],[{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],vil.says2,vil.n+'踩在你身上')+podBar();
     h+=`<div class="card center" style="padding-block:24px"><h1>${title}</h1><p class="hand">${sub}${used?`（用了 ${used} 次提示）`:''}，花了 ${fmtTime(s.end-s.start)}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${duel?esc(vil.n)+'的題目':'答案'}</span><b>${esc(s.secret)}</b></div>${duel?`<div><span class="sub">你的題目</span><b>${esc(s.mine)}</b></div>`:''}</div></div>
-      <div class="card"><span class="lbl">${duel?`你猜${esc(vil.n)}的題`:'這局的紀錄'}</span>${histHTML(s.hist)}</div>
-      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}<button class="btn ghost" id="explainBtn">${explainOpen?'收起詳解':`看${esc(vil.n)}是怎麼推理的`}</button>${explainOpen?cpuExplain(s):''}</div>`:''}
+      <div class="card">${duel?`<div class="looktabs two"><button type="button" data-rtab="me" aria-pressed="${resTab==='me'}">我的猜測</button><button type="button" data-rtab="cpu" aria-pressed="${resTab==='cpu'}">${esc(vil.n)}的猜測</button></div>`:'<span class="lbl">這局的紀錄</span>'}
+      ${duel&&resTab==='cpu'?cpuHistHTML(s.chist):histHTML(s.hist)}
+      <button class="btn ghost" id="explainBtn">${explainOpen?'收起解析':'看解析'}</button>${explainOpen?(duel&&resTab==='cpu'?cpuExplain(s):myExplain(s)):''}</div>
       <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>`;
   }
   paint(h); sideUI(false,!s.result);
