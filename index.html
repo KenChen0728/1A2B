@@ -141,7 +141,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .sendrow{display:flex;gap:8px}
 .sendrow input{flex:1;min-width:0}
 .sendrow .btn{width:auto;padding:10px 16px;font-size:15px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(420px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:10px 16px;border-radius:14px;font-size:16px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;overflow-wrap:anywhere;pointer-events:none}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-size:18px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;overflow-wrap:anywhere;pointer-events:none}
 @media (min-width:900px){.toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
 .tabs{flex-wrap:wrap}
@@ -221,8 +221,9 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .helpbtn{font:inherit;font-size:14px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .helpc{width:min(400px,100%);box-sizing:border-box;max-width:400px;text-align:left;align-items:stretch;gap:10px;touch-action:pan-y}
 #help,#lookM{padding-block:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-bottom,0px))}
-.hpage{display:flex;flex-direction:column;gap:10px;min-height:290px;animation:hin .16s steps(2,end)}
-@keyframes hin{from{transform:translateX(var(--hd,10px))}to{transform:none}}
+#helpBody{overflow:hidden}
+.hpage{display:flex;flex-direction:column;gap:10px;min-height:290px;animation:hin .26s cubic-bezier(.2,.75,.3,1)}
+@keyframes hin{from{transform:translateX(var(--hd,40px));opacity:0}to{transform:none;opacity:1}}
 .hpic{height:186px;flex:0 0 auto;border-radius:14px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;position:relative}
 .hpic svg{display:block}
 .hpic .stage2{width:100%;height:100%}
@@ -452,7 +453,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-13';
+const APP_VERSION='2026.11.02-14';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -742,7 +743,7 @@ addEventListener('resize',fabApply);fabApply();
 document.getElementById('muteBox').checked=ls.get('ab_mute')==='1';
 document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checked?'1':'0');if(e.target.checked){document.getElementById('stack').innerHTML='';popQ=[];popOn=0;}};
 /* 說明：圖文分頁，每次打開都從第 1 頁開始；圖用遊戲裡的像素角色現畫（第一個人就是自己的造型） */
-let helpP=0;
+let helpP=0, helpC=null;
 function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>charSVG(c.x,feet,c.name||'',c.color||'#9aa3b5',{look:c.look,boss:c.boss,prop:c.prop,face:c.face,crown:c.crown,scale:c.s||1})).join('');
   return `<svg class="stage2" viewBox="0 ${top} ${w} 150" aria-hidden="true"><ellipse cx="${w/2}" cy="${feet+3}" rx="${w/2-14}" ry="5" fill="#000" opacity=".16"/>${out}</svg>`;}
 function helpIcon(c){return helpStage([c],60).replace('viewBox="0 18 60 150"','viewBox="-20 34 100 124"');}
@@ -769,13 +770,13 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
    {t:'輸了也別生氣',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',face:'angry'},{x:216,look:a,name:'贏家',crown:true,face:'C'}])}<span class="hfly" style="left:44%;top:30%">🍅</span><span class="hfly" style="left:57%;top:16%">🥚</span></div>
      <p class="hline">點別人<b>丟東西</b>出氣</p><p class="hsub">贏家會閃；魔王被丟太多次會反擊</p>`}
   ];}
-function drawHelp(dir){const P=helpPages(),n=P.length,$=id=>document.getElementById(id);helpP=Math.max(0,Math.min(n-1,helpP));
+function drawHelp(dir){const P=helpC||(helpC=helpPages()),n=P.length,$=id=>document.getElementById(id);helpP=Math.max(0,Math.min(n-1,helpP));
   $('helpT').textContent=P[helpP].t;
-  $('helpBody').innerHTML=`<div class="hpage" style="--hd:${dir<0?-10:10}px">${P[helpP].h}</div>`;
+  $('helpBody').innerHTML=`<div class="hpage" style="--hd:${dir<0?-40:40}px">${P[helpP].h}</div>`;
   $('helpDots').innerHTML=P.map((_,i)=>`<button type="button" data-hp="${i}" aria-label="第 ${i+1} 頁" aria-current="${i===helpP}"></button>`).join('');
   $('helpPrev').hidden=helpP===0;$('helpNext').textContent=helpP===n-1?'知道了':'下一頁';}
-function helpGo(d){const n=helpPages().length,t=helpP+d;if(t<0)return;if(t>=n){showHelp(false);return;}helpP=t;drawHelp(d);}
-function showHelp(o){const h=document.getElementById('help');if(o){helpP=0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+function helpGo(d){const n=helpC.length,t=helpP+d;if(t<0)return;if(t>=n){showHelp(false);return;}helpP=t;drawHelp(d);}
+function showHelp(o){const h=document.getElementById('help');if(o){helpP=0;helpC=null;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
 document.addEventListener('click',e=>{if(e.target.closest('[data-help]'))showHelp(true);});
 document.getElementById('helpClose').onclick=()=>showHelp(false);
 document.getElementById('helpPrev').onclick=()=>helpGo(-1);
@@ -786,7 +787,7 @@ document.addEventListener('keydown',e=>{if(document.getElementById('help').hidde
 (()=>{const el=document.querySelector('.helpc');let x0=null,y0=0;
   el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
   el.addEventListener('touchend',e=>{if(x0===null)return;const t=e.changedTouches[0],dx=t.clientX-x0,dy=t.clientY-y0;x0=null;
-    if(Math.abs(dx)>44&&Math.abs(dx)>Math.abs(dy)*1.5&&(dx>0?helpP>0:helpP<helpPages().length-1))helpGo(dx<0?1:-1);},{passive:true});})();
+    if(Math.abs(dx)>44&&Math.abs(dx)>Math.abs(dy)*1.5&&(dx>0?helpP>0:helpP<helpC.length-1))helpGo(dx<0?1:-1);},{passive:true});})();
 if(!ls.get('ab_help_seen')) setTimeout(()=>showHelp(true),600);
 let autoOn=ls.get('ab_automark')!=='0';
 document.getElementById('autoMark').checked=autoOn;
@@ -1177,7 +1178,7 @@ function pxBuild(o){o=o||{};
   if(o.crown){let top=99;for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12&&y<top)top=y;}pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
   const F={};for(const k in PX_FACE)F[k]=pxPut(new Map(),PX_FACE[k],PX_FPAL,0,7);
   const face=o.face||(v&&v.face)||(o.boss?'boss':lk?LOOK.face[lk.face][0]:'normal');
-  return{M,F,cx:8,hd:[2,3,14,14],face};
+  return{M,F,cx:8,hd:[2,3,14,14],face,back:hair==='none'||hair==='bald'?skin:hc};
 }
 /* 站姿（雙腳底部在 feetY、中心在 x） */
 function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-b.cx*px,y0=feetY-(bx.y1+1)*px;
@@ -1193,8 +1194,9 @@ function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-
   return{svg:legs+`<g ${bz}>${body+fn+fh}</g>`+hd,top:y0+bx.y0*px,bz};
 }
 /* 倒地（旋轉 90 度，頭朝右） */
-function pxLying(o,px){const b=pxBuild(o),M=new Map(b.M);(b.F.hurt||new Map()).forEach((c,k)=>M.set(k,c));
-  const bx=pxBox(M),R=new Map();const up=o.prop==='dino';M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);R.set((bx.y1-y)+','+(up?-x:x),c);});
+function pxLying(o,px){const b=pxBuild(o),M=new Map(b.M);
+  if(b.back)M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);if(y>=7&&y<=13&&x>=2&&x<=13)M.set(k,y===13?shadeC(b.back,-.16):b.back);});
+  const bx=pxBox(M),R=new Map();const up=false;M.forEach((c,k)=>{const [x,y]=k.split(',').map(Number);R.set((bx.y1-y)+','+(up?-x:x),c);});
   const rb=pxBox(R),w=rb.x1-rb.x0+1,h=rb.y1-rb.y0+1;
   const headX=(bx.y1-(b.hd[1]+b.hd[3])/2-rb.x0-w/2)*px, bodyX=(bx.y1-16.5-rb.x0-w/2)*px;
   return{svg:`<g transform="translate(${-(rb.x0+w/2)*px} ${-(rb.y0+h/2)*px}) scale(${px})" shape-rendering="crispEdges">${pxPaths(pxOutline(R))}${pxPaths(R)}</g>`,headX,bodyX,h:h*px};
@@ -2036,7 +2038,8 @@ function playFx(x,mine){
       if(stand){stickOn(e2,x.item,hit);PODHIT[x.target]=(PODHIT[x.target]||0)+1;clearTimeout(PODCLR[x.target]);PODCLR[x.target]=setTimeout(()=>{if(!isDown(x.target))shedStuck(charOf(x.target),true);},3200);
         if(PODHIT[x.target]>=3){PODHIT[x.target]=0;knock(e2,x.item,null);}else{e2.classList.remove('flinch');void e2.getBoundingClientRect();e2.classList.add('flinch');setTimeout(()=>e2.classList.remove('flinch'),400);if(Math.random()<.4)sayAt(x.target,pick(POUCH));}
         return;}
-      stickOn(e2,x.item,hit);knock(e2,x.item,isPod?null:src||(mine?myStageId():null));
+      const ks=KST[x.target]; if(!(ks&&!ks.down&&ks.lock>Date.now()))stickOn(e2,x.item,hit); /* 剛爬起來會用鍋蓋擋，不留痕跡，不然沒人清 */
+      knock(e2,x.item,isPod?null:src||(mine?myStageId():null));
     },dur);
   },i*(slow?170:120));
   if(!mine&&x.name){const tid=String(x.target).replace(/^p:/,''), who=tid==='boss'?'魔王':tid===me?'你':nameOf(tid);toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMS[x.item]}丟了`}${who}${(x.n||1)>1?` ×${x.n}`:''}`);}
@@ -2216,9 +2219,9 @@ function renderSolo(){
       :scene([{who:'p:boss',tg:true,name:vil.n,color:vil.c,boss:true,prop:vil.p}],[{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],vil.says2,vil.n+'踩在你身上')+podBar();
     h+=`<div class="card center" style="padding-block:24px"><h1>${title}</h1><p class="hand">${sub}${used?`（用了 ${used} 次提示）`:''}，花了 ${fmtTime(s.end-s.start)}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${duel?esc(vil.n)+'的題目':'答案'}</span><b>${esc(s.secret)}</b></div>${duel?`<div><span class="sub">你的題目</span><b>${esc(s.mine)}</b></div>`:''}</div></div>
-      <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>
       <div class="card"><span class="lbl">${duel?`你猜${esc(vil.n)}的題`:'這局的紀錄'}</span>${histHTML(s.hist)}</div>
-      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}</div>`:''}`;
+      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}</div>`:''}
+      <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>`;
   }
   paint(h); sideUI(false,!s.result);
 }
