@@ -303,7 +303,17 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .namecard{max-width:400px;width:100%;margin:12vh auto 0;box-sizing:border-box}
 .namecard .err:empty{display:none}
 .homemenu{display:flex;flex-direction:column;gap:12px}
-.homemenu .btn{padding:18px;font-size:18px}
+.homemenu .btn,.homeact .btn{color:#fff;font-size:21px;padding:18px;border-radius:14px;box-shadow:0 5px 0 var(--bs);transition:transform .08s,box-shadow .08s}
+.homemenu .btn:active,.homeact .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--bs)}
+.homemenu{gap:16px;padding-bottom:6px}
+.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:#7a4fc0;--bs:#58368f}
+.homeact{gap:12px;padding-bottom:5px}
+.homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
+.looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
+.looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
+.lookpane .swr{gap:12px;padding:6px}.lookpane .sw{width:46px;height:46px}
 .lookrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
 .lookav svg{width:58px;height:58px;display:block}
 .lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
@@ -588,7 +598,7 @@ function render(){
       if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
         <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
       if(homeStep==='solo') return soloCard()+back;
-      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row"><button class="btn ghost" id="nameBtn">換名字</button><button class="btn ghost" id="lookBtn">換造型</button></div></div>
+      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
       ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
       <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}`;
     })();
@@ -1234,27 +1244,24 @@ function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):ha
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();ls.set('ab_look',lookStr(o));}return o;}
 function lookOf(id){const st=(typeof g==='function'&&g()&&g().seats)||{};return parseLook(st[id]&&st[id].look)||parseLook(((g()&&g().watchers)||{})[id]&&g().watchers[id].look)||(id===me?myLook():randLook(id));}
 function headSVG(o,face,lim){return pxHead({look:o,face:face||null,lim});}
+const LOOKTABS=[['hair','髮型'],['hc','髮色'],['face','表情'],['beard','鬍子'],['acc','配件'],['skin','膚色'],['shirt','衣服']];
 function openLook(){
   if(document.getElementById('nick'))readNick();
-  let cur=Object.assign({},myLook());
+  let cur=Object.assign({},myLook()), tab='hair';
   let el=document.getElementById('lookM'); if(!el){el=document.createElement('div');el.id='lookM';el.className='upd';document.body.appendChild(el);}
   const close=()=>{el.hidden=true;el.innerHTML='';};
   const draw=()=>{const box=el.querySelector('.lookbox'), sc=box?box.scrollTop:0;
     const sw=k=>LOOK[k].map((c,i)=>`<button type="button" class="sw ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}" style="background:${c}" aria-label="顏色 ${i+1}"></button>`).join('');
     const th=k=>LOOK[k].map(([,lb],i)=>`<button type="button" class="th ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}">${headSVG(Object.assign({},cur,{[k]:i}),null,k==='acc'?19:k==='beard'?15:0)}<span>${lb}</span></button>`).join('');
     el.innerHTML=`<div class="card lookbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">我的角色</h2><button type="button" class="dclose" data-lk="x" aria-label="關閉">✕</button></div>
-     <div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true}])}</div>
-     <span class="lbl">髮型</span><div class="thr">${th('hair')}</div>
-     <span class="lbl">髮色</span><div class="swr">${sw('hc')}</div>
-     <span class="lbl">表情</span><div class="thr">${th('face')}</div>
-     <span class="lbl">鬍子</span><div class="thr">${th('beard')}</div>
-     <span class="lbl">配件</span><div class="thr">${th('acc')}</div>
-     <span class="lbl">膚色</span><div class="swr">${sw('skin')}</div>
-     <span class="lbl">衣服顏色</span><div class="swr">${sw('shirt')}</div>
+     <div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true,noyou:true}])}</div>
+     <div class="looktabs">${LOOKTABS.map(([k,lb])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${lb}</button>`).join('')}</div>
+     <div class="lookpane">${tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
      <div class="lookbtns"><button type="button" class="peek" data-lk="r">🎲 隨機</button><button type="button" class="btn" data-lk="ok">完成</button></div></div>`;
     const nb=el.querySelector('.lookbox'); if(nb)nb.scrollTop=sc;};
   el.onclick=async e=>{const b=e.target.closest('button'); if(!b){if(e.target===el)close();return;}
-    if(b.dataset.k){cur[b.dataset.k]=+b.dataset.i;draw();return;}
+    if(b.dataset.tab){tab=b.dataset.tab;draw();const pn=el.querySelector('.lookpane');if(pn)pn.scrollTop=0;return;}
+    if(b.dataset.k){const pn=el.querySelector('.lookpane'),y=pn?pn.scrollTop:0;cur[b.dataset.k]=+b.dataset.i;draw();const p2=el.querySelector('.lookpane');if(p2)p2.scrollTop=y;return;}
     if(b.dataset.lk==='r'){cur=randLook();draw();return;}
     if(b.dataset.lk==='x'){close();return;}
     if(b.dataset.lk==='ok'){ls.set('ab_look',lookStr(cur));close();
