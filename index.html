@@ -71,6 +71,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .slots{display:flex;justify-content:center;gap:10px}
 .slot{width:54px;height:64px;border-bottom:3px solid var(--ink);display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:36px;color:var(--ink)}
 .slot.empty{border-bottom-color:var(--line)}
+.slot.lock{color:var(--ok);border-bottom-color:var(--ok)}
 .err{min-height:20px;color:var(--a);font-size:15px;text-align:center;margin:0}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pad button{font-family:var(--f-num);font-weight:500;font-size:26px;padding:12px 0;border-radius:12px;border:0;background:var(--key);color:var(--keyfg);cursor:pointer;touch-action:manipulation}
@@ -229,11 +230,11 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .hpic .stage2{width:100%;height:100%}
 .hline{font-size:16px;line-height:1.55;margin:0;text-align:center;text-wrap:balance}
 .hsub{font-size:14px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
-.hrow{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
-.hrow .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
-.hrow i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
-.hrow i.ha{background:var(--a);border-color:var(--a);color:var(--card)}
-.hrow i.hb{background:var(--b);border-color:var(--b);color:var(--card)}
+.htile{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
+.htile .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
+.htile i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
+.htile i.ha{background:var(--a);border-color:var(--a);color:var(--card)}
+.htile i.hb{background:var(--b);border-color:var(--b);color:var(--card)}
 .hres{font-family:var(--f-num);font-weight:700;font-size:24px;line-height:1.2}
 .hkey{display:flex;justify-content:center;gap:16px;font-size:15px;flex-wrap:wrap}
 .hkey b{font-family:var(--f-num);font-size:17px}
@@ -300,6 +301,30 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 @keyframes gswoop{0%{transform:translateY(70vh) scale(.3) rotate(-20deg)}22%{transform:translateY(0) scale(1.08) rotate(6deg)}35%{transform:scale(1) rotate(-4deg)}50%{transform:translateX(-14px) rotate(4deg)}65%{transform:translateX(14px) rotate(-4deg)}80%{transform:translateX(0) scale(1.02)}100%{transform:translateY(-8vh) scale(1.05)}}
 @keyframes gboo{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){.ghostov .gbody,.ghostov .gboo,.minighost{animation:none}}
+.namecard{max-width:400px;width:100%;margin:12vh auto 0;box-sizing:border-box}
+.namecard .err:empty{display:none}
+.homemenu{display:flex;flex-direction:column;gap:12px}
+.homemenu .btn,.homeact .btn{color:#fff;font-size:21px;padding:18px;border-radius:14px;box-shadow:0 5px 0 var(--bs);transition:transform .08s,box-shadow .08s}
+.homemenu .btn:active,.homeact .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--bs)}
+.homemenu{gap:16px;padding-bottom:6px}
+.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:#000}
+.homeact{gap:12px;padding-bottom:5px}
+.homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.expl li{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.exi{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--fg)}
+.exh{display:flex;align-items:baseline;gap:8px}.exh b{font-family:var(--f-num);font-size:18px;letter-spacing:.1em}
+.exn{margin-left:auto;font-size:15px;color:var(--ink);font-weight:700;white-space:nowrap}
+.exp{margin:0;font-size:16px;line-height:1.55}
+.exw{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
+.exk{display:flex;flex-direction:column;gap:6px;font-size:15px;margin-top:2px}
+.exk .htile i{width:32px;height:32px;font-size:18px}
+.looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
+.looktabs.two{grid-template-columns:repeat(2,1fr)}
+.looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
+.looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+.lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
+.lookpane .swr{gap:12px;padding:6px}.lookpane .sw{width:46px;height:46px}
 .lookrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
 .lookav svg{width:58px;height:58px;display:block}
 .lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
@@ -453,7 +478,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-14';
+const APP_VERSION='2026.11.03-1';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -519,14 +544,18 @@ function derive(){
 }
 
 function validate(v){const s=g();if(v.length!==s.len)return`請輸入 ${s.len} 位數字`;if(!s.rep&&new Set(v).size!==v.length)return'數字不能重複';return'';}
-function slots(masked){let h='<div class="slots">';for(let i=0;i<g().len;i++){const d=input[i];h+=`<div class="slot ${d===undefined?'empty':''}">${d===undefined?'':(masked&&!peek?'●':d)}</div>`;}return h+'</div>';}
+/* 提示開過的位數鎖住：input 裡直接帶著那個數字，打字會自動跳過 */
+let locks=[];
+function fillLocks(){const n=g().len;while(input.length<n&&locks[input.length])input+=locks[input.length];}
+function syncLocks(){const rep=g().rep;if(locks.some((d,i)=>d&&((i<input.length&&input[i]!==d)||(!rep&&input.includes(d)&&input.indexOf(d)!==i))))input='';fillLocks();}
+function slots(masked,lock){locks=masked?[]:(lock||[]);syncLocks();let h='<div class="slots">';for(let i=0;i<g().len;i++){const d=input[i]!==undefined?input[i]:(locks[i]||undefined);h+=`<div class="slot ${d===undefined?'empty':''} ${locks[i]?'lock':''}">${d===undefined?'':(masked&&!peek?'●':d)}</div>`;}return h+'</div>';}
 function pad(useNotes){
   const ks=['1','2','3','4','5','6','7','8','9','del','0','ok'];
   return'<div class="pad">'+ks.map(k=>{
     if(k==='del')return`<button data-k="del" aria-label="刪除">⌫</button>`;
     if(k==='ok')return`<button class="ok" data-k="ok" ${busy?'disabled':''}>確定</button>`;
     const nt=useNotes?(notes.d[+k]===2?'no':notes.d[+k]===1?'yes':''):'';
-    return`<button data-k="${k}" class="${!g().rep&&input.includes(k)?'used':''} ${nt}">${k}</button>`;
+    return`<button data-k="${k}" class="${!g().rep&&(input.includes(k)||locks.includes(k))?'used':''} ${nt}">${k}</button>`;
   }).join('')+'</div>';
 }
 const ab=x=>x?`<span class="A">${x.A}A</span><span class="B">${x.B}B</span>`:'—';
@@ -546,7 +575,7 @@ function progress(D){
 }
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
-let lastHTML='', pendingPaint=null;
+let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false;
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
 const WIDE=900; let wasWide=innerWidth>=WIDE;
 function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
@@ -577,15 +606,17 @@ function render(){
   if(!code){
     const pre=(location.hash||'').replace('#','').toUpperCase();
     h=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">你還要猜多久😴</p></header>`+h+
-    `<div class="card"><label class="lbl" for="nick">你的暱稱</label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字"></div>
-    <div class="card"><div class="lookrow"><span class="lookav">${headSVG(myLook())}</span><div style="flex:1 1 auto;min-width:0"><span class="lbl">我的角色</span><p class="sub" style="margin:2px 0 0">髮型、表情、衣服自己選</p></div><button class="btn" id="lookBtn" style="width:auto;padding:12px 18px">換造型</button></div></div>
-    ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
-    <div class="card"><h2>開新房間</h2><p class="sub">你會是房主，負責設定規則和開始遊戲</p><button class="btn" id="create" ${busy?'disabled':''}>建立房間</button></div>
-    <div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
-    <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>
-    <p class="err">${esc(homeErr)}</p>
-    ${soloCard()}
-    ${fbCard()}`;
+    (()=>{
+      if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
+      const back=`<button class="peek" id="homeBack">← 返回</button>`, err=homeErr?`<p class="err">${esc(homeErr)}</p>`:'';
+      if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
+      if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
+        <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
+      if(homeStep==='solo') return soloCard()+back;
+      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
+      ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
+      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}`;
+    })();
     paint(h); sideUI(false,false); return;
   }
   if(roomMissing){ls.del('ab_room');lastHTML='';app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>房間 ${esc(code)} 已關閉</h2><p class="hand">房主已經關閉這個房間，聊天和遊戲紀錄都清除了。</p><button class="btn" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
@@ -597,7 +628,7 @@ function render(){
   const s=g(), D=derive(), inGame=me in D.A, hostName=nameOf(s.host);
   const nk=code+'_'+s.round; if(s.phase!=='coop'&&inGame&&D.status!=='lobby'&&(notesKey!==nk||notesLen!==s.len)) loadNotes(nk,s.len);
   if(inGame&&(D.status==='playing'||D.status==='over')) autoMarkFrom(D.by[me]||[],s.len);
-  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+({easy:'簡單',normal:'普通',hard:'困難'}[s.diff||'normal']):s.finish?'全部猜完':'先中先贏'}</p></div>
+  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+(s.diff==='hard'?'困難':'簡單'):s.finish?'全部猜完':'先中先贏'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
 
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
@@ -613,7 +644,7 @@ function render(){
       ${seg('data-gmode',[['battle','互相猜（對戰）'],['coop','合作打魔王']],s.mode||'battle',!isHost())}
       ${coopM?`<p class="rules" style="margin-top:-6px">全隊對抗一個魔王：大家輪流猜魔王的題，其他人可以語音或在聊天室出主意，筆記全隊共用；魔王每回合也猜一次全隊的題。先猜中的一方獲勝。</p>
       <span class="opt">每人猜題時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],s.turnSec===0?0:(s.turnSec||60),!isHost())}
-      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單'],['normal','普通'],['hard','困難（全力推理）']],s.diff||'normal',!isHost())}
+      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],s.diff==='hard'?'hard':'easy',!isHost())}
       <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel" ${isHost()?'':'disabled'}><option value="random" ${(s.stage||'random')==='random'?'selected':''}>🎲 隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
       <span class="opt">題目是幾位數字（不是人數）</span>
       ${seg('data-len',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],s.len,!isHost())}
@@ -662,7 +693,7 @@ function render(){
       else if(D.waiting(me)) h+=`<div class="card center"><h2>第 ${D.by[me].length} 次已送出</h2><p class="hand"><span class="dot"></span>等其他人猜完這一回合（${D.parts.filter(id=>!D.out[id]&&!D.solved[id]&&D.by[id].length>=D.by[me].length).length}/${D.parts.filter(id=>!D.out[id]&&!D.solved[id]).length}）</p></div>`;
       if(D.can(me)){
         const hl=g().len-1-D.hints[me];
-        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false)}<p class="err">${esc(err)}</p>${pad(true)}
+        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false,knownOf(D.by[me],s.len))}<p class="err">${esc(err)}</p>${pad(true)}
         <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||!secretOf(tgt)||!D.hc?'disabled':''}>${D.hc?`提示 ×${Math.max(0,hl)}（算 ${D.hc} 次）`:'這局不能用提示'}</button>${D.aN?`<button class="btn ghost small" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>小天使 ×${Math.max(0,D.aN-D.angels[me])}${D.ac?`（算 ${D.ac} 次）`:''}</button>`:''}<button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
@@ -749,7 +780,7 @@ function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>
 function helpIcon(c){return helpStage([c],60).replace('viewBox="0 18 60 150"','viewBox="-20 34 100 124"');}
 function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('2.3.11.1.3.0.0'),c=parseLook('0.4.1.0.5.1.0');
   return [
-   {t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="hrow"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="hrow"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
+   {t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="htile"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="htile"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
      <div class="hkey"><span><b class="A">A</b> 數字、位置都對</span><span><b class="B">B</b> 數字對、位置錯</span></div><p class="hsub">猜到全部都是 A 就贏了。開頭可以是 0</p>`},
    {t:'和朋友一起玩',h:`<div class="hpic"><span class="hcode">AB12</span>${helpStage([{x:42,look:L,name:'你',s:.78},{x:114,look:a,name:'小美',s:.78},{x:186,look:b,name:'阿明',s:.78},{x:258,look:c,name:'大雄',s:.78}])}</div>
      <p class="hline">開房，把<b>邀請碼</b>傳給朋友</p><p class="hsub">2～8 人，大家都按準備，房主就能開始</p>`},
@@ -994,7 +1025,7 @@ setInterval(updTick,2000);
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
-function goHome(){if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){homeStep='menu';homeEdit=false;if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}}));
@@ -1228,27 +1259,24 @@ function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):ha
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();ls.set('ab_look',lookStr(o));}return o;}
 function lookOf(id){const st=(typeof g==='function'&&g()&&g().seats)||{};return parseLook(st[id]&&st[id].look)||parseLook(((g()&&g().watchers)||{})[id]&&g().watchers[id].look)||(id===me?myLook():randLook(id));}
 function headSVG(o,face,lim){return pxHead({look:o,face:face||null,lim});}
+const LOOKTABS=[['hair','髮型'],['hc','髮色'],['face','表情'],['beard','鬍子'],['acc','配件'],['skin','膚色'],['shirt','衣服']];
 function openLook(){
   if(document.getElementById('nick'))readNick();
-  let cur=Object.assign({},myLook());
+  let cur=Object.assign({},myLook()), tab='hair';
   let el=document.getElementById('lookM'); if(!el){el=document.createElement('div');el.id='lookM';el.className='upd';document.body.appendChild(el);}
   const close=()=>{el.hidden=true;el.innerHTML='';};
   const draw=()=>{const box=el.querySelector('.lookbox'), sc=box?box.scrollTop:0;
     const sw=k=>LOOK[k].map((c,i)=>`<button type="button" class="sw ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}" style="background:${c}" aria-label="顏色 ${i+1}"></button>`).join('');
     const th=k=>LOOK[k].map(([,lb],i)=>`<button type="button" class="th ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}">${headSVG(Object.assign({},cur,{[k]:i}),null,k==='acc'?19:k==='beard'?15:0)}<span>${lb}</span></button>`).join('');
     el.innerHTML=`<div class="card lookbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">我的角色</h2><button type="button" class="dclose" data-lk="x" aria-label="關閉">✕</button></div>
-     <div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true}])}</div>
-     <span class="lbl">髮型</span><div class="thr">${th('hair')}</div>
-     <span class="lbl">髮色</span><div class="swr">${sw('hc')}</div>
-     <span class="lbl">表情</span><div class="thr">${th('face')}</div>
-     <span class="lbl">鬍子</span><div class="thr">${th('beard')}</div>
-     <span class="lbl">配件</span><div class="thr">${th('acc')}</div>
-     <span class="lbl">膚色</span><div class="swr">${sw('skin')}</div>
-     <span class="lbl">衣服顏色</span><div class="swr">${sw('shirt')}</div>
+     <div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true,noyou:true}])}</div>
+     <div class="looktabs">${LOOKTABS.map(([k,lb])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${lb}</button>`).join('')}</div>
+     <div class="lookpane">${tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
      <div class="lookbtns"><button type="button" class="peek" data-lk="r">🎲 隨機</button><button type="button" class="btn" data-lk="ok">完成</button></div></div>`;
     const nb=el.querySelector('.lookbox'); if(nb)nb.scrollTop=sc;};
   el.onclick=async e=>{const b=e.target.closest('button'); if(!b){if(e.target===el)close();return;}
-    if(b.dataset.k){cur[b.dataset.k]=+b.dataset.i;draw();return;}
+    if(b.dataset.tab){tab=b.dataset.tab;draw();const pn=el.querySelector('.lookpane');if(pn)pn.scrollTop=0;return;}
+    if(b.dataset.k){const pn=el.querySelector('.lookpane'),y=pn?pn.scrollTop:0;cur[b.dataset.k]=+b.dataset.i;draw();const p2=el.querySelector('.lookpane');if(p2)p2.scrollTop=y;return;}
     if(b.dataset.lk==='r'){cur=randLook();draw();return;}
     if(b.dataset.lk==='x'){close();return;}
     if(b.dataset.lk==='ok'){ls.set('ab_look',lookStr(cur));close();
@@ -1278,8 +1306,8 @@ function stageSVG(list){
   let out='';
   list.forEach((p,i)=>{const isMe=p.self||p.id===me;
     out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':''});
-    if(isMe&&p.name!=='你') out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
-  return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
+    if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
+  return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${n===1?54:W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
 }
 function scene(ws,ls,line,label,opt){ opt=opt||{};
   const W=360, ground=246, per=4, layers=[];
@@ -1415,9 +1443,9 @@ async function copyCode(){
 
 function key(k){
   err='';
-  if(k==='del') input=input.slice(0,-1);
+  if(k==='del'){let t=input;while(t.length&&locks[t.length-1])t=t.slice(0,-1);input=t.slice(0,-1);fillLocks();}
   else if(k==='ok') return submit();
-  else if(input.length<g().len){ if(!g().rep&&input.includes(k)) err='數字不能重複'; else input+=k; }
+  else if(input.length<g().len){ if(!g().rep&&(input.includes(k)||locks.includes(k))) err='數字不能重複'; else {input+=k;fillLocks();} }
   render();
 }
 function bind(){
@@ -1432,7 +1460,11 @@ function bind(){
   if($('mpAngel')) $('mpAngel').onclick=mpAngel;
   if($('coopAngel')) $('coopAngel').onclick=coopAngel;
   app.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();});
-  const ni=$('nick'); if(ni) ni.oninput=()=>{nick=ni.value;};
+  const ni=$('nick'); if(ni){ni.oninput=()=>{nick=ni.value;};const ok=()=>{const v=ni.value.trim();if(!v){$('nickErr').textContent='先取個名字';ni.focus();return;}nick=v;ls.set('ab_nick',v);homeEdit=false;render();};$('nickOk').onclick=ok;ni.onkeydown=e=>{if(e.key==='Enter')ok();};}
+  if($('nameBtn')) $('nameBtn').onclick=()=>{homeEdit=true;render();};
+  if($('goJoin')) $('goJoin').onclick=()=>{homeErr='';homeStep='join';render();window.scrollTo(0,0);};
+  if($('goSolo')) $('goSolo').onclick=()=>{homeErr='';homeStep='solo';render();window.scrollTo(0,0);};
+  if($('homeBack')) $('homeBack').onclick=()=>{homeErr='';homeStep='menu';render();window.scrollTo(0,0);};
   const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');};ci.onkeydown=e=>{if(e.key==='Enter')joinRoom(ci.value);};}
   if($('create')) $('create').onclick=()=>createRoom();
   if($('lookBtn')) $('lookBtn').onclick=()=>openLook();
@@ -1482,6 +1514,8 @@ function bind(){
   if($('again')) $('again').onclick=backToLobby;
   if($('copyCode')) $('copyCode').onclick=copyCode;
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
+  if($('explainBtn')) $('explainBtn').onclick=()=>{explainOpen=!explainOpen;render();};
+  app.querySelectorAll('[data-rtab]').forEach(b=>b.onclick=()=>{resTab=b.dataset.rtab;render();});
   if($('randSecret')) $('randSecret').onclick=()=>{input=soloSecret(g().len,g().rep);err='';render();};
 }
 document.addEventListener('keydown',e=>{
@@ -1505,7 +1539,7 @@ function localPid(){
   render();
 })();
 /* ---------- 邊緣人模式（單機） ---------- */
-let soloCfg={len:4,rep:false,stage:'random',mode:'duel',diff:'normal'};
+let soloCfg={len:4,rep:false,stage:'random',mode:'duel',diff:'easy'};
 const V=(n,p,c,says,back)=>({n,p,c,says,back});
 const OFF=['今天準時下班！','這週不加班了','假日不回訊息','辭職信已寫好','週末是我的','上班時間再說','已讀，明天回'];
 const S=(label,group,v)=>({label,group,v});
@@ -1557,7 +1591,7 @@ function soloCard(){
     <span class="opt">怎麼玩</span>
     ${seg('data-smode',[['practice','練習模式'],['duel','挑戰模式']],soloCfg.mode,false)}
     <p class="rules" style="margin-top:-6px">${duel?'挑戰：你和魔王各出一題，輪流猜對方的。魔王只看得到幾A幾B，一步步推理，不會偷看你的題目。':'練習：電腦出題，你自己慢慢猜，沒有對手、不會被嗆、不限次數。'}</p>
-    ${duel?`<span class="opt">魔王有多聰明</span>${seg('data-diff',[['easy','簡單'],['normal','普通'],['hard','困難（全力推理）']],soloCfg.diff,false)}`:''}
+    ${duel?`<span class="opt">魔王有多聰明</span>${seg('data-diff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],soloCfg.diff==='hard'?'hard':'easy',false)}`:''}
     <span class="opt">題目是幾位數字</span>
     ${seg('data-slen',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],soloCfg.len,false)}
     <span class="opt">題目裡的數字能不能重複</span>
@@ -1577,9 +1611,9 @@ function soloNew(len,rep){
   const sel=soloCfg.stage||'random', vl=villainFor(sel), stg=sel==='custom'?'custom':(vl.stageKey||sel);
   if(sel==='custom'&&soloCfg.share!==false){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
   const duel=soloCfg.mode==='duel';
-  solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff||'normal',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
+  solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff==='hard'?'hard':'easy',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.says)}};
-  input='';err='';peek=false;notesOpen=false;notesKey=null;
+  input='';err='';peek=false;notesOpen=false;notesKey=null;explainOpen=false;resTab='me';
   render(); window.scrollTo(0,0);
 }
 /* ---------- 合作模式：全隊輪流猜，一起打魔王 ---------- */
@@ -1680,7 +1714,7 @@ function coopStep(){
 }
 async function bossMove(C){
   const s=g(), team=(s.coop||{}).team; if(!team)return;
-  const st={len:s.len,rep:s.rep,diff:s.diff||'normal',chist:C.B};
+  const st={len:s.len,rep:s.rep,diff:s.diff==='hard'?'hard':'easy',chist:C.B};
   const {g:gg}=cpuPick(st), r=score(team,gg);
   const left=allCands(s.len,s.rep).filter(c=>fits(c,C.B.concat([{g:gg,A:r.A,B:r.B}]))).length;
   try{await db.collection(`rooms/${code}/guesses`).doc(`c${s.round}_b${C.T.length}`).set({round:s.round,kind:'boss',n:C.T.length,g:gg,A:r.A,B:r.B,think:cpuThink(st,{g:gg,A:r.A,B:r.B},left),at:Date.now()});}catch(e){bossBusy='';}
@@ -1856,7 +1890,7 @@ function coopView(s){
     if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}${mine?'':'，可以語音或在聊天室幫忙出主意'}</p></div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
-      (mine&&!C.waitingBoss?`${slots(false)}<p class="err">${esc(err)}</p>${pad(true)}`:'')+
+      (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}<p class="err">${esc(err)}</p>${pad(true)}`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?'<button class="btn ghost small" id="hintBtn">提示</button>':''}${inTeam&&angelMax()?`<button class="btn ghost small" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>小天使 ×${coopAngelsLeft()}（全隊）</button>`:''}</div>`:'')+`</div>`;
     h+=`<div class="card"><span class="lbl">${esc(v.n)}猜全隊的題</span>${cpuHistHTML(C.B)}</div>`;
     h+=`<div class="card"><span class="lbl">輪流順序</span><div class="chips">${C.order.map(id=>`<span class="pill ${id===C.guesser&&!C.waitingBoss?'ok':''}">${esc(nameOf(id))}${id===me?'（你）':''}</span>`).join('')}</div>${!inTeam?'<p class="rules">這一局開始時你還沒加入，可以先觀戰。</p>':''}</div>`;
@@ -2095,18 +2129,18 @@ function allCands(len,rep){
 }
 const fits=(c,clues)=>clues.every(x=>{const r=score(c,x.g);return r.A===x.A&&r.B===x.B;});
 const PROBES={3:['123','456','789'],4:['1234','5678'],5:['12345','67890']};
+const softFits=(c,clues)=>clues.every(x=>{const r=score(c,x.g);return r.A+r.B===x.A+x.B&&(x.A>0||r.A===0);});
+const mindFits=(s,c,clues)=>s.diff==='hard'?fits(c,clues):softFits(c,clues);
 function cpuPick(s){
   const all=allCands(s.len,s.rep), clues=s.chist;
   let cands=all.filter(c=>fits(c,clues));
   if(!cands.length) cands=all;
   if(s.diff!=='hard'){
-    // 像人一樣：先用 1234、5678 篩數字
-    const pr=(PROBES[s.len]||[]).slice(0,s.diff==='easy'?1:9);
-    const found=clues.reduce((t,x)=>PROBES[s.len]&&PROBES[s.len].includes(x.g)?t+x.A+x.B:t,0);
-    if(clues.length<pr.length&&found<s.len&&!clues.some(x=>x.g===pr[clues.length])) return {g:pr[clues.length],left:cands.length};
-    // 之後只記得最近幾次的線索（人會漏看舊的）
-    const k=s.diff==='easy'?(Math.random()<.7?2:3):3, loose=all.filter(c=>fits(c,clues.slice(-k)));
-    return {g:pick(loose.length?loose:cands),left:cands.length};
+    // 像人一樣想：先用 1234、5678 篩數字，之後只看「幾個數字對」和「0A 的位置不能放」，線索不會忘
+    const pr=PROBES[s.len]||[], mind=all.filter(c=>softFits(c,clues));
+    const found=clues.reduce((t,x)=>pr.includes(x.g)?t+x.A+x.B:t,0);
+    if(clues.length<pr.length&&found<s.len&&!clues.some(x=>x.g===pr[clues.length])) return {g:pr[clues.length],left:mind.length};
+    return {g:pick(mind.length?mind:cands),left:mind.length};
   }
   if(cands.length>2){
     const sample=a=>{if(a.length<=260)return a;const o=[];for(let i=0;i<260;i++)o.push(a[Math.floor(Math.random()*a.length)]);return o;};
@@ -2120,8 +2154,7 @@ function cpuPick(s){
 function cpuThink(s,last){
   if(!last) return '先猜一個試試看';
   const clues=(s.chist||[]).concat([last]);
-  if(s.diff==='easy'&&Math.random()<.5) return pick(['嗯…讓我想想','應該是這樣吧？','感覺快猜到了','我猜猜看']);
-  const c=allCands(s.len,s.rep).filter(x=>fits(x,clues)), yes=[], no=[];
+  const c=allCands(s.len,s.rep).filter(x=>mindFits(s,x,clues)), yes=[], no=[];
   for(let d=0;d<10;d++){const D=String(d), k=c.filter(x=>x.includes(D)).length; if(c.length&&k===c.length)yes.push(D); else if(!k)no.push(D);}
   const hit=last.A+last.B;
   if(last.A===s.len) return `${last.g}，猜中了！`;
@@ -2183,6 +2216,55 @@ function soloGiveUp(){
   if(!confirmTap('giveUp','確定放棄？再按一次'))return;
   s.end=Date.now(); s.result='gave'; render();
 }
+/* 結算解析：用白話講給一般人看。魔王的「剩幾種」是它自己心裡的候選，和它實際選數字用的是同一套 */
+let explainOpen=false, resTab='me';
+function exPlain(x,len){const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
+  if(x.A===len)return '全部都對，猜中了！';
+  if(!hit)return `${ds} 全都不在答案裡。`;
+  const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
+  return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:`，但位置${x.B>1?'都':''}不對。`);}
+/* 人類推理：互不重複的幾次猜測可以算出「各組數字有幾個」，例如 1234 有 2 個、5678 有 1 個 → 9、0 有 1 個 */
+function exGroups(clues,len){const used=new Set(),G=[];clues.filter(x=>!x.hint).forEach(x=>{const ds=[...new Set(x.g)];if(ds.length!==x.g.length||ds.some(d=>used.has(d)))return;ds.forEach(d=>used.add(d));G.push({ds,n:x.A+x.B});});
+  if(G.length<2)return [];const rest='1234567890'.split('').filter(d=>!used.has(d)),sum=G.reduce((t,g)=>t+g.n,0);if(rest.length)G.push({ds:rest,n:len-sum});return G;}
+const exGroupTxt=G=>G.filter(g=>g.n>0).map(g=>`${g.ds.join('、')} 裡有 ${g.n} 個`).join('；');
+function exKnown(c,len,clues,rep){if(!c.length)return '';const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
+  const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
+  const t=[];const gt=rep||yes.length===len?'':exGroupTxt(exGroups(clues||[],len));if(gt)t.push(gt);if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
+  if(!t.length&&!pos.some(Boolean))return '';
+  return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;}
+const exHead=(i,g,sc,left)=>`<div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(g)}</b>${sc}${left==null?'':`<span class="exn">剩 ${left} 種</span>`}</div>`;
+const exSc=x=>`<span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>`;
+const ex0A=x=>x.A===0&&x.B>0?`因為是 0A，所以 ${[...x.g].map((d,i)=>`${d} 不在第 ${i+1} 位`).join('、')}。`:'';
+/* 說明 g 為什麼不可能：從最近的線索往回找，優先用「數字個數」和「0A 位置」這種人想得到的理由 */
+function exConflict(g,seen,len){for(let k=seen.length-1;k>=0;k--){const q=seen[k],no=q.i+1;
+    if(q.hint){if(g[+q.pos]!==q.g)return `第 ${no} 次的提示說第 ${+q.pos+1} 位是 ${esc(q.g)}，但這次放的是 ${g[+q.pos]}`;continue;}
+    const com=[...new Set(g)].filter(d=>q.g.includes(d)),hit=q.A+q.B;
+    if(com.length>hit)return `第 ${no} 次說 ${q.g} 裡只有 ${hit} 個對，但這次用了 ${com.join('、')} 共 ${com.length} 個`;
+    if(com.length<hit)return `第 ${no} 次說 ${q.g} 裡有 ${hit} 個對，但這次只用了 ${com.length} 個${com.length?`（${com.join('、')}）`:''}`;
+    if(q.A===0){const p=[...g].findIndex((d,i)=>q.g[i]===d);if(p>=0)return `第 ${no} 次 ${q.g} 是 0A，所以 ${g[p]} 不能放第 ${p+1} 位`;}
+    if(!fits(g,[q])){const r=score(g,q.g);return `位置對不上：第 ${no} 次猜 ${q.g} 實際是 ${q.A}A${q.B}B，假如答案是 ${g}，應該是 ${r.A}A${r.B}B`;}}
+  return '';}
+function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[],hard=s.diff==='hard';let left=all;const seen=[];
+  const rows=L.map((x,i)=>{const before=left,after=before.filter(c=>mindFits(s,c,[x])),gone=before.filter(c=>!mindFits(s,c,[x])),win=x.A===len,probe=!hard&&P[i]===x.g;
+    const G=s.rep?[]:exGroups(seen,len);
+    const pickTxt=G.length?`所以這次${G.filter(g=>g.n>0).map(g=>`從 ${g.ds.join('、')} 挑 ${g.n} 個（${[...x.g].filter(d=>g.ds.includes(d)).join('、')}）`).join('，')}${seen.some(y=>y.A===0&&y.B>0)?'，並且避開 0A 排除的位置':''}。`:'從它心裡還可能的答案裡挑一個。';
+    const why0=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時${hard?'':'它心裡'}還有 ${before.length} 種可能，它從裡面挑一個就中了，這次有運氣成分（機率 1/${before.length}）。`):probe?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:hard?'從還可能的答案裡，挑一個最能縮小範圍的。':pickTxt;
+    const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
+    const eg=hard&&ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B，所以 ${ex} 不可能。全部 ${before.length} 種都這樣比過。</p>`:'';
+    left=after;seen.push(Object.assign({i},x));
+    const only=!win&&after.length&&after.length<=6?`<p class="exw">${after.length===1?`算到這裡只剩 ${after[0]}。`:`只剩 ${after.join('、')} 還可能。`}</p>`:'';
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exw">${why0}</p><p class="exp">結果：${exPlain(x,len)}${win?'':ex0A(x)}</p>${eg}${only}${win||!after.length?'':exKnown(after,len,seen,s.rep)}</li>`;}).join('');
+  const intro=hard?`${esc(n)}用電腦硬算：列出全部 ${all.length} 種可能，每猜一次，就把幾A幾B 對不上的刪掉。它沒有看你的題目。`:`${esc(n)}像人一樣想：先算每組數字有幾個對，再用 0A 排除位置，線索都記得，也沒有看你的題目。「剩幾種」是它心裡覺得還可能的數量。`;
+  return `<div class="expl"><p class="exi">${intro}</p><ol>${rows}</ol></div>`;}
+function myExplain(s){const all=allCands(s.len,s.rep),len=s.len;let left=all,bad=0;const seen=[];
+  const rows=s.hist.map((x,i)=>{
+    if(x.hint){left=left.filter(c=>c[+x.pos]===x.g);seen.push(Object.assign({i},x));return `<li>${exHead(i,'提示','',left.length)}<p class="exp">用提示知道第 ${+x.pos+1} 位是 ${esc(x.g)}。</p>${exKnown(left,len,seen,s.rep)}</li>`;}
+    const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),win=x.A===len;left=after;let note='';
+    if(win)note=before.length===1?'前面已經推到只剩這一種，漂亮！':`當時還有 ${before.length} 種可能，這次猜中有運氣成分（機率 1/${before.length}）。`;
+    else if(!legal){bad++;const why=exConflict(x.g,seen,len);note=`${x.g} 不可能是答案：${why}。`+(after.length<before.length?'不過它還是幫你排除了一些可能，可以當作篩數字用。':'而且它也沒有幫你排除新的可能。');}
+    seen.push(Object.assign({i},x));
+    return `<li>${exHead(i,x.g,exSc(x),win?null:after.length)}<p class="exp">${exPlain(x,len)}${win?'':ex0A(x)}</p>${note?`<p class="exw">${note}</p>`:''}${!win&&after.length&&after.length<=6?`<p class="exw">只剩 ${after.join('、')} 還可能。</p>`:''}${win||!after.length?'':exKnown(after,len,seen,s.rep)}</li>`;}).join('');
+  return `<div class="expl"><p class="exi">電腦幫你算的：每猜一次，還可能是答案的數字剩幾種。猜「還可能是答案」的數字才有機會直接中；不可能的數字雖然中不了，但有時可以用來篩數字。${bad?`這局有 ${bad} 次猜的數字已經不可能是答案。`:'這局你每次猜的都還可能是答案。'}</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
@@ -2190,7 +2272,7 @@ function cpuHistHTML(L){
 function renderSolo(){
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil, stLabel=s.stage==='custom'?'自訂魔王':(STAGES[s.stage]||{label:''}).label;
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${{easy:'簡單',normal:'普通',hard:'困難'}[s.diff]}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
+  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
       <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
@@ -2206,7 +2288,7 @@ function renderSolo(){
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
     if(waiting) h+=`<div class="card center"><h2>${esc(vil.n)}思考中<span class="dots"></span></h2><p class="hand">${meDone?`你猜中了！看${esc(vil.n)}這回合能不能追平`:'輪到魔王猜你的題目'}</p></div>`;
     h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · `:''}你猜${esc(vil.n)}的題</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}`+
-      (waiting?'':`${slots(false)}<p class="err">${esc(err)}</p>${pad(true)}
+      (waiting?'':`${slots(false,knownOf(s.hist,s.len))}<p class="err">${esc(err)}</p>${pad(true)}
       <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div>`)+`</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
     h+=`<button class="peek" id="soloQuit">回首頁</button>`;
@@ -2219,8 +2301,9 @@ function renderSolo(){
       :scene([{who:'p:boss',tg:true,name:vil.n,color:vil.c,boss:true,prop:vil.p}],[{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],vil.says2,vil.n+'踩在你身上')+podBar();
     h+=`<div class="card center" style="padding-block:24px"><h1>${title}</h1><p class="hand">${sub}${used?`（用了 ${used} 次提示）`:''}，花了 ${fmtTime(s.end-s.start)}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${duel?esc(vil.n)+'的題目':'答案'}</span><b>${esc(s.secret)}</b></div>${duel?`<div><span class="sub">你的題目</span><b>${esc(s.mine)}</b></div>`:''}</div></div>
-      <div class="card"><span class="lbl">${duel?`你猜${esc(vil.n)}的題`:'這局的紀錄'}</span>${histHTML(s.hist)}</div>
-      ${duel?`<div class="card"><span class="lbl">${esc(vil.n)}猜你的題</span>${cpuHistHTML(s.chist)}</div>`:''}
+      <div class="card">${duel?`<div class="looktabs two"><button type="button" data-rtab="me" aria-pressed="${resTab==='me'}">我的猜測</button><button type="button" data-rtab="cpu" aria-pressed="${resTab==='cpu'}">${esc(vil.n)}的猜測</button></div>`:'<span class="lbl">這局的紀錄</span>'}
+      ${duel&&resTab==='cpu'?cpuHistHTML(s.chist):histHTML(s.hist)}
+      <button class="btn ghost" id="explainBtn">${explainOpen?'收起解析':'看解析'}</button>${explainOpen?(duel&&resTab==='cpu'?cpuExplain(s):myExplain(s)):''}</div>
       <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>`;
   }
   paint(h); sideUI(false,!s.result);
