@@ -42,7 +42,7 @@ body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);fon
   display:flex;flex-direction:column;gap:16px}
 h1{font-family:var(--f-disp);font-weight:400;font-size:30px;margin:0;color:var(--ink);text-wrap:balance}
 h2{font-family:var(--f-disp);font-weight:400;font-size:24px;margin:0;color:var(--ink);text-wrap:balance}
-.sub{color:var(--muted);font-size:14px;margin:0}
+.sub{color:var(--muted);font-size:15px;margin:0}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
 label.lbl,.lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
 .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -67,7 +67,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .slots{display:flex;justify-content:center;gap:10px}
 .slot{width:54px;height:64px;border-bottom:3px solid var(--ink);display:grid;place-items:center;font-family:var(--f-num);font-weight:700;font-size:36px;color:var(--ink)}
 .slot.empty{border-bottom-color:var(--line)}
-.err{min-height:20px;color:var(--a);font-size:14px;text-align:center;margin:0}
+.err{min-height:20px;color:var(--a);font-size:15px;text-align:center;margin:0}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pad button{font-family:var(--f-num);font-weight:500;font-size:26px;padding:12px 0;border-radius:12px;border:0;background:var(--key);color:var(--keyfg);cursor:pointer;touch-action:manipulation}
 .pad button:active{transform:scale(.96)}
@@ -86,13 +86,13 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .tabs button{flex:1;font:inherit;font-size:14px;padding:8px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;min-width:0}
 .tabs button[aria-pressed=true]{color:var(--ink);border-color:var(--ink);font-weight:700}
 .center{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
-.hand{font-size:15px;color:var(--muted);max-width:32ch;margin:0}
+.hand{font-size:16px;color:var(--muted);max-width:32ch;margin:0}
 .reveal{display:flex;gap:10px}
 .reveal div{flex:1;text-align:center;min-width:0}
 .reveal b{display:block;font-family:var(--f-num);font-size:26px;letter-spacing:.15em;color:var(--ink)}
-.peek{font:inherit;font-size:14px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center}
+.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center}
 .peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
-.rules{font-size:13px;color:var(--muted);line-height:1.7;margin:0}
+.rules{font-size:14px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 #chatWrap .msgs{max-height:none;flex:1 1 auto;min-height:120px}
@@ -188,7 +188,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .hintrow .hg{font-family:var(--f-body);font-size:16px;letter-spacing:0;color:var(--ok)}
 .hc{display:block;font-size:11px;color:var(--muted);font-family:var(--f-body)}
 .lastres{margin:0;font-size:17px;color:var(--ink)}
-.opt{font-size:14px;color:var(--fg);margin-bottom:-6px}
+.opt{font-size:15px;color:var(--fg);margin-bottom:-6px}
 .seg button{font-family:var(--f-body)}
 .podium{width:100%;height:auto;display:block;margin-top:4px}
 .bob{animation:bob 1.6s ease-in-out infinite;transform-origin:center bottom;transform-box:fill-box}
@@ -445,7 +445,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-6';
+const APP_VERSION='2026.11.02-7';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
