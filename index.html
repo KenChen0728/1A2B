@@ -229,11 +229,11 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .hpic .stage2{width:100%;height:100%}
 .hline{font-size:16px;line-height:1.55;margin:0;text-align:center;text-wrap:balance}
 .hsub{font-size:14px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
-.hrow{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
-.hrow .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
-.hrow i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
-.hrow i.ha{background:var(--a);border-color:var(--a);color:var(--card)}
-.hrow i.hb{background:var(--b);border-color:var(--b);color:var(--card)}
+.htile{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
+.htile .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
+.htile i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
+.htile i.ha{background:var(--a);border-color:var(--a);color:var(--card)}
+.htile i.hb{background:var(--b);border-color:var(--b);color:var(--card)}
 .hres{font-family:var(--f-num);font-weight:700;font-size:24px;line-height:1.2}
 .hkey{display:flex;justify-content:center;gap:16px;font-size:15px;flex-wrap:wrap}
 .hkey b{font-family:var(--f-num);font-size:17px}
@@ -317,7 +317,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .exp{margin:0;font-size:16px;line-height:1.55}
 .exw{margin:0;font-size:14px;line-height:1.55;color:var(--muted)}
 .exk{display:flex;flex-direction:column;gap:6px;font-size:15px;margin-top:2px}
-.exk .hrow i{width:32px;height:32px;font-size:18px}
+.exk .htile i{width:32px;height:32px;font-size:18px}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
 .looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
@@ -774,7 +774,7 @@ function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>
 function helpIcon(c){return helpStage([c],60).replace('viewBox="0 18 60 150"','viewBox="-20 34 100 124"');}
 function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('2.3.11.1.3.0.0'),c=parseLook('0.4.1.0.5.1.0');
   return [
-   {t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="hrow"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="hrow"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
+   {t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="htile"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="htile"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
      <div class="hkey"><span><b class="A">A</b> 數字、位置都對</span><span><b class="B">B</b> 數字對、位置錯</span></div><p class="hsub">猜到全部都是 A 就贏了。開頭可以是 0</p>`},
    {t:'和朋友一起玩',h:`<div class="hpic"><span class="hcode">AB12</span>${helpStage([{x:42,look:L,name:'你',s:.78},{x:114,look:a,name:'小美',s:.78},{x:186,look:b,name:'阿明',s:.78},{x:258,look:c,name:'大雄',s:.78}])}</div>
      <p class="hline">開房，把<b>邀請碼</b>傳給朋友</p><p class="hsub">2～8 人，大家都按準備，房主就能開始</p>`},
@@ -2212,21 +2212,21 @@ function soloGiveUp(){
 }
 /* 結算詳解：把魔王每一步重算一次，只用當時的幾A幾B，用白話講給一般人看 */
 let explainOpen=false;
-function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n;let left=all;
+function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.vil.n,P=PROBES[len]||[];let left=all;
   const plain=x=>{const hit=x.A+x.B,ds=[...new Set(x.g)].join('、');
     if(x.A===len)return '全部都對，猜中了！';
     if(!hit)return `${ds} 全都不在答案裡。`;
     const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
-    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置都對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:'，但位置都不對。');};
+    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:'，但位置都不對。');};
   const known=c=>{const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
     const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
     const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
     if(!t.length&&!pos.some(Boolean))return '';
-    return `<div class="exk">${pos.some(Boolean)?`<span class="hrow">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;};
+    return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;};
   const rows=L.map((x,i)=>{const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),gone=before.filter(c=>!fits(c,[x])),win=x.A===len;left=after;
     const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
-    const eg=ex&&!win?`<p class="exw">怎麼刪的：如果答案是 ${ex}，猜 ${x.g} 應該得到 ${r.A}A${r.B}B，和這次的結果對不上，所以刪掉。${esc(n)}把 ${before.length} 種都這樣比一遍。</p>`:'';
-    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):legal?'':'它忘了比較舊的線索，這個數字其實已經不可能了，所以這一步是浪費的。';
+    const eg=ex&&!win?`<p class="exw">怎麼刪的：如果答案是 ${ex}，猜 ${x.g} 應該得到 ${r.A}A${r.B}B，和這次的結果對不上，所以刪掉。${esc(n)}把 ${before.length} 種都這樣比一遍${after.length&&after.length<=6?`，只有 ${after.join('、')} 會得到 ${x.A}A${x.B}B`:''}。</p>`:'';
+    const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):P[i]===x.g?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:legal?'':'它忘了比較舊的線索，這個數字其實已經不可能了，所以這一步是浪費的。';
     return `<li><div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>${win?'':`<span class="exn">剩 ${after.length} 種</span>`}</div>
       <p class="exp">${plain(x)}</p>${note?`<p class="exw">${note}</p>`:''}${eg}${win||!after.length?'':known(after)}</li>`;}).join('');
   return `<div class="expl"><p class="exi">${esc(n)}的做法很單純：先列出全部 ${all.length} 種可能，每猜一次，就把對不上結果的刪掉，再從剩下的挑一個。它只用幾A幾B，沒有看你的題目。</p><ol>${rows}</ol></div>`;}
