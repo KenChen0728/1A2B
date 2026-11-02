@@ -2217,7 +2217,7 @@ function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.v
     if(x.A===len)return '全部都對，猜中了！';
     if(!hit)return `${ds} 全都不在答案裡。`;
     const head=hit===len?`這 ${len} 個數字全部都對`:`這 ${len} 個數字裡有 ${hit} 個是對的`;
-    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:'，但位置都不對。');};
+    return head+(x.A&&x.B?`，其中 ${x.A} 個位置也對、${x.B} 個位置不對。`:x.A?`，而且位置${x.A>1?'都':'也'}對${hit<len?`，另外 ${len-hit} 個不在答案裡`:''}。`:`，但位置${x.B>1?'都':''}不對。`);};
   const known=c=>{const yes=[],no=[];for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
     const pos=[];for(let i=0;i<len;i++){const D=c[0][i];pos.push(c.every(x=>x[i]===D)?D:'');}
     const t=[];if(yes.length)t.push(`一定有 ${yes.join('、')}`);if(no.length)t.push(`一定沒有 ${no.join('、')}`);
@@ -2225,7 +2225,7 @@ function cpuExplain(s){const all=allCands(s.len,s.rep),L=s.chist,len=s.len,n=s.v
     return `<div class="exk">${pos.some(Boolean)?`<span class="htile">${pos.map(d=>`<i class="${d?'ha':''}">${d||'?'}</i>`).join('')}</span>`:''}${t.length?`<span>現在知道：${t.join('；')}</span>`:''}</div>`;};
   const rows=L.map((x,i)=>{const before=left,legal=before.includes(x.g),after=before.filter(c=>fits(c,[x])),gone=before.filter(c=>!fits(c,[x])),win=x.A===len;left=after;
     const ex=gone.length?gone[Math.floor(gone.length/2)]:'', r=ex?score(ex,x.g):null;
-    const eg=ex&&!win?`<p class="exw">怎麼刪的：如果答案是 ${ex}，猜 ${x.g} 應該得到 ${r.A}A${r.B}B，和這次的結果對不上，所以刪掉。${esc(n)}把 ${before.length} 種都這樣比一遍${after.length&&after.length<=6?`，只有 ${after.join('、')} 會得到 ${x.A}A${x.B}B`:''}。</p>`:'';
+    const eg=ex&&!win?`<p class="exw">隨便舉一個被刪掉的例子：假如答案是 ${ex}，猜 ${x.g} 會得到 ${r.A}A${r.B}B，但實際是 ${x.A}A${x.B}B，對不上，所以 ${ex} 不可能。${before.length} 種全部都這樣比過，${after.length&&after.length<=6?`只有 ${after.join('、')} 對得上`:`留下 ${after.length} 種`}。</p>`:'';
     const note=win?(before.length===1?'前面已經刪到只剩這一種，所以一定中。':`當時還有 ${before.length} 種可能，它從裡面挑一個就中了，這次是運氣好（機率 1/${before.length}）。`):P[i]===x.g?`開局固定先猜這組，不是要猜中，是要看 ${[...x.g].join('、')} 裡有幾個對。`:legal?'':'它忘了比較舊的線索，這個數字其實已經不可能了，所以這一步是浪費的。';
     return `<li><div class="exh"><span class="hn">第 ${i+1} 次</span><b>${esc(x.g)}</b><span class="score"><span class="A">${x.A}A</span><span class="B">${x.B}B</span></span>${win?'':`<span class="exn">剩 ${after.length} 種</span>`}</div>
       <p class="exp">${plain(x)}</p>${note?`<p class="exw">${note}</p>`:''}${eg}${win||!after.length?'':known(after)}</li>`;}).join('');
