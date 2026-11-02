@@ -478,7 +478,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.02-14';
+const APP_VERSION='2026.11.03-1';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -628,7 +628,7 @@ function render(){
   const s=g(), D=derive(), inGame=me in D.A, hostName=nameOf(s.host);
   const nk=code+'_'+s.round; if(s.phase!=='coop'&&inGame&&D.status!=='lobby'&&(notesKey!==nk||notesLen!==s.len)) loadNotes(nk,s.len);
   if(inGame&&(D.status==='playing'||D.status==='over')) autoMarkFrom(D.by[me]||[],s.len);
-  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+({easy:'簡單',normal:'普通',hard:'困難'}[s.diff||'normal']):s.finish?'全部猜完':'先中先贏'}</p></div>
+  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+(s.diff==='hard'?'困難':'簡單'):s.finish?'全部猜完':'先中先贏'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
 
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
@@ -1025,7 +1025,7 @@ setInterval(updTick,2000);
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
-function goHome(){if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){homeStep='menu';homeEdit=false;if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}}));
@@ -1714,7 +1714,7 @@ function coopStep(){
 }
 async function bossMove(C){
   const s=g(), team=(s.coop||{}).team; if(!team)return;
-  const st={len:s.len,rep:s.rep,diff:s.diff||'normal',chist:C.B};
+  const st={len:s.len,rep:s.rep,diff:s.diff==='hard'?'hard':'easy',chist:C.B};
   const {g:gg}=cpuPick(st), r=score(team,gg);
   const left=allCands(s.len,s.rep).filter(c=>fits(c,C.B.concat([{g:gg,A:r.A,B:r.B}]))).length;
   try{await db.collection(`rooms/${code}/guesses`).doc(`c${s.round}_b${C.T.length}`).set({round:s.round,kind:'boss',n:C.T.length,g:gg,A:r.A,B:r.B,think:cpuThink(st,{g:gg,A:r.A,B:r.B},left),at:Date.now()});}catch(e){bossBusy='';}
