@@ -365,7 +365,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .homemenu{gap:16px;padding-bottom:6px}
 .homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
 .homeact{gap:12px;padding-bottom:5px}
-.homeact .btn{font-size:16px;padding:13px;--bs:#155a52;background:#1f7f73}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.homeact .btn{font-size:16px;padding:13px;--bs:#155a52;background:#1f7f73}
 .expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .expl li{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
 .exi{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--fg)}
@@ -384,6 +384,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .lookbak{display:flex;flex-direction:column;gap:10px;padding:2px}
 .lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--safe-top) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
 .lookpv svg{max-height:160px}
+#lookName{margin:0 0 8px;text-align:center}
 .thr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .th{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);font:inherit;font-size:12px;cursor:pointer}
 .th svg{width:46px;height:46px;display:block}
@@ -597,7 +598,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-8';
+const APP_VERSION='2026.11.05-9';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -783,7 +784,7 @@ function render(){
       if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
       if(homeStep==='join') return `<div class="card"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入邀請碼" aria-label="4 碼邀請碼" autocapitalize="characters" autocomplete="off"><button class="btn blue" id="joinBtn" ${busy||!db?'disabled':''}>加入</button><button class="peek" id="watchBtn" ${busy||!db?'disabled':''}>只想看，進去觀戰</button></div>${err}${back}`;
       if(homeStep==='solo') return soloBackCard()+soloCard()+back;
-      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
+      return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="lookBtn">編輯角色</button></div></div>
       ${soloBackCard()}${ls.get('ab_room')&&db?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
       <div class="homemenu"><button class="btn" id="create" ${busy||!db?'disabled':''}>${db?'開新房間':'連線中…'}</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${INAPP?`<p class="rules" style="text-align:center">你現在是在 App 裡面開的網頁，可以直接玩。想加到主畫面，請改用 Safari 或 Chrome 開啟。</p>`:''}<div class="peekrow">${isStandalone()?'':'<button class="peek" id="installBtn">加到主畫面</button>'}${fbOpen?'':'<button class="peek" id="fbOpen">意見回饋</button>'}</div>${fbOpen?fbCard():''}${footer()}`;
     })();
@@ -1199,11 +1200,36 @@ async function joinRoom(c,watch){
   });
   busy=false; render();
 }
+/* 每支手機記得自己待過的房間：大家都直接關掉遊戲時沒有人按離開，下次打開時把放了一天沒動靜的房間收掉 */
+const ROOM_IDLE=864e5;
+function myRooms(){try{const a=JSON.parse(ls.get('ab_rooms')||'[]');return Array.isArray(a)?a:[];}catch(e){return[];}}
+function rememberRoom(c,id){const a=myRooms().filter(x=>x.c!==c);a.push({c,id});ls.set('ab_rooms',JSON.stringify(a.slice(-30)));}
+function forgetRoom(c){ls.set('ab_rooms',JSON.stringify(myRooms().filter(x=>x.c!==c)));}
+async function dropRoom(c,id,hostNow){
+  /* 只有房主能刪房間，所以先把房主交給自己 */
+  if(!hostNow)await roomRef(c).update({host:id});
+  await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));
+  await roomRef(c).delete();
+}
+async function sweepRooms(){
+  for(const {c,id} of myRooms()){
+    if(c===code)continue;
+    try{
+      const sn=await roomRef(c).get();
+      if(!sn.exists){forgetRoom(c);continue;}
+      const d=sn.data()||{}, seats=d.seats||{};
+      if(!seats[id]){forgetRoom(c);continue;}
+      const last=Math.max(d.createdAt||0,...Object.values(seats).map(v=>(v&&v.hb)||0),...Object.values(d.watchers||{}).map(v=>(v&&v.joinedAt)||0));
+      if(Date.now()-last<ROOM_IDLE)continue;
+      await dropRoom(c,id,d.host===id); forgetRoom(c);
+    }catch(e){}
+  }
+}
 function enterRoom(c){
   unsubs.forEach(u=>{try{u();}catch(e){}}); unsubs=[];
   code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now();
   mySecret=null; input=''; err=''; view=null; scored.clear(); notesKey=null;
-  ls.set('ab_room',c); ss.set('ab_live',c);
+  ls.set('ab_room',c); ss.set('ab_live',c); rememberRoom(c,me);
   hbSeen={}; hbLast=0; hostClaim=0; presKey=''; roomSigV=''; roomAt=Date.now();
   unsubs.push(roomRef(c).onSnapshot(snap=>{
     if(!snap.exists||!(snap.data()||{}).ver){roomMissing=true;R=null;return render();}
@@ -1360,7 +1386,8 @@ async function leaveRoom(){
   await hbStop();
   const s=g(); const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
   /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
-  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){try{await roomRef(c).update({seats:{[me]:null}});}catch(e2){}}goHome();return;}
+  forgetRoom(code);
+  if(!rest.length){const c=code;try{await dropRoom(c,me,s.host===me);}catch(e){try{await roomRef(c).update({seats:{[me]:null}});}catch(e2){}}goHome();return;}
   const upd={seats:{[me]:null}}; if(s.host===me) upd.host=rest[0].id;
   try{await roomRef().update(upd);}catch(e){}
   goHome();
@@ -1656,7 +1683,7 @@ function headSVG(o,face,lim){return pxHead({look:o,face:face||null,lim});}
 const LOOKTABS=[['hair','髮型'],['hc','髮色'],['face','表情'],['beard','鬍子'],['acc','配件'],['skin','膚色'],['shirt','衣服']];
 function openLook(){
   if(document.getElementById('nick'))readNick();
-  let cur=Object.assign({},myLook()), tab='hair', bak=false;
+  let cur=Object.assign({},myLook()), tab='hair', bak=false, nm=nick||'';
   let el=document.getElementById('lookM'); if(!el){el=document.createElement('div');el.id='lookM';el.className='upd';document.body.appendChild(el);}
   const close=()=>{el.hidden=true;el.innerHTML='';document.removeEventListener('keydown',onEsc);};
   const onEsc=e=>{if(e.key==='Escape')close();}; document.addEventListener('keydown',onEsc);
@@ -1664,11 +1691,12 @@ function openLook(){
     const sw=k=>LOOK[k].map((c,i)=>`<button type="button" class="sw ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}" style="background:${c}" aria-label="顏色 ${i+1}"></button>`).join('');
     const th=k=>LOOK[k].map(([,lb],i)=>`<button type="button" class="th ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}">${headSVG(Object.assign({},cur,{[k]:i}),null,k==='acc'?19:k==='beard'?15:0)}<span>${lb}</span></button>`).join('');
     el.innerHTML=`<div class="card lookbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">我的角色</h2><button type="button" class="dclose" data-lk="x" aria-label="關閉">✕</button></div>
-     ${bak?'':`<div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true,noyou:true}])}</div>`}
+     ${bak?'':`<div class="lookpv">${stageSVG([{id:'pv',name:nm||'你',look:cur,self:true,noyou:true}])}</div>${code?'':`<input type="text" id="lookName" maxlength="8" value="${esc(nm)}" placeholder="名字" aria-label="名字" autocomplete="off">`}`}
      <div class="looktabs">${LOOKTABS.map(([k,lb])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${lb}</button>`).join('')}</div>
-     <div class="lookpane">${bak?`<div class="lookbak"><p class="rules" style="margin:0">換手機、或重新加到主畫面時，名字和角色不會跟著過去。先複製這串代碼，到新的地方貼上再按套用。</p><input type="text" id="lkCode" value="${esc((nick||'')+'|'+lookStr(cur))}" autocomplete="off" aria-label="角色代碼"><div class="row"><button type="button" class="btn ghost small" data-lk="copy">複製</button><button type="button" class="btn small" data-lk="apply">套用</button></div></div>`:tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
+     <div class="lookpane">${bak?`<div class="lookbak"><p class="rules" style="margin:0">換手機、或重新加到主畫面時，名字和角色不會跟著過去。先複製這串代碼，到新的地方貼上再按套用。</p><input type="text" id="lkCode" value="${esc((nm||'')+'|'+lookStr(cur))}" autocomplete="off" aria-label="角色代碼"><div class="row"><button type="button" class="btn ghost small" data-lk="copy">複製</button><button type="button" class="btn small" data-lk="apply">套用</button></div></div>`:tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
      <div class="lookbtns"><button type="button" class="peek" data-lk="r">${uiIcon('dice')} 隨機</button><button type="button" class="peek" data-lk="b">${bak?'回去選造型':'備份角色'}</button><button type="button" class="btn" data-lk="ok">完成</button></div></div>`;
     const nb=el.querySelector('.lookbox'); if(nb)nb.scrollTop=sc;};
+  el.oninput=e=>{if(e.target.id==='lookName')nm=e.target.value;};
   el.onclick=async e=>{const b=e.target.closest('button'); if(!b){if(e.target===el)close();return;}
     if(b.dataset.tab){tab=b.dataset.tab;bak=false;draw();const pn=el.querySelector('.lookpane');if(pn)pn.scrollTop=0;return;}
     if(b.dataset.k){const pn=el.querySelector('.lookpane'),y=pn?pn.scrollTop:0;cur[b.dataset.k]=+b.dataset.i;draw();const p2=el.querySelector('.lookpane');if(p2)p2.scrollTop=y;return;}
@@ -1676,9 +1704,9 @@ function openLook(){
     if(b.dataset.lk==='b'){bak=!bak;draw();return;}
     if(b.dataset.lk==='copy'){const t=document.getElementById('lkCode').value;try{await navigator.clipboard.writeText(t);toast('代碼已複製');}catch(e){document.getElementById('lkCode').select();toast('請長按選取後複製');}return;}
     if(b.dataset.lk==='apply'){const m=/^(.*)\|(\d+(?:\.\d+){5,6})$/.exec(document.getElementById('lkCode').value.trim());const lk=m&&parseLook(m[2]);if(!lk){toast('代碼不對，請重新複製一次');return;}
-      cur=lk;if(m[1].trim()){nick=m[1].trim().slice(0,8);ls.set('ab_nick',nick);}bak=false;draw();toast('已套用，按完成就好');return;}
+      cur=lk;if(m[1].trim())nm=m[1].trim().slice(0,8);bak=false;draw();toast('已套用，按完成就好');return;}
     if(b.dataset.lk==='x'){close();return;}
-    if(b.dataset.lk==='ok'){ls.set('ab_look',lookStr(cur));close();
+    if(b.dataset.lk==='ok'){ls.set('ab_look',lookStr(cur));if(!code&&nm.trim()){nick=nm.trim();ls.set('ab_nick',nick);}close();
       if(code&&db&&g().seats&&g().seats[me]){try{await roomRef().update({seats:{[me]:{look:lookStr(cur)}}});}catch(err){}}
       render();}};
   draw(); el.hidden=false;
@@ -1796,7 +1824,7 @@ async function closeRoom(){
   try{
     await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));
     await roomRef(c).delete();
-    busy=false; goHome(); toast('房間已關閉');
+    forgetRoom(c); busy=false; goHome(); toast('房間已關閉');
   }catch(e){busy=false;noAccess=`關閉失敗，請稍後再試（${(e&&(e.code||e.message))||'unknown'}）`;render();}
 }
 async function submit(){
@@ -1863,7 +1891,6 @@ function bind(){
   if($('coopAngel')) $('coopAngel').onclick=coopAngel;
   app.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();});
   const ni=$('nick'); if(ni){ni.oninput=()=>{nick=ni.value;};const ok=()=>{const v=ni.value.trim();if(!v){$('nickErr').textContent='先取個名字';ni.focus();return;}nick=v;ls.set('ab_nick',v);homeEdit=false;render();};$('nickOk').onclick=ok;ni.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)ok();};}
-  if($('nameBtn')) $('nameBtn').onclick=()=>{homeEdit=true;render();};
   if($('goJoin')) $('goJoin').onclick=()=>{homeErr='';homeStep='join';render();window.scrollTo(0,0);};
   if($('goSolo')) $('goSolo').onclick=()=>{homeErr='';homeStep='solo';render();window.scrollTo(0,0);};
   if($('homeBack')) $('homeBack').onclick=()=>{homeErr='';homeStep='menu';render();window.scrollTo(0,0);};
@@ -1947,6 +1974,7 @@ function localPid(){
   baseMe=me=window.__uid||localPid();
   if(!nick&&u){try{const m=await u.me();nick=m&&m.name||'';}catch(e){}}
   if(backRoomNow&&!solo) return joinRoom(live);
+  sweepRooms();
   /* 使用者正在打字時不要重畫，不然鍵盤會收起來 */
   const ae=document.activeElement;
   if(ae&&app.contains(ae)&&ae.tagName==='INPUT')['joinBtn','watchBtn'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
