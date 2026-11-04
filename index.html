@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="幾A幾B">
 <meta name="theme-color" content="#1d3a6b">
 <meta name="description" content="和朋友連線猜數字的小遊戲。開房傳邀請碼大家一起猜，也能一個人打魔王。">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
@@ -22,9 +23,34 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-@font-face{font-family:Cubic11;src:url(Cubic_11.woff2) format("woff2");font-display:swap}
-:root{--st:calc(env(safe-area-inset-top,0px) + min(40px,env(safe-area-inset-top,0px)*99));padding-top:var(--st);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+/* iPhone 上下邊，和排球記錄表同一套做法（都在 iPhone 實機確認過）。主畫面 App 有兩種狀況：
+   一、從狀態列後面開始畫（上 inset 大於 0）：系統蓋的模糊關不掉，內容要多留 40，模糊才只落在色帶上；開機時 100dvh 會少一截，要用 100lvh 才到螢幕底。
+   二、從狀態列下方開始（上 inset 0）：沒有模糊，100lvh 不準，要用 100dvh。下面的 min() 兩種都對。不用 black-translucent。 */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);--vgap:0px;--brand:#1d3a6b;--edge:repeating-linear-gradient(90deg,#d9503e 0 8px,transparent 8px 12px,#f2b544 12px 20px,transparent 20px 24px);color-scheme:light}
+.statusband{position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+.footband{display:none}
+html{touch-action:manipulation;overscroll-behavior:none}
+body{margin:0;box-sizing:border-box;min-height:100vh;min-height:100dvh;padding-top:var(--safe-top);padding-bottom:var(--safe-bot);overscroll-behavior:none;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+@media (display-mode:standalone){
+  :root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)));color-scheme:dark}
+  html{background:var(--brand)}
+  body{color-scheme:var(--cs,light)}
+  .statusband{height:max(6px,var(--safe-top))}
+  .statusband::after,.footband::before{content:"";position:absolute;left:0;right:0;height:4px;background:var(--edge)}
+  .statusband::after{bottom:0}
+  .footband::before{top:0}
+}
+@media (display-mode:standalone) and (orientation:portrait){
+  .footband{display:block;position:fixed;left:0;right:0;bottom:calc(0px - var(--vgap));height:var(--safe-bot);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+}
+@media (display-mode:standalone) and (orientation:landscape) and (max-height:500px){.statusband{display:none}}
+@supports (height:100lvh){
+  @media (display-mode:standalone){
+    :root{--app-h:min(100lvh,calc(100dvh + env(safe-area-inset-top,0px)*99));--vgap:calc(var(--app-h) - 100dvh)}
+    html,body{min-height:var(--app-h)}
+    .drawer,.nback,.upd,.fxl,.ghostov{bottom:calc(0px - var(--vgap))!important}
+  }
+}
 img{max-width:100%}
 [hidden]{display:none!important}
 *{-webkit-tap-highlight-color:transparent}
@@ -37,19 +63,17 @@ img{max-width:100%}
 /* Layout: one-column notebook page; grid-paper ground, ink-blue digits, red stamp for A. Two seats, each on its own phone. */
 :root{
   --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#66707f;
-  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#c98210; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
+  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#9a6000; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
   --f-body:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",system-ui,sans-serif;
   --f-disp:"Huninn",var(--f-body);
   --f-num:"Azeret Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#141a24; --grid:#1d2533; --ink:#9cc1ff; --fg:#e6ebf2; --muted:#93a0b3;
-  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; color-scheme:dark}}
+  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; --cs:dark; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#141a24; --grid:#1d2533; --ink:#9cc1ff; --fg:#e6ebf2; --muted:#93a0b3;
-  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; color-scheme:dark}
-html,body{min-height:100%}
-html{touch-action:manipulation}
+  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; --cs:dark; color-scheme:dark}
 body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);font-size:16px;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:22px 22px;}
@@ -127,7 +151,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 body.fabl .nfab{right:auto;left:0;border-radius:0 14px 14px 0;border:2px solid var(--card);border-left:0;padding:12px 6px 12px calc(4px + env(safe-area-inset-left,0px));width:calc(31px + env(safe-area-inset-left,0px));box-shadow:4px 6px 18px rgba(0,0,0,.35)}
 body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20px}
 .nback{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.35)}
-.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + var(--st)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + var(--safe-top)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
 @keyframes dIn{from{transform:translateX(100%)}to{transform:none}}
 .dhead{display:flex;align-items:center;gap:10px}
 .dhead .lbl{flex:1 1 auto;min-width:0}
@@ -148,7 +172,7 @@ body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20
 .pos select{font-family:var(--f-num);font-size:22px;font-weight:700;width:56px;padding:6px 0;text-align:center;text-align-last:center;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
 .pos select.set{border-color:var(--a)}
 textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%;box-sizing:border-box;min-height:64px;resize:vertical}
-.pad button.no{text-decoration:line-through;opacity:.45}
+.pad button.no{text-decoration:line-through;opacity:.62}
 .pad button.yes{box-shadow:inset 0 0 0 2px var(--ok)}
 .msgs{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px}
 .msg{max-width:80%;align-self:flex-start;background:var(--key);color:var(--fg);padding:7px 11px;border-radius:14px 14px 14px 4px;font-size:15px;overflow-wrap:anywhere}
@@ -160,7 +184,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .sendrow input{flex:1;min-width:0}
 .sendrow .btn{width:auto;padding:10px 16px;font-size:15px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-size:18px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:66;overflow-wrap:anywhere;pointer-events:none}
-.toast{top:calc(14px + var(--st));bottom:auto}
+.toast{top:calc(14px + var(--safe-top));bottom:auto}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
 .tabs{flex-wrap:wrap}
 .tabs button{flex:1 1 auto}
@@ -173,7 +197,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .place{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--card);font-family:var(--f-num);font-size:14px}
 .secret{font-family:var(--f-num);font-size:20px;letter-spacing:.15em;color:var(--ink)}
 
-.stack{position:fixed;left:0;right:0;top:calc(64px + var(--st));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{position:fixed;left:0;right:0;top:calc(64px + var(--safe-top));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .bub{max-width:min(420px,100%);background:var(--card);color:var(--ink);border:2px solid var(--a);border-radius:16px;padding:8px 16px 10px;box-shadow:0 10px 30px rgba(0,0,0,.28);text-align:center;overflow-wrap:anywhere;animation:bubIn .5s cubic-bezier(.2,1.6,.4,1) both,wig .5s .5s ease 2}
 .bub small{display:block;font-size:12px;color:var(--muted)}
 .bub b{font-family:var(--f-disp);font-weight:400;font-size:20px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
@@ -238,7 +262,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .helpbtn{font:inherit;font-size:15px;min-height:44px;min-width:44px;flex:0 0 auto;white-space:nowrap;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .helpc{width:min(400px,100%);box-sizing:border-box;max-width:400px;text-align:left;align-items:stretch;gap:10px;touch-action:pan-y}
-#help,#lookM{padding-block:calc(16px + var(--st)) calc(16px + env(safe-area-inset-bottom,0px))}
+#help,#lookM{padding-block:calc(16px + var(--safe-top)) calc(16px + env(safe-area-inset-bottom,0px))}
 #helpBody{overflow:hidden}
 .hpage{display:flex;flex-direction:column;gap:10px;min-height:290px;animation:hin .26s cubic-bezier(.2,.75,.3,1)}
 @keyframes hin{from{transform:translateX(var(--hd,40px));opacity:0}to{transform:none;opacity:1}}
@@ -302,7 +326,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .posb.known{opacity:.55;border-style:dashed}.posb:disabled{cursor:default}
 .posbtns{display:flex;gap:10px}.posbtns .btn{flex:1}
 #posM{padding-inline:16px}
-.angelcard{position:fixed;left:50%;top:calc(12px + var(--st));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
+.angelcard{position:fixed;left:50%;top:calc(12px + var(--safe-top));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
 .angelcard.out{transition:opacity .5s,transform .5s;opacity:0;transform:translate(-50%,-20px)}
 .angelcard .aimg{flex:0 0 52px}.angelcard .aimg svg{width:52px;height:auto;display:block}
 .angelcard .lbl{color:#9a7b16}.angelcard p{margin:4px 0 0;font-size:15px;line-height:1.6}
@@ -332,7 +356,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .homemenu{gap:16px;padding-bottom:6px}
 .homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
 .homeact{gap:12px;padding-bottom:5px}
-.homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.homeact .btn{font-size:18px;padding:13px;--bs:#155a52;background:#1f7f73}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
 .expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .expl li{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
 .exi{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--fg)}
@@ -351,7 +375,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .lookbak{display:flex;flex-direction:column;gap:10px;padding:2px}
 .lookrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
 .lookav svg{width:58px;height:58px;display:block}
-.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--st) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
+.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--safe-top) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
 .lookpv svg{max-height:160px}
 .thr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .th{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);font:inherit;font-size:12px;cursor:pointer}
@@ -435,12 +459,12 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
 /* 輸入區（數字格＋提示列＋鍵盤）固定貼在畫面下緣，紀錄從後面滑過：不用捲動就按得到「確定」 */
-.padbox{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;flex-direction:column;gap:14px;background:var(--card);margin-inline:-8px;padding:6px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
+.padbox{position:sticky;bottom:calc(8px + var(--safe-bot) - var(--vgap));z-index:5;display:flex;flex-direction:column;gap:14px;background:var(--card);margin-inline:-8px;padding:6px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
 @media (max-height:760px){.wrap{padding-block:12px 20px;gap:12px}.card{gap:10px;padding:12px}.padbox{gap:8px}.pad{gap:6px}.pad button{padding:7px 0}.slot{height:46px;font-size:30px}.target{flex-direction:row;justify-content:center;align-items:baseline;gap:8px;padding-block:6px}.target h2{font-size:18px}.card>h2{font-size:18px}h1{font-size:24px}.roomhead .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.codebox{padding:2px 10px}.codebox b{font-size:20px}}
 @media (max-height:600px){.slot{height:38px;font-size:26px}.pad button{padding:4px 0;font-size:23px}.padbox{gap:4px}}
 /* 手機橫放：鍵盤排成兩列，上方再壓縮 */
 @media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.roomhead{align-items:center}.roomhead .sub{display:none}.codebox{flex-direction:row;gap:8px}.codebox .lbl{display:none}.peekrow .peek{padding-block:2px}}
-.stk{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.stk{position:sticky;bottom:calc(10px + var(--safe-bot) - var(--vgap));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .card.stk{padding-block:10px;gap:8px}
 .btn.ghost.stk{background:var(--card)}
 .diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
@@ -449,11 +473,11 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .pill.off{color:var(--a);border-color:var(--a);margin-left:6px}
 .gonebar{gap:8px;border-color:var(--a)}
 .gonebar .prow{padding-block:4px}
-.offl{position:fixed;top:calc(10px + var(--st));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.offl{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
 <body>
-
+<div class="statusband" aria-hidden="true"></div><div class="footband" aria-hidden="true"></div>
 <div class="wrap" id="app"><div class="card center" style="padding-block:32px"><h2>猜數字：幾A幾B</h2><p class="sub">連線中…</p></div></div>
 <button type="button" class="nfab" id="notesFab" hidden aria-label="打開筆記">筆<br>記</button>
 <div class="nback" id="notesBack" hidden></div>
@@ -471,8 +495,8 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 <form class="sendrow" id="sendForm"><input type="text" id="chatIn" maxlength="60" placeholder="輸入訊息…" autocomplete="off"><button class="btn" type="submit">送出</button></form></aside>
 <div class="toast" id="toast" hidden></div>
 <div class="offl" id="offl" role="status" hidden>沒有網路，連上後會自動繼續</div>
-<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room')}catch(e){};location.reload()">重新載入</button></div></div>
-<div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-label="遊戲說明">
+<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。</p><button class="btn" onclick="location.reload()">重新載入</button></div></div>
+<div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-modal="true" aria-label="遊戲說明">
 <div class="dhead"><h2 id="helpT" style="flex:1 1 auto;margin:0"></h2><button type="button" class="helpbtn" id="helpToc">目錄</button><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
 <div id="helpBody"></div>
 <div class="hnav"><button class="btn ghost" id="helpPrev" type="button">上一頁</button><div class="hdots" id="helpDots"></div><button class="btn" id="helpNext" type="button">下一頁</button></div>
@@ -886,10 +910,11 @@ document.getElementById('muteBox').checked=ls.get('ab_mute')==='1';
 document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checked?'1':'0');if(e.target.checked){document.getElementById('stack').innerHTML='';popQ=[];popOn=0;}};
 /* 說明：圖文分頁，每次打開都從第 1 頁開始；圖用遊戲裡的像素角色現畫（第一個人就是自己的造型） */
 /* 點版本號看裝置數值，實機有問題時請使用者截圖 */
+const cssPx=v=>{const e=document.createElement('div');e.style.cssText=`position:fixed;top:0;left:0;width:1px;height:var(${v},0px);visibility:hidden`;document.body.appendChild(e);const h=Math.round(e.getBoundingClientRect().height);e.remove();return h;};
 function showDiag(){let el=document.getElementById('diagM');if(!el){el=document.createElement('div');el.id='diagM';el.className='upd';document.body.appendChild(el);}
   const pr=document.createElement('div');pr.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;visibility:hidden';document.body.appendChild(pr);const rc=pr.getBoundingClientRect();pr.style.height='100dvh';pr.style.bottom='auto';const dvh=pr.getBoundingClientRect().height;pr.remove();
-  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
-  el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};}
+  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`留白 --safe-top ${cssPx('--safe-top')}　--app-h ${cssPx('--app-h')}　--vgap ${cssPx('--vgap')}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}　多人連線：${db?'正常':why||'連線中'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
+  el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};el.onclick=e=>{if(e.target===el)el.hidden=true;};}
 let helpP=0, helpC=null, helpToc=false;
 document.getElementById('helpVer').textContent='版本 '+APP_VERSION;
 function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>charSVG(c.x,feet,c.name||'',c.color||'#9aa3b5',{look:c.look,boss:c.boss,prop:c.prop,face:c.face,crown:c.crown,scale:c.s||1})).join('');
@@ -910,6 +935,8 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
      <p class="hline">把<b>邀請碼</b>或連結傳給朋友</p><p class="hsub">2～8 人都可以玩</p>`},
    pic('',G2,'第 3 步：大家準備','friends3','大家按<b>準備完成</b>，房主按<b>開始遊戲</b>'),
    pic('',G2,'第 4 步：每人出一題','friends4','每人出一題，猜<b>別人</b>的題','沒想法可以按隨機出題'),
+   {k:'',g:G2,t:'有人斷線怎麼辦',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',crown:true},{x:216,look:a,name:'小美',face:'cry'}])}</div>
+     <p class="hline">斷線約一分鐘會標<b>離線</b>，房主可以按<b>不等他</b></p><p class="hsub">房主不見時，線上最早進房的人會自動接手；回來的人可以繼續玩</p>`},
    {k:'modes',g:G3,t:'三種玩法',h:`<div class="hpic"><div class="h3">
      <div><span class="hic">${helpIcon({x:30,look:L,crown:true,face:'A'})}</span><b>全部猜完</b><span>次數少的贏</span></div>
      <div><span class="hic">${helpIcon({x:30,look:a,face:'wow'})}</span><b>先猜中</b><span>有人中就結束</span></div>
@@ -966,7 +993,11 @@ function drawToc(){const P=helpC||(helpC=helpPages()),$=id=>document.getElementB
   $('helpBody').innerHTML=`<div class="htoc">${P.map((p,i)=>{if(seen[p.g])return'';seen[p.g]=1;return`<button type="button" data-hgo="${i}">${p.g}</button>`;}).join('')}</div>`;}
 function helpGo(d){if(helpToc)return;const T=helpTopic();if(T.i+d<0)return;if(T.i+d>=T.n){showHelp(false);return;}helpP+=d;drawHelp(d);}
 /* 第幾頁的問號就打開對應的主題；沒指定時從第 1 頁開始 */
-function showHelp(o,topic){const h=document.getElementById('help');if(o){helpC=helpPages();helpP=topic?Math.max(0,helpC.findIndex(p=>p.k===topic)):0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+function showHelp(o,topic){const h=document.getElementById('help');if(o){helpC=helpPages();helpP=topic?Math.max(0,helpC.findIndex(p=>p.k===topic)):0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;if(o)document.getElementById('helpClose').focus({preventScroll:true});try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+/* 對話框開著時，Tab 只在對話框裡面轉 */
+document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const box=[...document.querySelectorAll('.upd:not([hidden])')].pop();if(!box)return;
+  const f=[...box.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled&&x.getClientRects().length);if(!f.length)return;
+  const a=f[0],z=f[f.length-1],c=document.activeElement;if(!box.contains(c)){e.preventDefault();a.focus();}else if(e.shiftKey&&c===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&c===z){e.preventDefault();a.focus();}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-help]');if(b)showHelp(true,b.dataset.help);});
 document.getElementById('helpToc').onclick=()=>{if(helpToc)drawHelp(1);else drawToc();};
 document.getElementById('helpBody').onclick=e=>{const b=e.target.closest('[data-hgo]');if(!b)return;helpP=+b.dataset.hgo;drawHelp(1);};
@@ -1189,9 +1220,14 @@ let updShown=false;
 const roomOK=v=>!!v&&!verNewer(v,ROOM_VER)&&!verNewer(ROOM_MIN,v);
 const verNum=v=>String(v||'').split(/[.-]/).map(Number);
 function verNewer(a,b){const A=verNum(a),B=verNum(b);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]||0)-(B[i]||0);if(d)return d>0;}return false;}
+let updTag='';
 async function checkUpdate(){
   if(updShown||location.protocol==='file:')return;
-  try{const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});const t=await r.text();
+  try{const u=location.pathname+'?_='+Date.now();
+    /* 先只問檔案有沒有變，沒變就不用下載整頁 */
+    const h=await fetch(u,{method:'HEAD',cache:'no-store'}),tag=h.headers.get('etag')||h.headers.get('last-modified')||'';
+    if(tag&&tag===updTag)return;updTag=tag;
+    const r=await fetch(u,{cache:'no-store'});const t=await r.text();
     const m=t.match(/const APP_VERSION='([^']+)'/);
     if(m&&m[1]!==APP_VERSION){updShown=true;updTick();}}catch(e){}
 }
@@ -1277,7 +1313,7 @@ async function leaveRoom(){
   if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
   const s=g(); const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
   /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
-  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){}goHome();return;}
+  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){try{await roomRef(c).update({seats:{[me]:null}});}catch(e2){}}goHome();return;}
   const upd={seats:{[me]:null}}; if(s.host===me) upd.host=rest[0].id;
   try{await roomRef().update(upd);}catch(e){}
   goHome();
@@ -2413,7 +2449,7 @@ async function flushFx(){
 /* ---------- 意見回饋 ---------- */
 let fbOpen=false, fbType='idea', fbDraft='', fbMsg='', fbLast=0;
 const FBT={job:'想新增的職業／魔王',bug:'遇到問題',idea:'其他建議'};
-function footer(){return `<p class="ver"><button type="button" id="verBtn">版本 ${APP_VERSION}</button><br>© 2026 KenChen0728 · 字型：俐方體11號（OFL）</p>`;}
+function footer(){return `<p class="ver"><button type="button" id="verBtn">版本 ${APP_VERSION}</button><br>© 2026 Ken Chen · 字型：俐方體11號（OFL）</p>`;}
 function fbCard(){
   return `<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1 1 auto">意見回饋</h2><button class="peek" id="fbOpen" style="flex:0 0 auto">收起</button></div>
     <div class="chips stage">${Object.entries(FBT).map(([k,v])=>`<button type="button" data-fbt="${k}" aria-pressed="${fbType===k}">${v}</button>`).join('')}</div>
@@ -2624,7 +2660,12 @@ solo=null;
 
 setTimeout(()=>{if(!db){fbWait=false;render();}},11000);
 /* 離線也打得開；開網頁時一律先問網站有沒有新版，規則寫在 sw.js */
-if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});
+  /* 畫面和連線都好了才存說明圖片，沒網路時說明也看得到 */
+  setTimeout(()=>{try{const c=navigator.connection;if(c&&c.saveData)return;navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('warm'));}catch(e){}},9000);});
+/* 400KB 的像素字型只用在角色名字和對話框：等畫面出來才在背景下載，省流量模式不下載，沒下載時用內建字體 */
+function loadPixelFont(){try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||'')))return;const f=new FontFace('Cubic11','url(Cubic_11.woff2)',{display:'swap'});document.fonts.add(f);f.load().catch(()=>{});}catch(e){}}
+addEventListener('load',()=>setTimeout(()=>{(window.requestIdleCallback||(fn=>fn()))(loadPixelFont,{timeout:4000});},1800));
 </script>
 
 </body>

@@ -5,6 +5,7 @@
 const PREFIX='1a2b-', CACHE=PREFIX+'v2', OLD=['ab-v1'];
 const CORE=['./','manifest.webmanifest','favicon-32.png','icon-180.png','icon-192.png','icon-512.png'];
 const NAV_MS=3000, ASSET_MS=6000;
+const HELP=['friends1','friends3','friends4','fun1','fun2','modes2','modes3','rule2','rule3','solo1','solo2','solo3','stuck1','stuck2','stuck3','watch0','watch1'].map(n=>'help/'+n+'.webp');
 const ROOT=new URL('./',self.registration.scope).pathname;
 const isShell=u=>u.pathname===ROOT||u.pathname===ROOT+'index.html';
 
@@ -12,6 +13,9 @@ self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.add
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{
   for(const k of await caches.keys())if((k.startsWith(PREFIX)&&k!==CACHE)||OLD.includes(k))await caches.delete(k);
   await self.clients.claim();})());});
+
+/* 頁面載好一陣子後才叫這裡存說明圖片，不跟第一次開啟搶網路 */
+self.addEventListener('message',e=>{if(e.data==='warm')e.waitUntil(caches.open(CACHE).then(async c=>{for(const u of HELP)if(!await c.match(u))await c.add(new Request(u,{cache:'no-cache'})).catch(()=>{});}));});
 
 /* 萬一連備份都沒有，也不要出現瀏覽器的錯誤頁 */
 const offlinePage=()=>new Response(`<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>幾A幾B</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#f6f8fb;color:#1f2733;font:17px/1.6 -apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei',sans-serif;text-align:center"><div style="padding:24px"><h1 style="font-size:24px;color:#1d3a6b;margin:0 0 8px">目前沒有網路</h1><p style="margin:0 0 20px">連上網路後再打開一次，就能開始玩。</p><button onclick="location.reload()" style="font:inherit;font-weight:700;min-height:48px;padding:0 24px;border:0;border-radius:12px;background:#1d3a6b;color:#fff">重新整理</button></div></body></html>`,{headers:{'Content-Type':'text/html; charset=utf-8'}});

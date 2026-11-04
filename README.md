@@ -8,11 +8,10 @@
 
 ## 使用範圍
 
-- 遊戲可以自由遊玩、分享連結給朋友。
-- 程式、角色和圖示 © 2026 KenChen0728，未經同意請勿轉載或用於商業用途。
+© 2026 Ken Chen。歡迎免費使用，未經同意不得販售或改作販售。
 
 ## 第三方授權
 
-- 像素字型「俐方體11號」Cubic 11（ACh-K），SIL Open Font License，見 `Cubic_11-LICENSE.txt`。
+- 像素字型「俐方體11號」Cubic 11，Copyright (c) 2022-2025 ACh、Copyright (c) 2022 Cubic 11 Project Authors，SIL Open Font License 1.1，見 `Cubic_11-LICENSE.txt`。
 - Google Fonts：Huninn、Azeret Mono，SIL Open Font License。
 - Firebase JavaScript SDK，Apache License 2.0。
