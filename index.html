@@ -515,7 +515,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-2';
+const APP_VERSION='2026.11.05-3';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -614,7 +614,7 @@ function progress(D){
 }
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
-let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, advOpen=false;
+let fbWait=true, lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, advOpen=false;
 let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
@@ -643,7 +643,7 @@ function paint(html){
 app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
 function render(){
   if(solo) return renderSolo();
-  if(!db){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>${footer()}`;bind();sideUI(false,false);return;}
+  if(!db&&!fbWait){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>${footer()}`;bind();sideUI(false,false);return;}
   let h='';
   if(noAccess) h+=`<div class="card"><p class="err" style="text-align:left">${esc(noAccess)}</p></div>`;
 
@@ -655,12 +655,12 @@ function render(){
       if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
       const back=`<button class="peek" id="homeBack">← 返回</button>`, err=homeErr?`<p class="err">${esc(homeErr)}</p>`:'';
       if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
-      if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
-        <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
+      if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy||!db?'disabled':''}>加入</button></div>
+        <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy||!db?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
       if(homeStep==='solo') return soloBackCard()+soloCard()+back;
       return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
-      ${soloBackCard()}${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
-      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${INAPP?`<p class="rules" style="text-align:center">你現在是在 App 裡面開的網頁，可以直接玩。想加到主畫面，請改用 Safari 或 Chrome 開啟。</p>`:''}<div class="peekrow">${isStandalone()?'':'<button class="peek" id="installBtn">加到主畫面</button>'}${fbOpen?'':'<button class="peek" id="fbOpen">意見回饋</button>'}</div>${fbOpen?fbCard():''}${footer()}`;
+      ${soloBackCard()}${ls.get('ab_room')&&db?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
+      <div class="homemenu"><button class="btn" id="create" ${busy||!db?'disabled':''}>${db?'開新房間':'連線中…'}</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${INAPP?`<p class="rules" style="text-align:center">你現在是在 App 裡面開的網頁，可以直接玩。想加到主畫面，請改用 Safari 或 Chrome 開啟。</p>`:''}<div class="peekrow">${isStandalone()?'':'<button class="peek" id="installBtn">加到主畫面</button>'}${fbOpen?'':'<button class="peek" id="fbOpen">意見回饋</button>'}</div>${fbOpen?fbCard():''}${footer()}`;
     })();
     paint(h); sideUI(false,false); return;
   }
@@ -1002,6 +1002,7 @@ const roomRef=c=>db.doc('rooms/'+(c||code));
 function readNick(){const v=(document.getElementById('nick')?.value||'').trim();if(v){nick=v;ls.set('ab_nick',v);}return nick;}
 function newCode(){let s='';for(let i=0;i<4;i++)s+=CODE_CH[Math.floor(Math.random()*CODE_CH.length)];return s;}
 async function createRoom(){
+  if(!db)return;
   const n=readNick(); if(!n){homeErr='請先輸入暱稱';return render();}
   homeErr=''; busy=true; render();
   await act(async()=>{
@@ -1012,6 +1013,7 @@ async function createRoom(){
   busy=false; render();
 }
 async function joinRoom(c,watch){
+  if(!db){homeErr='還在連線，請等一下再按';return render();}
   const n=readNick(); if(!n){homeErr='請先輸入暱稱';return render();}
   c=(c||'').trim().toUpperCase(); if(baseMe) me=ls.get('ab_alias_'+c)||baseMe; if(!/^[A-Z0-9]{4}$/.test(c)){homeErr='邀請碼是 4 個英文或數字';return render();}
   homeErr=''; busy=true; render();
@@ -1672,17 +1674,20 @@ function localPid(){
   return id;
 }
 (async()=>{
-  const cl=window.__ab;
+  await null; /* 等整份程式載完 */
+  const cl=window.__ab, live=ss.get('ab_live'), backRoomNow=live&&live!=='solo'&&ls.get('ab_room')===live;
+  nick=ls.get('ab_nick')||'';
+  if(live==='solo'&&savedSolo()) soloResume(); else render();
   const [d,u]=await Promise.all([cl?.use?cl.use('db'):null, cl?.use?cl.use('user'):null]);
-  db=d; why=window.__fbErr||'-';
-  const live=ss.get('ab_live');
-  if(live==='solo'&&savedSolo()&&!solo) soloResume();
+  fbWait=false; db=d; why=window.__fbErr||'-';
   if(!db) return render();
   baseMe=me=window.__uid||localPid();
-  nick=ls.get('ab_nick')||'';
   if(!nick&&u){try{const m=await u.me();nick=m&&m.name||'';}catch(e){}}
-  if(live&&live!=='solo'&&ls.get('ab_room')===live) return joinRoom(live);
-  render();
+  if(backRoomNow&&!solo) return joinRoom(live);
+  /* 使用者正在打字時不要重畫，不然鍵盤會收起來 */
+  const ae=document.activeElement;
+  if(ae&&app.contains(ae)&&ae.tagName==='INPUT')['joinBtn','watchBtn'].forEach(id=>{const b=document.getElementById(id);if(b)b.disabled=false;});
+  else render();
 })();
 /* ---------- 邊緣人模式（單機） ---------- */
 let soloCfg={len:4,rep:false,stage:'random',mode:'duel',diff:'easy'};
@@ -2468,7 +2473,7 @@ function renderSolo(){
 }
 solo=null;
 
-setTimeout(()=>{if(!db)render();},11000);
+setTimeout(()=>{if(!db){fbWait=false;render();}},11000);
 /* 離線也打得開；開網頁時一律先問網站有沒有新版，規則寫在 sw.js */
 if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
 </script>
