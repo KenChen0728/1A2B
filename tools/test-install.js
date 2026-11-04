@@ -22,7 +22,7 @@ let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
  p=await page(c);await name(p,'小明');await p.waitForTimeout(150);ok((await p.textContent('#app')).includes('請改用 Safari 或 Chrome'),'LINE 內建瀏覽器有提示');await p.click('#installBtn');await p.waitForTimeout(300);ok((await p.textContent('#helpT')).includes('iPhone'),'iPhone 看到 iPhone 教學');await c.close();
  // 邀請連結帶 openExternalBrowser、#代碼能解析
  c=await ctx(b);p=await page(c);await name(p,'小明');await p.click('#create');await p.waitForSelector('#copyCode');const cd=await p.textContent('.codebox b');
- const c2=await ctx(b);const q=await page(c2,BASE+'?openExternalBrowser=1#'+cd);await name(q,'小美','#joinBtn');ok((await q.inputValue('#codeIn'))===cd,'邀請連結帶入邀請碼');await q.click('#joinBtn');await q.waitForSelector('#ready');ok(true,'用連結加入成功');
+ const c2=await ctx(b);const q=await page(c2,BASE+'?openExternalBrowser=1&room='+cd);await name(q,'小美','#joinBtn');ok((await q.inputValue('#codeIn'))===cd,'邀請連結帶入邀請碼');await q.click('#joinBtn');await q.waitForSelector('#ready');ok(true,'用連結加入成功');
  // 中文選字時 Enter 不送出
  await c.close();await c2.close();c=await ctx(b);p=await page(c);await p.fill('#nick','小');
  await p.evaluate(()=>{const e=new KeyboardEvent('keydown',{key:'Enter',isComposing:true,bubbles:true});document.getElementById('nick').dispatchEvent(e);});await p.waitForTimeout(100);ok(!!(await p.$('#nickOk')),'選字中按 Enter 不送出');await p.press('#nick','Enter');await p.waitForTimeout(150);ok(!!(await p.$('#create')),'一般 Enter 可以送出');

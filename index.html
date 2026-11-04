@@ -431,6 +431,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .uii{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em}.uii svg{display:block;width:100%;height:100%}
 .ver{margin:0;font-size:12px;color:var(--muted);text-align:center;font-family:var(--f-num)}
 .err.wait{color:var(--muted)}
+.err.abkey{color:var(--muted);font-size:14px}.abkey .A{color:var(--a)}.abkey .B{color:var(--b)}
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
 @media (max-height:700px){.pad{gap:6px}.pad button{padding:7px 0}.slot{height:50px;font-size:30px}.card{gap:10px}}
@@ -517,7 +518,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-4';
+const APP_VERSION='2026.11.05-5';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -600,6 +601,7 @@ function pad(useNotes,okOff){
   }).join('')+'</div>';
 }
 const ab=x=>x?`<span class="A">${x.A}A</span><span class="B">${x.B}B</span>`:'—';
+const errKey=()=>err?`<p class="err">${esc(err)}</p>`:'<p class="err abkey"><b class="A">A</b> 數字、位置都對　<b class="B">B</b> 數字對、位置錯</p>';
 function histHTML(list){
   if(!list||!list.length)return'<div class="empty-h">還沒猜過</div>';
   return'<div class="hist">'+list.map((r,i)=>r.hint?`<div class="hrow hintrow"><span class="hn">${i+1}</span><span class="hg">第 ${(+r.pos)+1} 位是 ${esc(r.g)}</span><span class="score"><span class="pill">提示</span></span></div>`:`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${r.A==null?'<span class="W"><span class="dot"></span>計算中</span>':ab(r)}</span></div>`).join('')+'</div>';
@@ -651,7 +653,7 @@ function render(){
 
   /* ---------- 首頁 ---------- */
   if(!code){
-    const pre=(location.hash||'').replace('#','').toUpperCase();
+    const pre=((location.hash||'').replace('#','')||new URLSearchParams(location.search).get('room')||'').toUpperCase();
     h=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help="${homeStep==='join'?'friends':homeStep==='solo'?'solo':'rule'}">？ 說明</button></div><p class="sub">你還要猜多久😴</p></header>`+h+
     (()=>{
       if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
@@ -748,7 +750,7 @@ function render(){
       else if(D.waiting(me)) h+=`<div class="card center"><h2>第 ${D.by[me].length} 次已送出</h2><p class="hand"><span class="dot"></span>等其他人猜完這一回合（${D.parts.filter(id=>!D.out[id]&&!D.solved[id]&&D.by[id].length>=D.by[me].length).length}/${D.parts.filter(id=>!D.out[id]&&!D.solved[id]).length}）</p></div>`;
       if(D.can(me)){
         const hl=g().len-1-D.hints[me];
-        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false,knownOf(D.by[me],s.len))}<p class="err">${esc(err)}</p>${pad(true)}
+        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}
         <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||!secretOf(tgt)||!D.hc?'disabled':''}>${D.hc?`提示 ×${Math.max(0,hl)}（算 ${D.hc} 次）`:'這局不能用提示'}</button>${D.aN?`<button class="btn ghost small" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>小天使 ×${Math.max(0,D.aN-D.angels[me])}${D.ac?`（算 ${D.ac} 次）`:''}</button>`:''}<button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
@@ -1599,7 +1601,7 @@ function loadSecret(){
   const own=secretOf(me); if(own) mySecret={round:R.round,s:own};
 }
 async function copyCode(){
-  const link=location.origin+location.pathname+'?openExternalBrowser=1#'+code, msg=`來玩幾A幾B！你還要猜多久😴 邀請碼 ${code}\n${link}`;
+  const link=location.origin+location.pathname+'?openExternalBrowser=1&room='+code, msg=`來玩幾A幾B！你還要猜多久😴 邀請碼 ${code}\n${link}`;
   try{if(navigator.share){await navigator.share({text:msg});return;}}catch(e){if(e&&e.name==='AbortError')return;}
   try{await navigator.clipboard.writeText(msg);toast('已複製邀請連結');}catch(e){toast(`邀請碼是 ${code}`);}
 }
@@ -2073,7 +2075,7 @@ function coopView(s){
     if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}${mine?'':'，可以語音或在聊天室幫忙出主意'}</p></div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
-      (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}<p class="err">${esc(err)}</p>${pad(true)}`:'')+
+      (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?'<button class="btn ghost small" id="hintBtn">提示</button>':''}${inTeam&&angelMax()?`<button class="btn ghost small" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>小天使 ×${coopAngelsLeft()}（全隊）</button>`:''}</div>`:'')+`</div>`;
     h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
     h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
@@ -2474,7 +2476,7 @@ function renderSolo(){
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
     if(duel) h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>`;
     h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
-      ${slots(false,knownOf(s.hist,s.len))}<p class="err ${waiting?'wait':''}">${waiting?`<span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}`:esc(err)}</p>${pad(true,waiting)}
+      ${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}
       <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||waiting?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
     if(duel) h+=`<div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
