@@ -7,24 +7,39 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="幾A幾B">
 <meta name="theme-color" content="#1d3a6b">
+<meta name="description" content="和朋友連線猜數字的小遊戲。開房傳邀請碼大家一起猜，也能一個人打魔王。">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="幾A幾B">
+<meta property="og:title" content="猜數字：幾A幾B">
+<meta property="og:description" content="開房傳邀請碼，大家一起猜。也能一個人打魔王。">
+<meta property="og:url" content="https://kenchen0728.github.io/1A2B/">
+<meta property="og:image" content="https://kenchen0728.github.io/1A2B/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <style>
 @font-face{font-family:Cubic11;src:url(Cubic_11.woff2) format("woff2");font-display:swap}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-body{margin:0;font:14px/1.5 system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif;-webkit-text-size-adjust:100%}
+:root{--st:calc(env(safe-area-inset-top,0px) + min(40px,env(safe-area-inset-top,0px)*99));padding-top:var(--st);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
 img{max-width:100%}
 [hidden]{display:none!important}
 *{-webkit-tap-highlight-color:transparent}
 </style>
 <title>猜數字：幾A幾B</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Azeret+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Azeret+Mono:wght@500;700&display=swap" media="print" onload="this.media='all'">
 <style>
 /* Layout: one-column notebook page; grid-paper ground, ink-blue digits, red stamp for A. Two seats, each on its own phone. */
 :root{
   --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#66707f;
   --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#c98210; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
-  --f-disp:"Huninn","Noto Sans TC",system-ui,sans-serif;
-  --f-body:"Noto Sans TC",system-ui,sans-serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",system-ui,sans-serif;
+  --f-disp:"Huninn",var(--f-body);
   --f-num:"Azeret Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
@@ -43,13 +58,13 @@ body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);fon
   display:flex;flex-direction:column;gap:16px}
 h1{font-family:var(--f-disp);font-weight:400;font-size:30px;margin:0;color:var(--ink);text-wrap:balance}
 h2{font-family:var(--f-disp);font-weight:400;font-size:24px;margin:0;color:var(--ink);text-wrap:balance}
-.sub{color:var(--muted);font-size:15px;margin:0}
+.sub{color:var(--muted);font-size:16px;margin:0}
 .wrap:has(>.colL){max-width:980px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);align-items:start;gap:16px 20px}
 .wrap:has(>.colL)>header{grid-column:1/-1}
 .colL,.colR{display:flex;flex-direction:column;gap:16px;min-width:0}
 .colL,.colR{position:sticky;top:12px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
-label.lbl,.lbl{font-size:13px;color:var(--muted);letter-spacing:.06em}
+label.lbl,.lbl{font-size:14px;color:var(--muted);letter-spacing:.06em}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row>*{flex:1 1 0;min-width:0}
 input[type=text]{font:inherit;font-size:17px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%;box-sizing:border-box}
@@ -59,9 +74,9 @@ input[type=text]{font:inherit;font-size:17px;padding:10px 12px;border:1px solid 
 .seg button:disabled{cursor:default}
 .btn{font:inherit;font-weight:700;font-size:17px;padding:14px;border-radius:12px;border:0;background:var(--ink);color:var(--card);cursor:pointer;width:100%}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.btn.small{font-size:14px;padding:8px 12px;width:auto}
+.btn.small{font-size:15px;padding:8px 12px;width:auto;min-height:44px}
 .btn:disabled{opacity:.4;cursor:default}
-button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offset:2px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--b);outline-offset:2px}
 .seats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .seat{border:1px dashed var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;min-width:0}
 .seat.taken{border-style:solid}
@@ -89,7 +104,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .score .A{color:var(--a)} .score .B{color:var(--b)} .score .W{color:var(--muted);font-size:14px;font-family:var(--f-body);font-weight:400}
 .empty-h{color:var(--muted);font-size:14px;text-align:center;padding:8px 0}
 .tabs{display:flex;gap:6px}
-.tabs button{flex:1;font:inherit;font-size:14px;padding:8px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;min-width:0}
+.tabs button{flex:1;font:inherit;font-size:15px;min-height:44px;padding:8px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;min-width:0}
 .tabs button[aria-pressed=true]{color:var(--ink);border-color:var(--ink);font-weight:700}
 .center{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .hand{font-size:16px;color:var(--muted);max-width:32ch;margin:0}
@@ -99,7 +114,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px}
 .peek.more{align-self:stretch;text-align:left;padding-inline:0;font-size:15px;line-height:1.5}
 .peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
-.rules{font-size:14px;color:var(--muted);line-height:1.7;margin:0}
+.rules{font-size:15px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 #chatWrap .msgs{max-height:none;flex:1 1 auto;min-height:120px}
@@ -112,11 +127,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 body.fabl .nfab{right:auto;left:0;border-radius:0 14px 14px 0;border:2px solid var(--card);border-left:0;padding:12px 6px 12px calc(4px + env(safe-area-inset-left,0px));width:calc(31px + env(safe-area-inset-left,0px));box-shadow:4px 6px 18px rgba(0,0,0,.35)}
 body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20px}
 .nback{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.35)}
-.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + var(--st)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
 @keyframes dIn{from{transform:translateX(100%)}to{transform:none}}
 .dhead{display:flex;align-items:center;gap:10px}
 .dhead .lbl{flex:1 1 auto;min-width:0}
-.dclose{font:inherit;font-size:20px;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;flex:0 0 auto}
+.dclose{font:inherit;font-size:20px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;flex:0 0 auto}
 .drawer .digits{gap:5px}.drawer .digits button{font-size:18px;padding:6px 0}
 .drawer .pos select{width:50px;font-size:20px}
 .dmine{background:var(--paper);border-radius:10px;padding:4px 10px;max-height:34vh;overflow-y:auto}
@@ -140,12 +155,12 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .msg.mine{align-self:flex-end;background:var(--ink);color:var(--card);border-radius:14px 14px 4px 14px}
 .msg small{display:block;font-size:11px;opacity:.7}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chips button{font:inherit;font-size:14px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.chips button{font:inherit;font-size:15px;min-height:44px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
 .sendrow{display:flex;gap:8px}
 .sendrow input{flex:1;min-width:0}
 .sendrow .btn{width:auto;padding:10px 16px;font-size:15px}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-size:18px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:20;overflow-wrap:anywhere;pointer-events:none}
-@media (min-width:900px){.toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto}}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-size:18px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:66;overflow-wrap:anywhere;pointer-events:none}
+@media (min-width:900px){.toast{top:calc(14px + var(--st));bottom:auto}}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
 .tabs{flex-wrap:wrap}
 .tabs button{flex:1 1 auto}
@@ -196,7 +211,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .hintrow .hg{font-family:var(--f-body);font-size:16px;letter-spacing:0;color:var(--ok)}
 .hc{display:block;font-size:11px;color:var(--muted);font-family:var(--f-body)}
 .lastres{margin:0;font-size:17px;color:var(--ink)}
-.opt{font-size:15px;color:var(--fg);margin-bottom:-6px}
+.opt{font-size:16px;color:var(--fg);margin-bottom:-6px}
 .seg button{font-family:var(--f-body)}
 .podium{width:100%;height:auto;display:block;margin-top:4px}
 .bob{animation:bob 1.6s ease-in-out infinite;transform-origin:center bottom;transform-box:fill-box}
@@ -221,9 +236,9 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .think{font-size:13px;color:var(--muted);padding:0 2px 6px 38px;border-bottom:1px dashed var(--line);margin-top:-4px}
 .hist .hrow:has(+ .think){border-bottom:0}
 .titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.helpbtn{font:inherit;font-size:14px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.helpbtn{font:inherit;font-size:15px;min-height:44px;min-width:44px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .helpc{width:min(400px,100%);box-sizing:border-box;max-width:400px;text-align:left;align-items:stretch;gap:10px;touch-action:pan-y}
-#help,#lookM{padding-block:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-bottom,0px))}
+#help,#lookM{padding-block:calc(16px + var(--st)) calc(16px + env(safe-area-inset-bottom,0px))}
 #helpBody{overflow:hidden}
 .hpage{display:flex;flex-direction:column;gap:10px;min-height:290px;animation:hin .26s cubic-bezier(.2,.75,.3,1)}
 @keyframes hin{from{transform:translateX(var(--hd,40px));opacity:0}to{transform:none;opacity:1}}
@@ -252,13 +267,17 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .hgrid .hi svg{width:28px;height:28px}
 .hgrid p{margin:0;font-size:12px;line-height:1.3;color:var(--muted)}.hgrid b{display:block;font-size:14px;color:var(--ink)}
 .hfly{position:absolute;font-size:24px;line-height:1}
+.hfly svg{display:block;width:28px;height:28px}
+.hgrid .uii{width:28px;height:28px}
+.hicon{border-radius:22px;display:block}
+.hlabel{font-size:14px}
+.hsteps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px;font-size:16px;line-height:1.5}
+.htoc{display:flex;flex-direction:column;gap:8px}
+.htoc button{font:inherit;font-size:16px;min-height:44px;text-align:left;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .hnav{display:flex;align-items:center;gap:8px}
 .hnav .btn{flex:0 0 76px;width:76px;font-size:15px;padding:10px 0}
 .hnav .btn[hidden]{display:block!important;visibility:hidden}
-.hdots{flex:1 1 auto;display:flex;justify-content:center}
-.hdots button{width:18px;height:28px;padding:0;border:0;background:none;cursor:pointer;display:grid;place-items:center}
-.hdots button::after{content:"";width:9px;height:9px;background:var(--line)}
-.hdots button[aria-current=true]::after{background:var(--ink)}
+.hdots{flex:1 1 auto;text-align:center;font-size:15px;color:var(--muted);font-family:var(--f-num)}
 @media (prefers-reduced-motion:reduce){.hpage{animation:none}}
 .watchrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
 .ghrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
@@ -281,13 +300,13 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .posb.known{opacity:.55;border-style:dashed}.posb:disabled{cursor:default}
 .posbtns{display:flex;gap:10px}.posbtns .btn{flex:1}
 #posM{padding-inline:16px}
-.angelcard{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
+.angelcard{position:fixed;left:50%;top:calc(12px + var(--st));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
 .angelcard.out{transition:opacity .5s,transform .5s;opacity:0;transform:translate(-50%,-20px)}
 .angelcard .aimg{flex:0 0 52px}.angelcard .aimg svg{width:52px;height:auto;display:block}
 .angelcard .lbl{color:#9a7b16}.angelcard p{margin:4px 0 0;font-size:15px;line-height:1.6}
-.angelcard .aclose{position:absolute;right:8px;top:8px;border:0;background:transparent;font-size:18px;color:#7a6a3a;width:30px;height:30px;cursor:pointer}
+.angelcard .aclose{position:absolute;right:2px;top:2px;border:0;background:transparent;font-size:18px;color:#7a6a3a;width:44px;height:44px;cursor:pointer}
 @keyframes angelin{from{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
-.hg .imp{display:inline-block;margin-left:8px;font-size:12px;letter-spacing:0;color:var(--a);border:1px solid var(--a);border-radius:999px;padding:1px 7px;vertical-align:middle;font-family:"Noto Sans TC",system-ui,sans-serif}
+.hg .imp{display:inline-block;margin-left:8px;font-size:12px;letter-spacing:0;color:var(--a);border:1px solid var(--a);border-radius:999px;padding:1px 7px;vertical-align:middle;font-family:var(--f-body)}
 .wtip{margin:8px 0 0;font-size:14px;line-height:1.6;color:var(--muted)}.wtip b{color:var(--fg)}
 .gv .gvs{display:flex;align-items:baseline;gap:10px}
 .minighost{position:fixed;width:54px;transform:translate(-50%,-50%);pointer-events:none;animation:mghost 1.6s ease-out forwards}
@@ -327,9 +346,10 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
 .lookpane .swr{gap:12px;padding:6px}.lookpane .sw{width:46px;height:46px}
+.lookbak{display:flex;flex-direction:column;gap:10px;padding:2px}
 .lookrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left}
 .lookav svg{width:58px;height:58px;display:block}
-.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
+.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--st) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
 .lookpv svg{max-height:160px}
 .thr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .th{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);font:inherit;font-size:12px;cursor:pointer}
@@ -406,12 +426,19 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes shake{20%{transform:translateX(-6px) rotate(-1deg)}40%{transform:translateX(6px) rotate(1deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 @media (prefers-reduced-motion:reduce){.fly{transition:none}.shake,.splat,.char.down,.char.ku,.char.love{animation:none}}
 #codeIn::placeholder{letter-spacing:normal;text-transform:none;font-family:var(--f-body)}
+.uii{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em}.uii svg{display:block;width:100%;height:100%}
 .ver{margin:0;font-size:12px;color:var(--muted);text-align:center;font-family:var(--f-num)}
 .err.wait{color:var(--muted)}
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
+@media (max-height:700px){.pad{gap:6px}.pad button{padding:7px 0}.slot{height:50px;font-size:30px}.card{gap:10px}}
+.stk{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.card.stk{padding-block:10px;gap:8px}
+.btn.ghost.stk{background:var(--card)}
+.diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
+#verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;cursor:pointer}
 .stage,.podium,.stage2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.offl{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.offl{position:fixed;top:calc(10px + var(--st));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -435,7 +462,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 <div class="offl" id="offl" role="status" hidden>沒有網路，連上後會自動繼續</div>
 <div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room')}catch(e){};location.reload()">重新載入</button></div></div>
 <div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-label="遊戲說明">
-<div class="dhead"><h2 id="helpT" style="flex:1 1 auto;margin:0"></h2><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
+<div class="dhead"><h2 id="helpT" style="flex:1 1 auto;margin:0"></h2><button type="button" class="helpbtn" id="helpToc">目錄</button><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
 <div id="helpBody"></div>
 <div class="hnav"><button class="btn ghost" id="helpPrev" type="button">上一頁</button><div class="hdots" id="helpDots"></div><button class="btn" id="helpNext" type="button">下一頁</button></div>
 <p class="ver" id="helpVer"></p>
@@ -488,7 +515,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-1';
+const APP_VERSION='2026.11.05-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
@@ -588,9 +615,13 @@ function progress(D){
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
 let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, advOpen=false;
+let installEv=null;
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
 const leaveLbl=()=>isHost()&&players().length>1?'離開房間（房主交給下一位）':'離開房間';
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
-const WIDE=900; let wasWide=innerWidth>=WIDE;
+const WIDE=740; let wasWide=innerWidth>=WIDE;
 function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
   const L=document.createElement('div'),R=document.createElement('div');L.className='colL';R.className='colR';
   [...app.children].forEach(c=>{if(c.tagName==='HEADER')return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
@@ -612,14 +643,14 @@ function paint(html){
 app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
 function render(){
   if(solo) return renderSolo();
-  if(!db){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p><p class="ver">版本 ${APP_VERSION}</p>`;bind();sideUI(false,false);return;}
+  if(!db){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>${footer()}`;bind();sideUI(false,false);return;}
   let h='';
   if(noAccess) h+=`<div class="card"><p class="err" style="text-align:left">${esc(noAccess)}</p></div>`;
 
   /* ---------- 首頁 ---------- */
   if(!code){
     const pre=(location.hash||'').replace('#','').toUpperCase();
-    h=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">你還要猜多久😴</p></header>`+h+
+    h=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help="${homeStep==='join'?'friends':homeStep==='solo'?'solo':'rule'}">？ 說明</button></div><p class="sub">你還要猜多久😴</p></header>`+h+
     (()=>{
       if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
       const back=`<button class="peek" id="homeBack">← 返回</button>`, err=homeErr?`<p class="err">${esc(homeErr)}</p>`:'';
@@ -629,7 +660,7 @@ function render(){
       if(homeStep==='solo') return soloBackCard()+soloCard()+back;
       return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
       ${soloBackCard()}${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
-      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}<p class="ver">版本 ${APP_VERSION}</p>`;
+      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${INAPP?`<p class="rules" style="text-align:center">你現在是在 App 裡面開的網頁，可以直接玩。想加到主畫面，請改用 Safari 或 Chrome 開啟。</p>`:''}<div class="peekrow">${isStandalone()?'':'<button class="peek" id="installBtn">加到主畫面</button>'}${fbOpen?'':'<button class="peek" id="fbOpen">意見回饋</button>'}</div>${fbOpen?fbCard():''}${footer()}`;
     })();
     paint(h); sideUI(false,false); return;
   }
@@ -642,7 +673,7 @@ function render(){
   const s=g(), D=derive(), inGame=me in D.A, hostName=nameOf(s.host);
   const nk=code+'_'+s.round; if(s.phase!=='coop'&&inGame&&D.status!=='lobby'&&(notesKey!==nk||notesLen!==s.len)) loadNotes(nk,s.len);
   if(inGame&&(D.status==='playing'||D.status==='over')) autoMarkFrom(D.by[me]||[],s.len);
-  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+(s.diff==='hard'?'困難':'簡單'):s.finish?'全部猜完':'先中先贏'}</p></div>
+  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+(s.diff==='hard'?'困難':'簡單'):s.finish?'全部猜完':'先中先贏'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
 
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
@@ -653,8 +684,8 @@ function render(){
     h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="plist">${D.P.map(p=>`<div class="prow"><span class="pn">${esc(p.name)}${p.id===me?'<span class="pill me">你</span>':''}</span><span class="pc">${p.id===s.host?'<span class="pill host">房主</span>':`<span class="pill ${p.ready?'ok':''}">${p.ready?'已準備':'未準備'}</span>`}</span></div>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
     ${D.P.length<2?`<button class="btn" id="inviteBtn" type="button">邀請朋友</button><p class="rules" style="text-align:center">朋友點連結就能加入，也可以在首頁輸入邀請碼 ${esc(code)}</p>`:''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
     const coopM=s.mode==='coop', hostM=isHost(), hcN=s.hintCost==null?2:s.hintCost, anN=angelMax(), acN=s.angelCost==null?1:s.angelCost, turnS=s.turnSec===0?0:(s.turnSec||60);
-    if(hostM) h+=`<div class="card center"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
-    else { const rd=s.seats[me].ready; h+=`<button class="btn ${rd?'ghost':''}" id="ready">${rd?'取消準備':'準備完成'}</button>${rd?`<p class="hand" style="text-align:center;align-self:center"><span class="dot"></span>等 ${esc(hostName)} 開始遊戲</p>`:''}`; }
+    if(hostM) h+=`<div class="card center stk"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
+    else { const rd=s.seats[me].ready; h+=`<button class="btn stk ${rd?'ghost':''}" id="ready">${rd?'取消準備':'準備完成'}</button>${rd?`<p class="hand" style="text-align:center;align-self:center"><span class="dot"></span>等 ${esc(hostName)} 開始遊戲</p>`:''}`; }
     const toolTxt=[coopM?'':hcN?`提示算 ${hcN} 次`:'不能用提示',anN?`小天使${coopM?'全隊':'每人'} ${anN} 次${coopM||!acN?'':`（算 ${acN} 次）`}`:'不能叫小天使'].filter(Boolean).join(' · ');
     const rulesP=coopM?'全隊對抗一個魔王：大家輪流猜魔王的題，其他人可以語音或在聊天室出主意，筆記全隊共用；魔王每回合也猜一次全隊的題。先猜中的一方獲勝。':`每人出一題，系統隨機分配，猜別人出的題目。${s.finish?'大家都猜中或放棄後，用次數少的排名。':'每人每回合只能猜一次，等大家都猜完才進下一回合；有人猜中就打完這一回合結束，同回合猜中算並列。'}用一次提示會揭曉一位數字，算幾次猜測由房主設定。`;
     if(!hostM){
@@ -667,7 +698,7 @@ function render(){
       ${coopM?`<p class="rules" style="margin-top:-6px">${rulesP}</p>
       <span class="opt">每人猜題時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],turnS,false)}
       <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],s.diff==='hard'?'hard':'easy',false)}
-      <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel"><option value="random" ${(s.stage||'random')==='random'?'selected':''}>🎲 隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
+      <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel"><option value="random" ${(s.stage||'random')==='random'?'selected':''}>隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
       <span class="opt">題目是幾位數字（不是人數）</span>
       ${seg('data-len',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],s.len,false)}
       <span class="opt">題目裡的數字能不能重複</span>
@@ -682,14 +713,14 @@ function render(){
       ${seg('data-ann',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],anN,false)}
       ${coopM||!anN?'':`<span class="opt">叫一次小天使算幾次猜測</span>
       ${seg('data-acost',[[0,'不算'],[1,'算 1 次'],[2,'算 2 次']],acN,false)}`}
-      <p class="rules" style="margin-top:-6px">😇 小天使不會告訴你新數字，只會整理你自己猜出來的線索（確定有／沒有哪些數字、哪次猜了不可能的答案）。${coopM?'合作模式用全隊的線索，誰都可以叫，不算猜測次數。':'算猜測次數的話，排名時會加進去，跟提示一樣。'}</p>`:''}</div>`;
+      <p class="rules" style="margin-top:-6px">小天使不會告訴你新數字，只會整理你自己猜出來的線索（確定有／沒有哪些數字、哪次猜了不可能的答案）。${coopM?'合作模式用全隊的線索，誰都可以叫，不算猜測次數。':'算猜測次數的話，排名時會加進去，跟提示一樣。'}</p>`:''}</div>`;
     }
     h+=isHost()?`<div class="row"><button class="btn ghost" id="closeRoom">關閉房間</button></div><button class="peek" id="leave">${leaveLbl()}</button>`:`<button class="peek" id="leave">離開房間</button>`;
   }
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
     if(inGame&&!hasSecret(me)){
-      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>`;
+      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>`;
     } else if(inGame){
       h+=`<div class="card center"><h2>你的題目已送出</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}），全部到齊就自動分配開始</p></div>`;
     } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`;
@@ -799,46 +830,72 @@ addEventListener('resize',fabApply);fabApply();
 document.getElementById('muteBox').checked=ls.get('ab_mute')==='1';
 document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checked?'1':'0');if(e.target.checked){document.getElementById('stack').innerHTML='';popQ=[];popOn=0;}};
 /* 說明：圖文分頁，每次打開都從第 1 頁開始；圖用遊戲裡的像素角色現畫（第一個人就是自己的造型） */
-let helpP=0, helpC=null;
+/* 點版本號看裝置數值，實機有問題時請使用者截圖 */
+function showDiag(){let el=document.getElementById('diagM');if(!el){el=document.createElement('div');el.id='diagM';el.className='upd';document.body.appendChild(el);}
+  const pr=document.createElement('div');pr.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;visibility:hidden';document.body.appendChild(pr);const rc=pr.getBoundingClientRect();pr.style.height='100dvh';pr.style.bottom='auto';const dvh=pr.getBoundingClientRect().height;pr.remove();
+  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
+  el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};}
+let helpP=0, helpC=null, helpToc=false;
 document.getElementById('helpVer').textContent='版本 '+APP_VERSION;
 function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>charSVG(c.x,feet,c.name||'',c.color||'#9aa3b5',{look:c.look,boss:c.boss,prop:c.prop,face:c.face,crown:c.crown,scale:c.s||1})).join('');
   return `<svg class="stage2" viewBox="0 ${top} ${w} 150" aria-hidden="true"><ellipse cx="${w/2}" cy="${feet+3}" rx="${w/2-14}" ry="5" fill="#000" opacity=".16"/>${out}</svg>`;}
 function helpIcon(c){return helpStage([c],60).replace('viewBox="0 18 60 150"','viewBox="-20 34 100 124"');}
 function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('2.3.11.1.3.0.0'),c=parseLook('0.4.1.0.5.1.0');
   return [
-   {t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="htile"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="htile"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
+   {k:'rule',g:'1A2B 怎麼玩',t:'1A2B 怎麼玩',h:`<div class="hpic"><div class="htile"><span class="lb">答案</span><i>1</i><i>2</i><i>3</i><i>4</i></div><div class="htile"><span class="lb">你猜</span><i class="ha">1</i><i class="hb">3</i><i class="hb">2</i><i>5</i></div><div class="hres"><span class="A">1A</span><span class="B">2B</span></div></div>
      <div class="hkey"><span><b class="A">A</b> 數字、位置都對</span><span><b class="B">B</b> 數字對、位置錯</span></div><p class="hsub">猜到全部都是 A 就贏了。開頭可以是 0</p>`},
-   {t:'和朋友一起玩',h:`<div class="hpic"><span class="hcode">AB12</span>${helpStage([{x:42,look:L,name:'你',s:.78},{x:114,look:a,name:'小美',s:.78},{x:186,look:b,name:'阿明',s:.78},{x:258,look:c,name:'大雄',s:.78}])}</div>
+   {k:'friends',g:'和朋友一起玩',t:'和朋友一起玩',h:`<div class="hpic"><span class="hcode">AB12</span>${helpStage([{x:42,look:L,name:'你',s:.78},{x:114,look:a,name:'小美',s:.78},{x:186,look:b,name:'阿明',s:.78},{x:258,look:c,name:'大雄',s:.78}])}</div>
      <p class="hline">開房，把<b>邀請碼</b>傳給朋友</p><p class="hsub">2～8 人，大家都按準備，房主就能開始</p>`},
-   {t:'三種玩法',h:`<div class="hpic"><div class="h3">
+   {k:'modes',g:'三種玩法',t:'三種玩法',h:`<div class="hpic"><div class="h3">
      <div><span class="hic">${helpIcon({x:30,look:L,crown:true,face:'A'})}</span><b>全部猜完</b><span>次數少的贏</span></div>
      <div><span class="hic">${helpIcon({x:30,look:a,face:'wow'})}</span><b>先猜中</b><span>有人中就結束</span></div>
      <div><span class="hic">${helpIcon({x:30,prop:'dino',boss:true})}</span><b>合作打魔王</b><span>全隊一起猜</span></div></div></div>
      <p class="hline">每人出一題，猜<b>別人</b>的題</p><p class="hsub">玩法由房主選</p>`},
-   {t:'一個人玩',h:`<div class="hpic">${helpStage([{x:88,look:L,name:'你'},{x:206,prop:'dino',boss:true,s:1.1}])}</div>
+   {k:'solo',g:'一個人玩',t:'一個人玩',h:`<div class="hpic">${helpStage([{x:88,look:L,name:'你'},{x:206,prop:'dino',boss:true,s:1.1}])}</div>
      <p class="hline"><b>練習</b>：電腦出題，慢慢猜<br><b>挑戰</b>：和魔王互猜，先中先贏</p><p class="hsub">選「你的身分」決定魔王是誰</p>`},
-   {t:'猜不出來？',h:`<div class="hpic"><div class="hgrid">
-     <div><span class="hi">📝</span><p><b>筆記</b>記下有沒有</p></div>
-     <div><span class="hi">💡</span><p><b>提示</b>開一位數字</p></div>
+   {k:'stuck',g:'猜不出來？',t:'猜不出來？',h:`<div class="hpic"><div class="hgrid">
+     <div><span class="hi">${uiIcon('note')}</span><p><b>筆記</b>記下有沒有</p></div>
+     <div><span class="hi">${uiIcon('bulb')}</span><p><b>提示</b>開一位數字</p></div>
      <div><span class="hi">${angelSVG()}</span><p><b>小天使</b>幫你整理線索</p></div>
-     <div><span class="hi">💬</span><p><b>聊天</b>傳訊息、嗆聲</p></div>
-     <div style="grid-column:1/3"><span class="hi">🏳️</span><p><b>放棄</b>直接看答案，排名最後</p></div></div></div>
+     <div><span class="hi">${uiIcon('chat')}</span><p><b>聊天</b>傳訊息、嗆聲</p></div>
+     <div style="grid-column:1/3"><span class="hi">${uiIcon('flag')}</span><p><b>放棄</b>直接看答案，排名最後</p></div></div></div>
      <p class="hline">筆記、聊天在畫面<b>右側</b></p><p class="hsub">多人時，提示和小天使算幾次由房主設定</p>`},
-   {t:'輸了也別生氣',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',face:'angry'},{x:216,look:a,name:'贏家',crown:true,face:'C'}])}<span class="hfly" style="left:44%;top:30%">🍅</span><span class="hfly" style="left:57%;top:16%">🥚</span></div>
-     <p class="hline">點別人<b>丟東西</b>出氣</p><p class="hsub">贏家會閃；魔王被丟太多次會反擊</p>`}
+   {k:'fun',g:'輸了丟東西出氣',t:'輸了也別生氣',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',face:'angry'},{x:216,look:a,name:'贏家',crown:true,face:'C'}])}<span class="hfly" style="left:44%;top:30%">${itemIcon('tomato')}</span><span class="hfly" style="left:57%;top:16%">${itemIcon('egg')}</span></div>
+     <p class="hline">點別人<b>丟東西</b>出氣</p><p class="hsub">贏家會閃；魔王被丟太多次會反擊</p>`},
+   {k:'watch',g:'只想看？來觀戰',t:'只想看？來觀戰',h:`<div class="hpic"><div class="hgrid">
+     <div><span class="hi">${ghostSVG()}</span><p><b>幽靈 5 隻</b>嚇玩家，擋畫面 3 秒</p></div>
+     <div><span class="hi">${angelSVG()}</span><p><b>天使 3 位</b>幫玩家整理線索</p></div>
+     <div style="grid-column:1/3"><span class="hi">${uiIcon('note')}</span><p><b>上帝視角</b>看得到大家的題目和猜測</p></div></div></div>
+     <p class="hline">用同一個邀請碼按<b>進去觀戰</b></p><p class="hsub">想下場時，在大廳按「我也要玩」</p>`},
+   ...installPages()
   ];}
+/* 加到主畫面：把使用者自己的裝置排在第一頁 */
+function installPages(){const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1), and=/Android/.test(ua), mac=/Macintosh/.test(ua)&&!ios;
+  const icon=`<div class="hpic"><img class="hicon" src="icon-180.png" alt="幾A幾B 圖示" width="96" height="96"><b class="hlabel">幾A幾B</b></div>`;
+  const pg=(t,steps,note)=>({k:'',g:'加到主畫面',t,h:`${icon}<ol class="hsteps">${steps.map(s=>`<li>${s}</li>`).join('')}</ol>${note?`<p class="hsub">${note}</p>`:''}`});
+  const P={ios:pg('iPhone、iPad',['用 <b>Safari</b> 打開這個網頁','按下方的<b>分享</b>按鈕','選<b>加入主畫面</b>，再按<b>新增</b>'],'主畫面的遊戲和瀏覽器資料分開，第一次打開要重新取名'),
+    and:pg('Android 手機、平板',['用 <b>Chrome</b> 打開這個網頁','按右上角的<b>三個點</b>','選<b>加到主畫面</b>或<b>安裝應用程式</b>']),
+    win:pg('Windows、Chromebook',['用 <b>Chrome</b> 或 <b>Edge</b> 打開','按網址列右邊的<b>安裝</b>圖示','按<b>安裝</b>，之後從桌面或應用程式清單開啟']),
+    mac:pg('Mac',['<b>Chrome</b>：按網址列右邊的<b>安裝</b>圖示','<b>Safari</b>：選單列<b>檔案</b> → <b>加入 Dock</b>'])};
+  const order=ios?['ios','and','win','mac']:and?['and','ios','win','mac']:mac?['mac','win','ios','and']:['win','mac','ios','and'], L=order.map(k=>P[k]);L[0].k='install';return L;}
 function drawHelp(dir){const P=helpC||(helpC=helpPages()),n=P.length,$=id=>document.getElementById(id);helpP=Math.max(0,Math.min(n-1,helpP));
+  helpToc=false;document.querySelector('.hnav').hidden=false;$('helpToc').textContent='目錄';
   $('helpT').textContent=P[helpP].t;
   $('helpBody').innerHTML=`<div class="hpage" style="--hd:${dir<0?-40:40}px">${P[helpP].h}</div>`;
-  $('helpDots').innerHTML=P.map((_,i)=>`<button type="button" data-hp="${i}" aria-label="第 ${i+1} 頁" aria-current="${i===helpP}"></button>`).join('');
+  $('helpDots').textContent=`${helpP+1} / ${n}`;
   $('helpPrev').hidden=helpP===0;$('helpNext').textContent=helpP===n-1?'知道了':'下一頁';}
-function helpGo(d){const n=helpC.length,t=helpP+d;if(t<0)return;if(t>=n){showHelp(false);return;}helpP=t;drawHelp(d);}
-function showHelp(o){const h=document.getElementById('help');if(o){helpP=0;helpC=null;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
-document.addEventListener('click',e=>{if(e.target.closest('[data-help]'))showHelp(true);});
+function drawToc(){const P=helpC||(helpC=helpPages()),$=id=>document.getElementById(id),seen={};
+  helpToc=true;document.querySelector('.hnav').hidden=true;$('helpToc').textContent='返回';$('helpT').textContent='目錄';
+  $('helpBody').innerHTML=`<div class="htoc">${P.map((p,i)=>{if(seen[p.g])return'';seen[p.g]=1;return`<button type="button" data-hgo="${i}">${p.g}</button>`;}).join('')}</div>`;}
+function helpGo(d){if(helpToc)return;const n=helpC.length,t=helpP+d;if(t<0)return;if(t>=n){showHelp(false);return;}helpP=t;drawHelp(d);}
+/* 第幾頁的問號就打開對應的主題；沒指定時從第 1 頁開始 */
+function showHelp(o,topic){const h=document.getElementById('help');if(o){helpC=helpPages();helpP=topic?Math.max(0,helpC.findIndex(p=>p.k===topic)):0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-help]');if(b)showHelp(true,b.dataset.help);});
+document.getElementById('helpToc').onclick=()=>{if(helpToc)drawHelp(1);else drawToc();};
+document.getElementById('helpBody').onclick=e=>{const b=e.target.closest('[data-hgo]');if(!b)return;helpP=+b.dataset.hgo;drawHelp(1);};
 document.getElementById('helpClose').onclick=()=>showHelp(false);
 document.getElementById('helpPrev').onclick=()=>helpGo(-1);
 document.getElementById('helpNext').onclick=()=>helpGo(1);
-document.getElementById('helpDots').onclick=e=>{const b=e.target.closest('[data-hp]');if(!b)return;const t=+b.dataset.hp,d=t-helpP;helpP=t;drawHelp(d);};
 document.getElementById('help').onclick=e=>{if(e.target.id==='help')showHelp(false);};
 document.addEventListener('keydown',e=>{if(document.getElementById('help').hidden)return;if(e.key==='ArrowRight')helpGo(1);else if(e.key==='ArrowLeft')helpGo(-1);else if(e.key==='Escape')showHelp(false);});
 (()=>{const el=document.querySelector('.helpc');let x0=null,y0=0;
@@ -866,7 +923,7 @@ function autoMarkFrom(L,len){
 }
 document.getElementById('notesClose').onclick=()=>setNotes(false);
 document.getElementById('notesBack').onclick=()=>{notesOpen=false;chatOpen=false;render();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&notesOpen)setNotes(false);});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(notesOpen)setNotes(false);else if(chatOpen)setChat(false);});
 
 /* ---------- 筆記（只存在自己手機） ---------- */
 let notes={d:Array(10).fill(0),pos:[],memo:''}, notesKey=null, notesLen=null;
@@ -932,6 +989,7 @@ async function sendChat(text){
 }
 document.getElementById('chips').innerHTML=QUICK.map((q,i)=>`<button type="button" data-q="${i}">${q}</button>`).join('');
 document.getElementById('chips').onclick=e=>{const b=e.target.closest('[data-q]');if(b)sendChat(QUICK[+b.dataset.q]);};
+document.getElementById('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.isComposing||e.keyCode===229))e.preventDefault();});
 document.getElementById('sendForm').onsubmit=async e=>{e.preventDefault();const i=document.getElementById('chatIn'),t=i.value;if(await sendChat(t)&&i.value===t)i.value='';};
 
 /* ---------- 房間 ---------- */
@@ -1055,6 +1113,12 @@ function updTick(){if(!updShown)return;const el=document.getElementById('upd');i
   if(gameBusy()){if(!updWarned){updWarned=true;toast('有新版本了，這場結束後會更新');}return;}
   el.hidden=false;}
 setInterval(updTick,2000);
+/* 正在玩的時候螢幕不要自己暗掉（瀏覽器支援才有作用） */
+let wakeL=null;
+async function wakeSync(){try{const want=gameBusy()&&!document.hidden;
+  if(want&&!wakeL&&navigator.wakeLock){wakeL=await navigator.wakeLock.request('screen');wakeL.addEventListener('release',()=>{wakeL=null;});}
+  else if(!want&&wakeL){const w=wakeL;wakeL=null;await w.release();}}catch(e){wakeL=null;}}
+setInterval(wakeSync,5000);document.addEventListener('visibilitychange',wakeSync);
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
@@ -1258,7 +1322,7 @@ function pxStand(x,feetY,o,px){px=px||PXS;const b=pxBuild(o),bx=pxBox(b.M),x0=x-
   const O=pxOutline(b.M),cut=bx.y1-2,sp=(A,lo)=>{const R=new Map();A.forEach((c,k)=>{if((+k.split(',')[1]>=cut)===lo)R.set(k,c);});return R;};
   const legs=`<g ${T} shape-rendering="crispEdges">${pxPaths(sp(O,true))}${pxPaths(sp(b.M,true))}</g>`;
   const body=`<g ${T} shape-rendering="crispEdges">${pxPaths(sp(O,false))}${pxPaths(sp(b.M,false))}</g>`;
-  const fn=`<g class="fn" ${T} shape-rendering="crispEdges">${pxPaths(b.F[b.face]||b.F.normal)}</g>`+(b.face==='C'?`<text class="fn" x="${x+30}" y="${y0+7*px}" font-size="13" fill="#ffd34d" stroke="#1e1b2e" stroke-width="3" paint-order="stroke" font-family="Cubic11,Noto Sans TC,sans-serif">哈哈</text>`:'');
+  const fn=`<g class="fn" ${T} shape-rendering="crispEdges">${pxPaths(b.F[b.face]||b.F.normal)}</g>`+(b.face==='C'?`<text class="fn" x="${x+30}" y="${y0+7*px}" font-size="13" fill="#ffd34d" stroke="#1e1b2e" stroke-width="3" paint-order="stroke" font-family="Cubic11,sans-serif">哈哈</text>`:'');
   const fh=`<g class="fh" ${T} shape-rendering="crispEdges">${pxPaths(b.F.hurt)}</g>`;
   const [a,c,d,e]=b.hd, hd=`<rect class="hd" x="${x0+a*px}" y="${y0+c*px}" width="${(d-a)*px}" height="${(e-c)*px}" fill="none"/>`;
   const dl=((Math.round(x*7+feetY*3)%11)/11*1.4).toFixed(2);
@@ -1299,6 +1363,14 @@ function pxHead(o){const b=pxBuild(o),lim=o.lim||(o.prop==='dino'?12:13),M=new M
 function pxIcon(rows,pal){const M=pxPut(new Map(),rows,pal),O=pxOutline(M),bx=pxBox(O);
   return `<svg viewBox="${bx.x0} ${bx.y0} ${bx.x1-bx.x0+1} ${bx.y1-bx.y0+1}" shape-rendering="crispEdges" aria-hidden="true">${pxPaths(O)}${pxPaths(M)}</svg>`;}
 const PX_GHOST=[".....WWWWWW.....","...WWWWWWWWWW...","..WWWWWWWWWWWW..",".WWWWWWWWWWWWWW.",".WWWWWWWWWWWWWW.",".WWWKKWWWWKKWWW.",".WWWKKWWWWKKWWW.",".WWWKKWWWWKKWWW.","WWCWWWWWWWWWWCWW","WWWWWWWKKWWWWWWW",".WWWWWWKKWWWWWW.",".WWWWWWKKWWWWWW.",".wWWWWWWWWWWWWw.",".wwWWWWWWWWWWww.",".wwwWWWwwWWWwww.",".ww.wwwwwwwwwww.",".w...ww..ww..ww."];
+const PX_UI={
+ dice:[["WWWWWWWWWW","WKKWWWWWWW","WKKWWWWWWW","WWWWWWWWWW","WWWWKKWWWW","WWWWKKWWWW","WWWWWWWWWW","WWWWWWWKKW","WWWWWWWKKW","WWWWWWWWWW"],{W:'#ffffff',K:'#1d3a6b'}],
+ note:[["WWWWWWWWWW","WLLLLLLLLW","WWWWWWWWWW","WLLLLLLLLW","WWWWWWWWWW","WLLLLLWWWW","WWWWWWWWWW","WWWWWWWWWW"],{W:'#fff8e1',L:'#7a8aa0'}],
+ bulb:[["...YYYY...","..YYYYYY..",".YYWYYYYY.",".YYWYYYYY.",".YYYYYYYY.","..YYYYYY..","...YYYY...","...GGGG...","...GGGG...","....GG...."],{Y:'#ffd34d',W:'#fff4c2',G:'#8d939c'}],
+ chat:[[".BBBBBBBB.","BBBBBBBBBB","BBWWBWWBWW","BBWWBWWBWW","BBBBBBBBBB",".BBBBBBBB.","..BB......",".BB......."],{B:'#6aa8ff',W:'#ffffff'}],
+ flag:[["NWWWWWWW..","NWWWWWWWW.","NWWWWWWWWW","NWWWWWWW..","N.........","N.........","N.........","N........."],{N:'#8a6a45',W:'#ffffff'}]
+};
+const uiIcon=k=>`<span class="uii">${pxIcon(PX_UI[k][0],PX_UI[k][1])}</span>`;
 const PX_ANGEL=["....yYYYYYYy....","................",".....HHHHHH.....","....HHHHHHHH....","WW..HSSSSSSH..WW","WWW.SSSSSSSS.WWW","WWWWSKSSSSKSWWWW",".WWWSKSSSSKSWWW.","..WWSCSSSSCSWW..","...WSSSKKSSSW...","....wRRRRRRw....",".....RRRRRR.....","....RRRRRRRR....","....RrRRRRrR....","...RRRRRRRRRR...","...rrrrrrrrrr..."];
 function ghostSVG(){return pxIcon(PX_GHOST,{W:'#f4f6fb',w:'#c9d1e2',K:'#1e1b2e',C:'#ffb3c1'});}
 function angelSVG(){return pxIcon(PX_ANGEL,{Y:'#ffd34d',y:'#e0a800',W:'#ffffff',w:'#d9e2f2',H:'#f2c94c',S:'#ffe0c2',K:'#1e1b2e',C:'#ff9a9a',R:'#fff4c2',r:'#e9d58a'});}
@@ -1321,22 +1393,27 @@ function headSVG(o,face,lim){return pxHead({look:o,face:face||null,lim});}
 const LOOKTABS=[['hair','髮型'],['hc','髮色'],['face','表情'],['beard','鬍子'],['acc','配件'],['skin','膚色'],['shirt','衣服']];
 function openLook(){
   if(document.getElementById('nick'))readNick();
-  let cur=Object.assign({},myLook()), tab='hair';
+  let cur=Object.assign({},myLook()), tab='hair', bak=false;
   let el=document.getElementById('lookM'); if(!el){el=document.createElement('div');el.id='lookM';el.className='upd';document.body.appendChild(el);}
-  const close=()=>{el.hidden=true;el.innerHTML='';};
+  const close=()=>{el.hidden=true;el.innerHTML='';document.removeEventListener('keydown',onEsc);};
+  const onEsc=e=>{if(e.key==='Escape')close();}; document.addEventListener('keydown',onEsc);
   const draw=()=>{const box=el.querySelector('.lookbox'), sc=box?box.scrollTop:0;
     const sw=k=>LOOK[k].map((c,i)=>`<button type="button" class="sw ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}" style="background:${c}" aria-label="顏色 ${i+1}"></button>`).join('');
     const th=k=>LOOK[k].map(([,lb],i)=>`<button type="button" class="th ${cur[k]===i?'on':''}" data-k="${k}" data-i="${i}">${headSVG(Object.assign({},cur,{[k]:i}),null,k==='acc'?19:k==='beard'?15:0)}<span>${lb}</span></button>`).join('');
     el.innerHTML=`<div class="card lookbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">我的角色</h2><button type="button" class="dclose" data-lk="x" aria-label="關閉">✕</button></div>
-     <div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true,noyou:true}])}</div>
+     ${bak?'':`<div class="lookpv">${stageSVG([{id:'pv',name:nick||'你',look:cur,self:true,noyou:true}])}</div>`}
      <div class="looktabs">${LOOKTABS.map(([k,lb])=>`<button type="button" data-tab="${k}" aria-pressed="${tab===k}">${lb}</button>`).join('')}</div>
-     <div class="lookpane">${tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
-     <div class="lookbtns"><button type="button" class="peek" data-lk="r">🎲 隨機</button><button type="button" class="btn" data-lk="ok">完成</button></div></div>`;
+     <div class="lookpane">${bak?`<div class="lookbak"><p class="rules" style="margin:0">換手機、或重新加到主畫面時，名字和角色不會跟著過去。先複製這串代碼，到新的地方貼上再按套用。</p><input type="text" id="lkCode" value="${esc((nick||'')+'|'+lookStr(cur))}" autocomplete="off" aria-label="角色代碼"><div class="row"><button type="button" class="btn ghost small" data-lk="copy">複製</button><button type="button" class="btn small" data-lk="apply">套用</button></div></div>`:tab==='hc'||tab==='skin'||tab==='shirt'?`<div class="swr">${sw(tab)}</div>`:`<div class="thr">${th(tab)}</div>`}</div>
+     <div class="lookbtns"><button type="button" class="peek" data-lk="r">${uiIcon('dice')} 隨機</button><button type="button" class="peek" data-lk="b">${bak?'回去選造型':'備份角色'}</button><button type="button" class="btn" data-lk="ok">完成</button></div></div>`;
     const nb=el.querySelector('.lookbox'); if(nb)nb.scrollTop=sc;};
   el.onclick=async e=>{const b=e.target.closest('button'); if(!b){if(e.target===el)close();return;}
-    if(b.dataset.tab){tab=b.dataset.tab;draw();const pn=el.querySelector('.lookpane');if(pn)pn.scrollTop=0;return;}
+    if(b.dataset.tab){tab=b.dataset.tab;bak=false;draw();const pn=el.querySelector('.lookpane');if(pn)pn.scrollTop=0;return;}
     if(b.dataset.k){const pn=el.querySelector('.lookpane'),y=pn?pn.scrollTop:0;cur[b.dataset.k]=+b.dataset.i;draw();const p2=el.querySelector('.lookpane');if(p2)p2.scrollTop=y;return;}
     if(b.dataset.lk==='r'){cur=randLook();draw();return;}
+    if(b.dataset.lk==='b'){bak=!bak;draw();return;}
+    if(b.dataset.lk==='copy'){const t=document.getElementById('lkCode').value;try{await navigator.clipboard.writeText(t);toast('代碼已複製');}catch(e){document.getElementById('lkCode').select();toast('請長按選取後複製');}return;}
+    if(b.dataset.lk==='apply'){const m=/^(.*)\|(\d+(?:\.\d+){5,6})$/.exec(document.getElementById('lkCode').value.trim());const lk=m&&parseLook(m[2]);if(!lk){toast('代碼不對，請重新複製一次');return;}
+      cur=lk;if(m[1].trim()){nick=m[1].trim().slice(0,8);ls.set('ab_nick',nick);}bak=false;draw();toast('已套用，按完成就好');return;}
     if(b.dataset.lk==='x'){close();return;}
     if(b.dataset.lk==='ok'){ls.set('ab_look',lookStr(cur));close();
       if(code&&db&&g().seats&&g().seats[me]){try{await roomRef().update({seats:{[me]:{look:lookStr(cur)}}});}catch(err){}}
@@ -1346,7 +1423,7 @@ function openLook(){
 function vilIcon(v){return pxHead({prop:v.p,boss:true,color:v.c});}
 /* 角色身上的名字：白字深色描邊，不加框，什麼衣服顏色都看得清楚 */
 function nameTag(x,y,name,fs){if(!name)return '';
-  return `<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" fill="#fff" stroke="#1e1b2e" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke" font-family="Cubic11,Noto Sans TC,sans-serif">${esc(name)}</text>`;}
+  return `<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" fill="#fff" stroke="#1e1b2e" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke" font-family="Cubic11,sans-serif">${esc(name)}</text>`;}
 function charSVG(x,feetY,name,color,o){
   o=o||{}; const s=o.scale||1, fs=Math.min(12,34/Math.max(2,[...name].reduce((n,c)=>n+(c.charCodeAt(0)<256?.55:1),0)));
   const P=pxStand(x,feetY,{look:o.look,color,prop:o.prop,boss:o.boss,face:o.face,crown:o.crown});
@@ -1365,7 +1442,7 @@ function stageSVG(list){
   let out='';
   list.forEach((p,i)=>{const isMe=p.self||p.id===me;
     out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':''});
-    if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,Noto Sans TC,sans-serif">你</text>`;});
+    if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,sans-serif">你</text>`;});
   return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${n===1?54:W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
 }
 function scene(ws,ls,line,label,opt){ opt=opt||{};
@@ -1387,7 +1464,7 @@ function scene(ws,ls,line,label,opt){ opt=opt||{};
   } else { topY=layerTop-56; bx=W/2-50; by=topY+4; }
   const bw=Math.min(W-8,[...line].length*13+20);
   bx=ws.length?W/2-bw/2:bx; bx=Math.max(4,Math.min(bx,W-bw-4));
-  const bubble=`<rect x="${bx}" y="${by}" width="${bw}" height="28" rx="12" fill="#fff"/><path d="M${opt._tx!=null?Math.max(bx+14,Math.min(bx+bw-14,opt._tx)):bx+10} ${by+26} l-6 11 l12 -11z" fill="#fff"/><text x="${bx+10}" y="${by+19}" font-size="13" fill="#1b2331" stroke="#1b2331" stroke-width=".55" font-family="Cubic11,Noto Sans TC,sans-serif">${esc(line)}</text>`;
+  const bubble=`<rect x="${bx}" y="${by}" width="${bw}" height="28" rx="12" fill="#fff"/><path d="M${opt._tx!=null?Math.max(bx+14,Math.min(bx+bw-14,opt._tx)):bx+10} ${by+26} l-6 11 l12 -11z" fill="#fff"/><text x="${bx+10}" y="${by+19}" font-size="13" fill="#1b2331" stroke="#1b2331" stroke-width=".55" font-family="Cubic11,sans-serif">${esc(line)}</text>`;
   const vbTop=topY-18;
   return `<svg class="podium" ${opt.ai?`data-ai="${esc(opt.ai)}" data-aik="${esc(label+line)}"`:''} viewBox="0 ${vbTop} ${W} ${ground+14-vbTop}" role="img" aria-label="${esc(label)}"><ellipse cx="${W/2}" cy="${ground+2}" rx="${W/2-10}" ry="7" fill="#000" opacity=".25"/>${gs}${w}${bubble}</svg>`;
 }
@@ -1496,7 +1573,7 @@ function loadSecret(){
   const own=secretOf(me); if(own) mySecret={round:R.round,s:own};
 }
 async function copyCode(){
-  const link=location.origin+location.pathname+'#'+code, msg=`來玩幾A幾B！你還要猜多久😴 邀請碼 ${code}\n${link}`;
+  const link=location.origin+location.pathname+'?openExternalBrowser=1#'+code, msg=`來玩幾A幾B！你還要猜多久😴 邀請碼 ${code}\n${link}`;
   try{if(navigator.share){await navigator.share({text:msg});return;}}catch(e){if(e&&e.name==='AbortError')return;}
   try{await navigator.clipboard.writeText(msg);toast('已複製邀請連結');}catch(e){toast(`邀請碼是 ${code}`);}
 }
@@ -1520,12 +1597,12 @@ function bind(){
   if($('mpAngel')) $('mpAngel').onclick=mpAngel;
   if($('coopAngel')) $('coopAngel').onclick=coopAngel;
   app.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;render();});
-  const ni=$('nick'); if(ni){ni.oninput=()=>{nick=ni.value;};const ok=()=>{const v=ni.value.trim();if(!v){$('nickErr').textContent='先取個名字';ni.focus();return;}nick=v;ls.set('ab_nick',v);homeEdit=false;render();};$('nickOk').onclick=ok;ni.onkeydown=e=>{if(e.key==='Enter')ok();};}
+  const ni=$('nick'); if(ni){ni.oninput=()=>{nick=ni.value;};const ok=()=>{const v=ni.value.trim();if(!v){$('nickErr').textContent='先取個名字';ni.focus();return;}nick=v;ls.set('ab_nick',v);homeEdit=false;render();};$('nickOk').onclick=ok;ni.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)ok();};}
   if($('nameBtn')) $('nameBtn').onclick=()=>{homeEdit=true;render();};
   if($('goJoin')) $('goJoin').onclick=()=>{homeErr='';homeStep='join';render();window.scrollTo(0,0);};
   if($('goSolo')) $('goSolo').onclick=()=>{homeErr='';homeStep='solo';render();window.scrollTo(0,0);};
   if($('homeBack')) $('homeBack').onclick=()=>{homeErr='';homeStep='menu';render();window.scrollTo(0,0);};
-  const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');};ci.onkeydown=e=>{if(e.key==='Enter')joinRoom(ci.value);};}
+  const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');};ci.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)joinRoom(ci.value);};}
   if($('create')) $('create').onclick=()=>createRoom();
   if($('lookBtn')) $('lookBtn').onclick=()=>openLook();
   if($('joinBtn')) $('joinBtn').onclick=()=>{ls.del('ab_watch');joinRoom($('codeIn').value);};
@@ -1561,6 +1638,8 @@ function bind(){
   if($('cvShare')) $('cvShare').onchange=e=>{soloCfg.share=e.target.checked;saveSoloCfg();};
   app.querySelectorAll('[data-fbt]').forEach(b=>b.onclick=()=>{fbType=b.dataset.fbt;render();});
   if($('fbOpen')) $('fbOpen').onclick=()=>{fbOpen=!fbOpen;fbMsg='';render();};
+  if($('verBtn')) $('verBtn').onclick=showDiag;
+  if($('installBtn')) $('installBtn').onclick=async()=>{if(installEv){const ev=installEv;installEv=null;try{await ev.prompt();}catch(e){}}else showHelp(true,'install');};
   if($('fbText')) $('fbText').oninput=e=>{fbDraft=e.target.value;};
   if($('fbSend')) $('fbSend').onclick=async()=>{const t=(fbDraft||'').trim();if(!t){fbMsg='請先寫點內容';return render();}const ok=await sendFeedback(fbType,t);if(ok){fbDraft='';fbMsg='收到了，謝謝你的回饋！';}render();};
   if($('soloQuick')) $('soloQuick').onclick=()=>soloNew(soloCfg.len,soloCfg.rep);
@@ -1674,13 +1753,13 @@ function soloCard(){
     ${seg('data-srep',[[0,'不可重複'],[1,'可重複，例如 1123']],soloCfg.rep?1:0,false)}
     ${duel?`<span class="opt">你的身分（決定魔王是誰）</span>
     <select id="stageSel" class="stagesel" aria-label="你的身分">
-      <option value="random" ${soloCfg.stage==='random'?'selected':''}>🎲 隨機（每局換一個）</option>
+      <option value="random" ${soloCfg.stage==='random'?'selected':''}>隨機（每局換一個）</option>
       ${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${soloCfg.stage===k?'selected':''}>${v.label}</option>`).join('')}</optgroup>`).join('')}
-      <option value="custom" ${soloCfg.stage==='custom'?'selected':''}>✏️ 自訂魔王（清單裡沒有我的身分）</option>
+      <option value="custom" ${soloCfg.stage==='custom'?'selected':''}>自訂魔王（清單裡沒有我的身分）</option>
     </select>
     ${soloCfg.stage==='custom'?`<div class="custom"><input type="text" id="cvName" maxlength="5" placeholder="魔王名稱，例如：客訴家屬" value="${esc((soloCfg.custom||{}).n||'')}"><input type="text" id="cvSays" maxlength="16" placeholder="他的口頭禪，例如：又在開會" value="${esc((soloCfg.custom||{}).says||'')}"><label class="share"><input type="checkbox" id="cvShare" ${soloCfg.share===false?'':'checked'}> 推薦給開發者（匿名傳送，之後可能加進遊戲）</label></div>`:''}
 `:''}
-    <button class="btn" id="soloStart">${duel?'開始挑戰':'開始練習'}</button></div>`;
+    <button class="btn stk" id="soloStart">${duel?'開始挑戰':'開始練習'}</button></div>`;
 }
 function soloSecret(len,rep){let d='0123456789'.split(''),s='';if(rep){for(let i=0;i<len;i++)s+=d[Math.floor(Math.random()*10)];return s;}for(let i=9;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d.slice(0,len).join('');}
 function soloNew(len,rep){
@@ -1745,7 +1824,9 @@ function pickPos(free,len,known,cost){return new Promise(res=>{
     <div class="posrow">${[...Array(len).keys()].map(i=>known[i]!=null?`<button type="button" class="posb known" disabled><small>第 ${i+1} 位</small><b>${esc(known[i])}</b></button>`:`<button type="button" class="posb ${sel===i?'on':''}" data-p="${i}" ${free.includes(i)?'':'disabled'}><small>第 ${i+1} 位</small><b>?</b></button>`).join('')}</div>
     ${free.length<=1?'':'<p class="rules" style="margin:0">最後剩一位時就不能再用提示了</p>'}
     <div class="posbtns"><button type="button" class="btn ghost" data-x="c">取消</button><button type="button" class="btn" data-x="ok" ${sel==null?'disabled':''}>送出</button></div></div>`;};
-  const done=v=>{el.hidden=true;el.innerHTML='';el.onclick=null;res(v);};
+  const onEsc=e=>{if(e.key==='Escape')done(null);};
+  const done=v=>{document.removeEventListener('keydown',onEsc);el.hidden=true;el.innerHTML='';el.onclick=null;res(v);};
+  document.addEventListener('keydown',onEsc);
   el.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===el)done(null);return;}
     if(b.dataset.p!=null){sel=+b.dataset.p;draw();return;} if(b.dataset.x==='c')done(null); if(b.dataset.x==='ok'&&sel!=null)done(sel);};
   draw(); el.hidden=false;});}
@@ -1905,7 +1986,7 @@ function angelTextFrom(L,len,rep){const W=deduce(L,len,rep),t=[];
   return t.join('');}
 function renderWatch(){
   const s=g(), D=derive(), coop=s.phase==='coop';
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">觀戰中 · 第 ${s.round} 局 · ${s.len} 位數 · ${coop?'合作打魔王':s.finish?'全部猜完':'先中先贏'}</p></div>
+  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="watch" aria-label="這一頁怎麼玩">？</button></div><p class="sub">觀戰中 · 第 ${s.round} 局 · ${s.len} 位數 · ${coop?'合作打魔王':s.finish?'全部猜完':'先中先贏'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`;
   const tg=ghostTargets(), left=ghostsLeft(), aleft=angelsLeft();
   if(!tg.length||left<=0)ghostArmed=false; if(!tg.length||aleft<=0)angelArmed=false;
@@ -1986,7 +2067,7 @@ const PX_ITEM={
  heart:[["..RRR...RRR..",".RWWRR.RRRRR.","RRWRRRRRRRRRr","RRRRRRRRRRRRr","RRRRRRRRRRRRr",".RRRRRRRRRRr.","..RRRRRRRRr..","...RRRRRRr...","....RRRRr....",".....RRr.....","......r......"],{R:'#ff5c8a',r:'#d63b6a',W:'#ffd0de'}]
 };
 const itemIcon=k=>{const a=PX_ITEM[k];return a?pxIcon(a[0],a[1]):'';};
-const ITEMS={hammer:'🪣',tomato:'🍅',egg:'🥚',slipper:'🩴',bomb:'💣',flower:'💐',heart:'💖'}, ITEMN={hammer:'大鐵盆',tomato:'番茄',egg:'雞蛋',slipper:'拖鞋',bomb:'炸彈',flower:'花',heart:'愛心'};
+const ITEMN={hammer:'大鐵盆',tomato:'番茄',egg:'雞蛋',slipper:'拖鞋',bomb:'炸彈',flower:'花',heart:'愛心'};
 let soloHits=0, fxItem='hammer', fxLoaded=false, fxSeen=new Set(), fxStart=Date.now(), fxQueue={}, fxRes={}, fxTimer=null;
 function itemBar(where){
   if(code&&isWatcher(me)) return '';
@@ -2153,7 +2234,7 @@ function playFx(x,mine){
       knock(e2,x.item,isPod?null:src||(mine?myStageId():null));
     },dur);
   },i*(slow?170:120));
-  if(!mine&&x.name){const tid=String(x.target).replace(/^p:/,''), who=tid==='boss'?'魔王':tid===me?'你':nameOf(tid);toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMS[x.item]}丟了`}${who}${(x.n||1)>1?` ×${x.n}`:''}`);}
+  if(!mine&&x.name){const tid=String(x.target).replace(/^p:/,''), who=tid==='boss'?'魔王':tid===me?'你':nameOf(tid);toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}${who}${(x.n||1)>1?` ×${x.n}`:''}`);}
 }
 function throwAt(t){
   if(isWatcher(me)){const ok=t!=='boss'&&!String(t).startsWith('p:');if(ghostArmed&&ok)sendGhost(t);else if(angelArmed&&ok)sendAngel(t);else if(ghostArmed||angelArmed)toast('只能選玩家');return;}
@@ -2179,8 +2260,8 @@ async function flushFx(){
 /* ---------- 意見回饋 ---------- */
 let fbOpen=false, fbType='idea', fbDraft='', fbMsg='', fbLast=0;
 const FBT={job:'想新增的職業／魔王',bug:'遇到問題',idea:'其他建議'};
+function footer(){return `<p class="ver"><button type="button" id="verBtn">版本 ${APP_VERSION}</button><br>© 2026 KenChen0728 · 字型：俐方體11號（OFL）</p>`;}
 function fbCard(){
-  if(!fbOpen) return `<button class="peek" id="fbOpen" style="align-self:center">意見回饋</button>`;
   return `<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1 1 auto">意見回饋</h2><button class="peek" id="fbOpen" style="flex:0 0 auto">收起</button></div>
     <div class="chips stage">${Object.entries(FBT).map(([k,v])=>`<button type="button" data-fbt="${k}" aria-pressed="${fbType===k}">${v}</button>`).join('')}</div>
     <textarea id="fbText" maxlength="300" placeholder="${fbType==='job'?'例如：我是護理師，魔王是「愛叫急件的醫生」，他常說「這個很急」':fbType==='bug'?'例如：按了提示沒反應，用的是 iPhone Safari':'想加什麼功能、哪裡不好用都可以說'}">${esc(fbDraft)}</textarea>
@@ -2344,16 +2425,16 @@ function myExplain(s){const all=allCands(s.len,s.rep),len=s.len;let left=all,bad
   return `<div class="expl"><p class="exi">電腦幫你算的：每猜一次，還可能是答案的數字剩幾種。猜「還可能是答案」的數字才有機會直接中；不可能的數字雖然中不了，但有時可以用來篩數字。${bad?`這局有 ${bad} 次猜的數字已經不可能是答案。`:'這局你每次猜的都還可能是答案。'}</p><ol>${rows}</ol></div>`;}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
-  return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
+  return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">${esc(r.think)}</div>`:''}`).join('')+'</div>';
 }
 function renderSolo(){
   saveSolo();
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil, stLabel=s.stage==='custom'?'自訂魔王':(STAGES[s.stage]||{label:''}).label;
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'}${duel?` · ${esc(stLabel)}`:''}</p></div></header>`;
+  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'}${duel?` · ${esc(stLabel)}`:''}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
+      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
       <button class="peek" id="soloQuit">回首頁</button>`;
     paint(h); sideUI(false,false); return;
   }
@@ -2388,6 +2469,8 @@ function renderSolo(){
 solo=null;
 
 setTimeout(()=>{if(!db)render();},11000);
+/* 離線也打得開；開網頁時一律先問網站有沒有新版，規則寫在 sw.js */
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
 </script>
 
 </body>
