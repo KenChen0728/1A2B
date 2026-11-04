@@ -9,6 +9,8 @@ node tools/test-install.js    # 離線開啟、安裝、LINE 內建瀏覽器、�
 node tools/test-slow-net.js   # Firebase 很慢時畫面要先出來
 node tools/test-sizes.js      # 各種裝置尺寸有沒有超出畫面
 node tools/test-stress.js     # 8 個人、超長名字、猜很多次
+node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
+node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）
 ```
 
 畫面改版後要重新產生說明截圖：先跑 `node tools/make-help.js`，再跑 `python3 tools/help-webp.py`。

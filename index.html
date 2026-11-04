@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="幾A幾B">
 <meta name="theme-color" content="#1d3a6b">
 <meta name="description" content="和朋友連線猜數字的小遊戲。開房傳邀請碼大家一起猜，也能一個人打魔王。">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
@@ -22,20 +23,44 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <style>
-@font-face{font-family:Cubic11;src:url(Cubic_11.woff2) format("woff2");font-display:swap}
-:root{--st:calc(env(safe-area-inset-top,0px) + min(40px,env(safe-area-inset-top,0px)*99));padding-top:var(--st);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+/* iPhone 上下邊，和排球記錄表同一套做法（都在 iPhone 實機確認過）。主畫面 App 有兩種狀況：
+   一、從狀態列後面開始畫（上 inset 大於 0）：系統蓋的模糊關不掉，內容要多留 40，模糊才只落在色帶上；開機時 100dvh 會少一截，要用 100lvh 才到螢幕底。
+   二、從狀態列下方開始（上 inset 0）：沒有模糊，100lvh 不準，要用 100dvh。下面的 min() 兩種都對。不用 black-translucent。 */
+:root{--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);--vgap:0px;--brand:#1d3a6b;--edge:repeating-linear-gradient(90deg,#d9503e 0 8px,transparent 8px 12px,#f2b544 12px 20px,transparent 20px 24px);color-scheme:light}
+.statusband{position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+.footband{display:none}
+html{touch-action:manipulation;overscroll-behavior:none}
+body{margin:0;box-sizing:border-box;min-height:100vh;min-height:100dvh;padding-top:var(--safe-top);padding-bottom:var(--safe-bot);overscroll-behavior:none;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+@media (display-mode:standalone){
+  :root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)));color-scheme:dark}
+  html{background:var(--brand)}
+  body{color-scheme:var(--cs,light)}
+  .statusband{height:max(6px,var(--safe-top))}
+  .statusband::after,.footband::before{content:"";position:absolute;left:0;right:0;height:4px;background:var(--edge)}
+  .statusband::after{bottom:0}
+  .footband::before{top:0}
+}
+@media (display-mode:standalone) and (orientation:portrait){
+  .footband{display:block;position:fixed;left:0;right:0;bottom:calc(0px - var(--vgap));height:var(--safe-bot);background:var(--brand);z-index:99;pointer-events:none;overflow:hidden}
+}
+@media (display-mode:standalone) and (orientation:landscape) and (max-height:500px){.statusband{display:none}}
+@supports (height:100lvh){
+  @media (display-mode:standalone){
+    :root{--app-h:min(100lvh,calc(100dvh + env(safe-area-inset-top,0px)*99));--vgap:calc(var(--app-h) - 100dvh)}
+    html,body{min-height:var(--app-h)}
+    .drawer,.nback,.upd,.fxl,.ghostov{bottom:calc(0px - var(--vgap))!important}
+  }
+}
 img{max-width:100%}
 [hidden]{display:none!important}
 *{-webkit-tap-highlight-color:transparent}
 </style>
 <title>猜數字：幾A幾B</title>
-<link rel="preload" href="Cubic_11.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Layout: one-column notebook page; grid-paper ground, ink-blue digits, red stamp for A. Two seats, each on its own phone. */
 :root{
-  --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#66707f;
-  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#c98210; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
+  --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#5f6978;
+  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#9a6000; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
   --f-body:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",system-ui,sans-serif;
   --f-disp:Cubic11,var(--f-body);
   --f-num:Cubic11,ui-monospace,Menlo,monospace;
@@ -44,10 +69,10 @@ img{max-width:100%}
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#141a24; --grid:#1d2533; --ink:#9cc1ff; --fg:#e6ebf2; --muted:#93a0b3;
-  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; color-scheme:dark; --ol:#46546f; --sh:rgba(0,0,0,.4); --tile:#232d3e}}
+  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; --cs:dark; color-scheme:dark; --ol:#46546f; --sh:rgba(0,0,0,.4); --tile:#232d3e}}
 :root[data-theme="dark"]{
   --paper:#141a24; --grid:#1d2533; --ink:#9cc1ff; --fg:#e6ebf2; --muted:#93a0b3;
-  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; color-scheme:dark; --ol:#46546f; --sh:rgba(0,0,0,.4); --tile:#232d3e}
+  --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; --cs:dark; color-scheme:dark; --ol:#46546f; --sh:rgba(0,0,0,.4); --tile:#232d3e}
 html,body{min-height:100%}
 html{touch-action:manipulation}
 body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);font-size:16px;
@@ -119,10 +144,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .reveal{display:flex;gap:10px}
 .reveal div{flex:1;text-align:center;min-width:0}
 .reveal b{display:block;font-family:var(--f-num);font-size:26px;letter-spacing:.15em;color:var(--ink)}
-.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px}
+.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px;min-height:44px}
 .peek.more{align-self:stretch;text-align:left;padding-inline:0;font-size:15px;line-height:1.5}
 .peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
-.rules{font-size:15px;color:var(--muted);line-height:1.7;margin:0}
+.rules{font-size:16px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 #chatWrap .msgs{max-height:none;flex:1 1 auto;min-height:120px}
@@ -134,12 +159,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 body.fabl .nfab{right:auto;left:0;border-radius:0 14px 14px 0;border:2px solid var(--card);border-left:0;padding:12px 6px 12px calc(4px + env(safe-area-inset-left,0px));width:calc(31px + env(safe-area-inset-left,0px));box-shadow:4px 6px 18px rgba(0,0,0,.35)}
 body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20px}
 .nback{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.35)}
-.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + var(--st)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + var(--safe-top)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
 @keyframes dIn{from{transform:translateX(100%)}to{transform:none}}
 .dhead{display:flex;align-items:center;gap:10px}
 .dhead .lbl{flex:1 1 auto;min-width:0}
 .dclose{font:inherit;font-size:20px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;flex:0 0 auto}
-.drawer .digits{gap:5px}.drawer .digits button{font-size:18px;padding:6px 0}
+.drawer .digits{gap:5px}.drawer .digits button{font-size:18px;padding:6px 0;min-height:44px}
 .drawer .pos select{width:50px;font-size:20px}
 .dmine{background:var(--paper);border-radius:10px;padding:4px 10px;max-height:34vh;overflow-y:auto}
 .dmine .hrow{padding:5px 2px}.dmine .hg{font-size:18px}.dmine .score{font-size:17px}
@@ -147,7 +172,7 @@ body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20
 .mine-h .hrow{padding:5px 2px}.mine-h .hg{font-size:19px}.mine-h .score{font-size:17px}
 @media (prefers-reduced-motion:reduce){.drawer{animation:none}}
 .digits{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.digits button{font-family:var(--f-num);font-weight:700;font-size:20px;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;position:relative}
+.digits button{font-family:var(--f-num);font-weight:700;font-size:20px;min-height:44px;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;position:relative}
 .digits button.yes{border-color:var(--ok);color:var(--ok)}
 .digits button.no{color:var(--muted);text-decoration:line-through;opacity:.55}
 .digits button i{position:absolute;top:1px;right:5px;font-style:normal;font-size:11px;font-weight:500}
@@ -155,7 +180,7 @@ body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20
 .pos select{font-family:var(--f-num);font-size:22px;font-weight:700;width:56px;padding:6px 0;text-align:center;text-align-last:center;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
 .pos select.set{border-color:var(--a)}
 textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%;box-sizing:border-box;min-height:64px;resize:vertical}
-.pad button.no{text-decoration:line-through;opacity:.45}
+.pad button.no{text-decoration:line-through;opacity:.62}
 .pad button.yes{box-shadow:inset 0 0 0 2px var(--ok)}
 .msgs{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px}
 .msg{max-width:80%;align-self:flex-start;background:var(--key);color:var(--fg);padding:7px 11px;border-radius:14px 14px 14px 4px;font-size:15px;overflow-wrap:anywhere}
@@ -167,7 +192,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .sendrow input{flex:1;min-width:0}
 .sendrow .btn{width:auto;padding:10px 16px;font-size:15px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-family:var(--f-disp);font-size:16px;text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.3);z-index:66;overflow-wrap:anywhere;pointer-events:none}
-@media (min-width:900px){.toast{top:calc(14px + var(--st));bottom:auto}}
+.toast{top:calc(14px + var(--safe-top));bottom:auto}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
 .tabs{flex-wrap:wrap}
 .tabs button{flex:1 1 auto}
@@ -180,17 +205,17 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .place{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--card);font-family:var(--f-num);font-size:14px}
 .secret{font-family:var(--f-num);font-size:20px;letter-spacing:.15em;color:var(--ink)}
 
-.stack{position:fixed;left:0;right:0;top:calc(10px + var(--st));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{position:fixed;left:0;right:0;top:calc(64px + var(--safe-top));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .bub{max-width:min(420px,100%);background:var(--card);color:var(--ink);border:2px solid var(--a);border-radius:16px;padding:8px 16px 10px;box-shadow:0 10px 30px rgba(0,0,0,.28);text-align:center;overflow-wrap:anywhere;animation:bubIn .5s cubic-bezier(.2,1.6,.4,1) both,wig .5s .5s ease 2}
 .bub small{display:block;font-size:12px;color:var(--muted)}
-.bub b{font-family:var(--f-disp);font-weight:400;font-size:24px;line-height:1.25}
+.bub b{font-family:var(--f-disp);font-weight:400;font-size:20px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .bub.out{animation:bubOut .35s ease forwards}
 @keyframes bubIn{from{transform:translateY(-30px) scale(.6);opacity:0}to{transform:none;opacity:1}}
 @keyframes wig{25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 @keyframes bubOut{to{transform:translateY(-20px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bub,.bub.out{animation:none}}
 .roomhead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.roomhead>div:first-child{flex:1 1 200px}
+.roomhead>div:first-child{flex:1 1 150px}
 .codebox{display:flex;flex-direction:column;align-items:center;gap:0;border:2px dashed var(--ink);border-radius:12px;padding:6px 14px}
 .codebox b{font-family:var(--f-num);font-size:26px;letter-spacing:.2em;color:var(--ink);line-height:1.2}
 .pill.host{color:var(--b);border-color:var(--b)}
@@ -232,7 +257,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes sq{50%{transform:scaleY(.9)}}
 @media (prefers-reduced-motion:reduce){.bob,.twk,.squish,.puff{animation:none}}
 .custom{display:flex;flex-direction:column;gap:8px}
-.share{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.share{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px;color:var(--muted)}
 .share input{width:20px;height:20px}
 .chips.stage button[aria-pressed=true]{background:var(--ink);color:var(--card);border-color:var(--ink)}
 .vil{flex-direction:row;align-items:center;gap:12px;padding-block:12px}
@@ -246,7 +271,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .helpbtn{font:inherit;font-size:15px;min-height:44px;min-width:44px;flex:0 0 auto;white-space:nowrap;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .helpc{width:min(400px,100%);box-sizing:border-box;max-width:400px;text-align:left;align-items:stretch;gap:10px;touch-action:pan-y}
-#help,#lookM{padding-block:calc(16px + var(--st)) calc(16px + env(safe-area-inset-bottom,0px))}
+#help,#lookM{padding-block:calc(16px + var(--safe-top)) calc(16px + env(safe-area-inset-bottom,0px))}
 #helpBody{overflow:hidden}
 .hpage{display:flex;flex-direction:column;gap:10px;min-height:290px;animation:hin .26s cubic-bezier(.2,.75,.3,1)}
 @keyframes hin{from{transform:translateX(var(--hd,40px));opacity:0}to{transform:none;opacity:1}}
@@ -254,7 +279,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .hpic svg{display:block}
 .hpic .stage2{width:100%;height:100%}
 .hline{font-size:16px;line-height:1.55;margin:0;text-align:center;text-wrap:balance}
-.hsub{font-size:14px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
+.hsub{font-size:15px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
 .htile{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
 .htile .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
 .htile i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
@@ -310,7 +335,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .posb.known{opacity:.55;border-style:dashed}.posb:disabled{cursor:default}
 .posbtns{display:flex;gap:10px}.posbtns .btn{flex:1}
 #posM{padding-inline:16px}
-.angelcard{position:fixed;left:50%;top:calc(12px + var(--st));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
+.angelcard{position:fixed;left:50%;top:calc(12px + var(--safe-top));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
 .angelcard.out{transition:opacity .5s,transform .5s;opacity:0;transform:translate(-50%,-20px)}
 .angelcard .aimg{flex:0 0 52px}.angelcard .aimg svg{width:52px;height:auto;display:block}
 .angelcard .lbl{color:#9a7b16}.angelcard p{margin:4px 0 0;font-size:15px;line-height:1.6}
@@ -340,7 +365,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .homemenu{gap:16px;padding-bottom:6px}
 .homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
 .homeact{gap:12px;padding-bottom:5px}
-.homeact .btn{font-size:16px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
+.homeact .btn{font-size:16px;padding:13px;--bs:#155a52;background:#1f7f73}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
 .expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .expl li{display:flex;flex-direction:column;gap:5px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
 .exi{margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--fg)}
@@ -357,7 +382,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
 .lookpane .swr{gap:12px;padding:6px}.lookpane .sw{width:46px;height:46px}
 .lookbak{display:flex;flex-direction:column;gap:10px;padding:2px}
-.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--st) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
+.lookbox{max-width:440px;width:100%;max-height:calc(100dvh - 40px - var(--safe-top) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:stretch;text-align:left;gap:6px;padding-bottom:0}
 .lookpv svg{max-height:160px}
 .thr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .th{background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:4px 2px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);font:inherit;font-size:12px;cursor:pointer}
@@ -479,20 +504,26 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .err.abkey{color:var(--muted);font-size:14px}.abkey b{font-family:var(--f-num)}.abkey .A{color:var(--a)}.abkey .B{color:var(--b)}
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
-@media (max-height:700px){.pad{gap:6px}.pad button{padding:6px 0}.slot{height:50px;font-size:33px}.card{gap:10px}}
-/* 手機橫放：鍵盤排成兩列，不用捲動 */
-@media (max-height:480px){.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:6px 0;font-size:22px}.pad .ok{font-size:16px}.slot{height:40px;font-size:33px}.wrap{padding-block:8px 16px}}
-.stk{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+/* 輸入區（數字格＋提示列＋鍵盤）固定貼在畫面下緣，紀錄從後面滑過：不用捲動就按得到「確定」 */
+.padbox{position:sticky;bottom:calc(8px + var(--safe-bot) - var(--vgap));z-index:5;display:flex;flex-direction:column;gap:14px;background:var(--card);margin-inline:-8px;padding:6px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
+@media (max-height:760px){.wrap{padding-block:12px 20px;gap:12px}.card{gap:10px;padding:12px}.padbox{gap:8px}.pad{gap:6px}.pad button{padding:7px 0}.slot{height:46px;font-size:30px}.target{flex-direction:row;justify-content:center;align-items:baseline;gap:8px;padding-block:6px}.target h2{font-size:18px}.card>h2{font-size:18px}h1{font-size:24px}.roomhead .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.codebox{padding:2px 10px}.codebox b{font-size:20px}}
+@media (max-height:600px){.slot{height:38px;font-size:26px}.pad button{padding:4px 0;font-size:23px}.padbox{gap:4px}}
+/* 手機橫放：鍵盤排成兩列，上方再壓縮 */
+@media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.roomhead{align-items:center}.roomhead .sub{display:none}.codebox{flex-direction:row;gap:8px}.codebox .lbl{display:none}.peekrow .peek{padding-block:2px}}
+.stk{position:sticky;bottom:calc(10px + var(--safe-bot) - var(--vgap));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .card.stk{padding-block:10px;gap:8px}
 .btn.ghost.stk{background:var(--card)}
 .diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
-#verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;cursor:pointer}
+#verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;min-height:44px;cursor:pointer}
 .stage,.podium,.stage2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-.offl{position:fixed;top:calc(10px + var(--st));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
+.pill.off{color:var(--a);border-color:var(--a);margin-left:6px}
+.gonebar{gap:8px;border-color:var(--a)}
+.gonebar .prow{padding-block:4px}
+.offl{position:fixed;top:calc(10px + var(--safe-top));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
 <body>
-
+<div class="statusband" aria-hidden="true"></div><div class="footband" aria-hidden="true"></div>
 <div class="wrap" id="app"><div class="card center" style="padding-block:32px"><h2>猜數字：幾A幾B</h2><p class="sub">連線中…</p></div></div>
 <button type="button" class="nfab" id="notesFab" hidden aria-label="打開筆記">筆<br>記</button>
 <div class="nback" id="notesBack" hidden></div>
@@ -510,8 +541,8 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 <form class="sendrow" id="sendForm"><input type="text" id="chatIn" maxlength="60" placeholder="輸入訊息…" autocomplete="off"><button class="btn" type="submit">送出</button></form></aside>
 <div class="toast" id="toast" hidden></div>
 <div class="offl" id="offl" role="status" hidden>沒有網路，連上後會自動繼續</div>
-<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room')}catch(e){};location.reload()">重新載入</button></div></div>
-<div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-label="遊戲說明">
+<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。</p><button class="btn" onclick="location.reload()">重新載入</button></div></div>
+<div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-modal="true" aria-label="遊戲說明">
 <div class="dhead"><h2 id="helpT" style="flex:1 1 auto;margin:0"></h2><button type="button" class="helpbtn" id="helpToc">目錄</button><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
 <div id="helpBody"></div>
 <div class="hnav"><button class="btn ghost" id="helpPrev" type="button">上一頁</button><div class="hdots" id="helpDots"></div><button class="btn" id="helpNext" type="button">下一頁</button></div>
@@ -566,11 +597,13 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-7';
+const APP_VERSION='2026.11.05-8';
+/* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
+const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
 /* ab_live：這個分頁現在在玩什麼（'solo' 或房號）。手機切出去被系統重新載入、或按重新整理時，靠它直接回到原本的局 */
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del(k){try{sessionStorage.removeItem(k);}catch(e){}}};
@@ -584,11 +617,45 @@ function hk(pid){let h=0;for(const ch of String(pid))h=(h*31+ch.charCodeAt(0))%9
 function enc(s,r,pid){const k=r*7+hk(pid)*3;return btoa(s.split('').map((d,i)=>String.fromCharCode(65+((+d+k+i*5)%10)+10*((i*7+r)%2))).join('')).split('').reverse().join('');}
 function dec(c,r,pid){const k=r*7+hk(pid)*3;try{return atob(c.split('').reverse().join('')).split('').map((ch,i)=>{const v=(ch.charCodeAt(0)-65)%10;return String(((v-(k+i*5))%10+1000000)%10);}).join('');}catch(e){return null;}}
 
+/* 資料庫讀回來的東西一律當成外來資料：數字轉成數字、代號和顏色只收認得的格式，畫面和邏輯都只用清過的資料。
+   只在讀取時處理，寫進資料庫的格式完全不變，新舊版手機可以同房。 */
+const num=(v,d=0)=>{const n=typeof v==='number'?v:(typeof v==='string'&&v.trim()!=='')?Number(v):NaN;return Number.isFinite(n)?n:d;};
+const txt=(v,n=300)=>typeof v==='string'?v.slice(0,n):typeof v==='number'?String(v):'';
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const isMap=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+const usage=v=>isMap(v)?{r:num(v.r),n:num(v.n)}:undefined;
+function cleanSeat(v){if(!isMap(v)||!txt(v.name,16))return null;const o={...v,name:txt(v.name,16),ready:!!v.ready,joinedAt:num(v.joinedAt),look:txt(v.look,40)};
+  for(const k of ['ack','gaveUp','hb'])if(o[k]!=null)o[k]=num(o[k]);
+  for(const k of ['an','gh'])if(o[k]!=null)o[k]=usage(o[k]);
+  return o;}
+const cleanSeats=m=>{const o={};if(isMap(m))for(const id in m)o[id]=cleanSeat(m[id]);return o;};
+function cleanVil(v){if(!isMap(v))return undefined;return{...v,n:txt(v.n,12),p:v.p==='dino'||own(PX_VIL,v.p)?v.p:'',c:/^#[0-9a-f]{6}$/i.test(v.c)?v.c:'#9aa3b5',all:Array.isArray(v.all)?v.all.map(x=>txt(x,60)):undefined,says:txt(v.says,60),back:txt(v.back,60),says2:txt(v.says2,60),stage:txt(v.stage,24)};}
+function cleanCoop(c){if(!isMap(c))return null;const o={...c,order:Array.isArray(c.order)?c.order.map(x=>txt(x,64)):[],startAt:num(c.startAt),bossC:txt(c.bossC,40),team:txt(c.team,8).replace(/\D/g,''),surrender:!!c.surrender,vil:cleanVil(c.vil)};
+  if(c.turnSec!=null)o.turnSec=num(c.turnSec);if(c.an!=null)o.an=usage(c.an);
+  const n=c.notes;o.notes=isMap(n)?{d:Array.isArray(n.d)?n.d.map(x=>x===1||x===2?x:0):undefined,pos:Array.isArray(n.pos)?n.pos.map(x=>/^\d$/.test(String(x??''))?String(x):''):[],memo:txt(n.memo),auto:Array.isArray(n.auto)?n.auto.filter(x=>typeof x==='number'):[]}:null;
+  return o;}
+function cleanRoom(d){d=isMap(d)?d:{};const L=num(d.len),o={...d};
+  for(const [k,n] of [['ver',24],['host',64],['code',8],['assign',3000],['phase',12],['mode',12],['diff',8],['stage',24]])o[k]=txt(d[k],n);
+  o.round=Math.max(1,Math.floor(num(d.round,1)));o.len=L===3||L===5?L:4;o.rep=!!d.rep;o.finish=!!d.finish;o.startAt=num(d.startAt);o.chatSince=num(d.chatSince);
+  for(const k of ['turnSec','hintCost','angelN','angelCost'])if(d[k]!=null)o[k]=num(d[k]);
+  o.seats=cleanSeats(d.seats);o.watchers=cleanSeats(d.watchers);
+  if(isMap(d.lastResult))o.lastResult={round:num(d.lastResult.round),text:txt(d.lastResult.text)};else delete o.lastResult;
+  o.coop=cleanCoop(d.coop);return o;}
+function cleanGuess(x){if(!/^\d{1,8}$/.test(String(x.g??'')))return null;
+  const o={...x,g:String(x.g),round:num(x.round),n:num(x.n),at:num(x.at),pid:txt(x.pid,64),target:txt(x.target,64),kind:txt(x.kind,8),think:txt(x.think,400),hint:!!x.hint,A:x.A==null?null:num(x.A),B:x.B==null?null:num(x.B)};
+  if(x.pos!=null)o.pos=num(x.pos);return o;}
+const cleanSecret=x=>({...x,round:num(x.round),pid:txt(x.pid,64),c:txt(x.c,40)});
+const cleanChat=x=>({...x,pid:txt(x.pid,64),name:txt(x.name,16),text:txt(x.text,60),at:num(x.at)});
+function cleanFx(x){const it=txt(x.item,10);if(it!=='ghost'&&it!=='angel'&&!own(PX_ITEM,it))return null;
+  return{...x,item:it,pid:txt(x.pid,64),name:txt(x.name,16),target:txt(x.target,70),n:Math.min(20,Math.max(1,Math.floor(num(x.n,1)))),res:txt(x.res,20),text:txt(x.text,300),at:num(x.at)};}
+const docsOf=(snap,fn)=>snap.docs.map(x=>fn({id:x.id,...x.data()})).filter(Boolean);
+
 const g=()=>solo||R||{};
 function assignMap(){try{return JSON.parse(g().assign||'{}')||{};}catch(e){return{};}}
-function players(){const S=g().seats||{};return Object.entries(S).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v})).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));}
+function players(){const S=g().seats||{};return Object.entries(S).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v})).sort((a,b)=>((a.joinedAt||0)-(b.joinedAt||0))||(a.id<b.id?-1:1));}
 const isSeated=id=>!!(id&&g().seats&&g().seats[id]);
-const nameOf=id=>(g().seats&&g().seats[id]&&g().seats[id].name)||(g().watchers&&g().watchers[id]&&g().watchers[id].name)||'玩家';
+const nameBook={}; /* 離開的人座位會清空，名字留一份，畫面才不會變成「玩家」 */
+const nameOf=id=>(g().seats&&g().seats[id]&&g().seats[id].name)||(g().watchers&&g().watchers[id]&&g().watchers[id].name)||nameBook[id]||'玩家';
 const isWatcher=id=>!!(id&&!isSeated(id)&&g().watchers&&g().watchers[id]);
 const watchersList=()=>Object.entries(g().watchers||{}).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v}));
 const isHost=()=>g().host===me;
@@ -648,7 +715,7 @@ function pad(useNotes,okOff){
     return`<button data-k="${k}" class="${!g().rep&&(input.includes(k)||locks.includes(k))?'used':''} ${nt}">${k}</button>`;
   }).join('')+'</div>';
 }
-const ab=x=>x?`<span class="A">${x.A}A</span><span class="B">${x.B}B</span>`:'—';
+const ab=x=>x?`<span class="A">${num(x.A)}A</span><span class="B">${num(x.B)}B</span>`:'—';
 const errKey=()=>err?`<p class="err">${esc(err)}</p>`:'<p class="err abkey"><b class="A">A</b> 數字、位置都對　<b class="B">B</b> 數字對、位置錯</p>';
 function histHTML(list){
   if(!list||!list.length)return'<div class="empty-h">還沒猜過</div>';
@@ -673,12 +740,12 @@ const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
 const leaveLbl=()=>isHost()&&players().length>1?'離開房間（房主交給下一位）':'離開房間';
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
-const WIDE=740; let wasWide=innerWidth>=WIDE;
-function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage:not(.one)'))return;
+const wideNow=()=>innerWidth>=740||(innerWidth>=620&&innerHeight<480); let wasWide=wideNow();
+function twoCol(){if(!wideNow()||!app.querySelector(':scope>.card svg.stage:not(.one)'))return;
   const L=document.createElement('div'),R=document.createElement('div');L.className='colL';R.className='colR';
   [...app.children].forEach(c=>{if(c.tagName==='HEADER')return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
   app.append(L,R);}
-window.addEventListener('resize',()=>{const w=innerWidth>=WIDE;if(w!==wasWide){wasWide=w;render();}});
+window.addEventListener('resize',()=>{const w=wideNow();if(w!==wasWide){wasWide=w;render();}});
 let lastKey='', swapT=null;
 function scrKey(){try{if(solo)return'solo'+solo.phase+(solo.result?'r':'');if(code&&R)return'r'+R.phase+(R.phase==='coop'?(coopState().over?'o':''):derive().status)+(reviewing?'v':'');}catch(e){}return'h'+homeStep+(homeEdit?'e':'');}
 function paint(html){
@@ -701,7 +768,7 @@ function paint(html){
 app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;paint(x);}},0));
 function render(){
   if(solo) return renderSolo();
-  if(!db&&!fbWait){app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>${footer()}`;bind();sideUI(false,false);return;}
+  if(!db&&!fbWait){app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">${navigator.onLine===false?'目前沒有網路。可以先玩邊緣人模式，連上網路後會自動回到首頁':'目前連不上多人伺服器，可以先玩邊緣人模式'}</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center"><button class="peek" onclick="location.reload()">重新連線</button></p>${footer()}`;bind();sideUI(false,false);return;}
   let h='';
   if(noAccess) h+=`<div class="card"><p class="err" style="text-align:left">${esc(noAccess)}</p></div>`;
 
@@ -723,7 +790,7 @@ function render(){
     paint(h); sideUI(false,false); return;
   }
   if(roomMissing){ls.del('ab_room');app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>房間 ${esc(code)} 已關閉</h2><p class="hand">房主已經關閉這個房間，聊天和遊戲紀錄都清除了。</p><button class="btn" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
-  if(R&&R.ver!==APP_VERSION){ls.del('ab_room');setTimeout(()=>{goHome();toast('遊戲已更新，請重新開房');},0);app.innerHTML='';sideUI(false,false);return;}
+  if(R&&!roomOK(R.ver)){ls.del('ab_room');setTimeout(()=>{goHome();toast('遊戲已更新，請重新開房');},0);app.innerHTML='';sideUI(false,false);return;}
   if(!R){app.innerHTML=`<div class="card center" style="padding-block:24px"><h2>房間 ${esc(code)}</h2>${loaderHTML('走進房間')}</div>`;sideUI(false,false);return;}
   if(!isSeated(me)&&isWatcher(me)) return renderWatch();
   if(!isSeated(me)){app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>你已不在房間 ${esc(code)}</h2><button class="btn" id="rejoin">重新加入</button><button class="peek" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
@@ -734,12 +801,14 @@ function render(){
   h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">第 ${s.round} 局${s.rep?' · 可重複':''}${s.mode==='coop'?' · 合作':s.finish?'':' · 先猜中'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
 
+  const lost=s.phase==='coop'?(coopState().over?[]:coopState().order.filter(unseen)):D.status==='lobby'||D.status==='over'?[]:D.parts.filter(id=>unseen(id)&&!D.out[id]&&!D.solved[id]);
+  h+=goneBar(lost)+takeBar(s);
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
   else if(D.status==='lobby'){
     if(s.lastResult&&s.lastResult.text) h+=`<div class="card"><span class="lbl">上一局（第 ${s.lastResult.round} 局）</span><p class="lastres">${esc(s.lastResult.text)}</p></div>`;
-    const others=D.P.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
-    const allReady=D.P.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
-    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="pwrap">${D.P.map(p=>`<span class="pchip ${p.id!==s.host&&p.ready?'ok':''}">${esc(p.name)}${p.id===me?'（你）':''}<small>${p.id===s.host?'房主':p.ready?'已準備':'未準備'}</small></span>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
+    const here=D.P.filter(p=>!isGone(p.id)), others=here.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
+    const allReady=here.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
+    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="pwrap">${D.P.map((p,i)=>`<span class="pchip ${p.id!==s.host&&p.ready?'ok':''}">${esc(p.name)}${p.id===me?'（你）':''}<small>${p.id===s.host?'房主':p.ready?'已準備':'未準備'}${unseen(p.id)?' · 離線':''}</small>${isHost()&&p.id!==me&&(unseen(p.id)||(stalled()&&!p.ready))?`<button class="peek" type="button" id="skip${i}" data-skip="${esc(p.id)}">請他離開</button>`:''}</span>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
     ${D.P.length<2?`<button class="btn blue" id="inviteBtn" type="button">邀請朋友</button>`:''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
     const coopM=s.mode==='coop', hostM=isHost(), hcN=s.hintCost==null?2:s.hintCost, anN=angelMax(), acN=s.angelCost==null?1:s.angelCost, turnS=s.turnSec===0?0:(s.turnSec||60);
     if(hostM) h+=`<div class="card center stk"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
@@ -768,7 +837,7 @@ function render(){
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
     if(inGame&&!hasSecret(me)){
-      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>`;
+      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
     } else if(inGame){
       h+=`<div class="card center"><h2>題目送出了</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}）</p></div>`;
     } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`;
@@ -794,7 +863,7 @@ function render(){
       else if(D.waiting(me)) h+=`<div class="card center"><h2>第 ${D.by[me].length} 次已送出</h2><p class="hand"><span class="dot"></span>等其他人猜完這一回合（${D.parts.filter(id=>!D.out[id]&&!D.solved[id]&&D.by[id].length>=D.by[me].length).length}/${D.parts.filter(id=>!D.out[id]&&!D.solved[id]).length}）</p></div>`;
       if(D.can(me)){
         const hl=g().len-1-D.hints[me];
-        h+=`<div class="card"><h2>第 ${D.by[me].length+1} 次 · 猜${esc(nameOf(tgt))}的題</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}
+        h+=`<div class="card"><h2>第 ${D.by[me].length+1} 次 · 猜${esc(nameOf(tgt))}的題</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}<div class="padbox">${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}</div>
         <div class="tools">${D.hc?`<button class="btn ghost small tool" id="hintBtn" ${hl<=0||!secretOf(tgt)?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button>`:''}${D.aN?`<button class="btn ghost small tool" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>${angelIc()}小天使 ×${Math.max(0,D.aN-D.angels[me])}</button>`:''}<button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
@@ -829,7 +898,7 @@ function render(){
   if(!CS&&showN&&(notesKey!==code+'_'+s.round||notesLen!==s.len)) loadNotes(code+'_'+s.round,s.len);
 }
 let notesOpen=false, chatOpen=false, unread=0;
-function netUI(){const el=document.getElementById('offl');if(el)el.hidden=navigator.onLine!==false||!!solo;}
+function netUI(){const el=document.getElementById('offl');if(!el)return;const off=navigator.onLine===false;el.hidden=(!off&&!netBad)||!!solo;el.textContent=off?'沒有網路，連上後會自動繼續':'連線不穩，正在重新連線…';}
 addEventListener('online',netUI);addEventListener('offline',netUI);
 function sideUI(chatOn,notesOn){
   netUI();
@@ -845,8 +914,13 @@ function sideUI(chatOn,notesOn){
   $$('notesBack').hidden=!notesOpen&&!chatOpen;
   const nl=document.querySelector('#notesWrap .dhead .lbl'); if(nl) nl.textContent=sharedNotes?'全隊共享筆記（大家都能看、都能改）':'我的筆記（只有你看得到）';
   if(notesOpen) renderMine();
-  const mh=document.getElementById('mineH'); if(mh) mh.scrollTop=mh.scrollHeight;
+  fitHist();
 }
+/* 猜題紀錄的高度跟著畫面算：最新一筆要看得到，不能被下方的鍵盤蓋住 */
+function fitHist(){const m=document.getElementById('mineH');if(!m)return;const b=document.querySelector('.padbox');
+  if(b){const top=m.getBoundingClientRect().top+scrollY;m.style.maxHeight=Math.max(72,Math.min(190,Math.floor(innerHeight-top-b.offsetHeight-24)))+'px';}
+  m.scrollTop=m.scrollHeight;}
+addEventListener('resize',()=>fitHist());
 function renderMine(){
   const el=document.getElementById('dmine'); if(!el||(!R&&!solo))return;
   const L=solo?solo.hist:(R&&g().phase==='coop')?coopState().T:(derive().by[me]||[]);
@@ -880,10 +954,11 @@ document.getElementById('muteBox').checked=ls.get('ab_mute')==='1';
 document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checked?'1':'0');if(e.target.checked){document.getElementById('stack').innerHTML='';popQ=[];popOn=0;}};
 /* 說明：圖文分頁，每次打開都從第 1 頁開始；圖用遊戲裡的像素角色現畫（第一個人就是自己的造型） */
 /* 點版本號看裝置數值，實機有問題時請使用者截圖 */
+const cssPx=v=>{const e=document.createElement('div');e.style.cssText=`position:fixed;top:0;left:0;width:1px;height:var(${v},0px);visibility:hidden`;document.body.appendChild(e);const h=Math.round(e.getBoundingClientRect().height);e.remove();return h;};
 function showDiag(){let el=document.getElementById('diagM');if(!el){el=document.createElement('div');el.id='diagM';el.className='upd';document.body.appendChild(el);}
   const pr=document.createElement('div');pr.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;visibility:hidden';document.body.appendChild(pr);const rc=pr.getBoundingClientRect();pr.style.height='100dvh';pr.style.bottom='auto';const dvh=pr.getBoundingClientRect().height;pr.remove();
-  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
-  el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};}
+  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`留白 --safe-top ${cssPx('--safe-top')}　--app-h ${cssPx('--app-h')}　--vgap ${cssPx('--vgap')}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}　多人連線：${db?'正常':why||'連線中'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
+  el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};el.onclick=e=>{if(e.target===el)el.hidden=true;};}
 let helpP=0, helpC=null, helpToc=false;
 document.getElementById('helpVer').textContent='版本 '+APP_VERSION;
 function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>charSVG(c.x,feet,c.name||'',c.color||'#9aa3b5',{look:c.look,boss:c.boss,prop:c.prop,face:c.face,crown:c.crown,scale:c.s||1})).join('');
@@ -904,6 +979,8 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
      <p class="hline">把<b>邀請碼</b>或連結傳給朋友</p><p class="hsub">2～8 人都可以玩</p>`},
    pic('',G2,'第 3 步：大家準備','friends3','大家按<b>準備完成</b>，房主按<b>開始遊戲</b>'),
    pic('',G2,'第 4 步：每人出一題','friends4','每人出一題，猜<b>別人</b>的題','沒想法可以按隨機出題'),
+   {k:'',g:G2,t:'有人斷線怎麼辦',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',crown:true},{x:216,look:a,name:'小美',face:'cry'}])}</div>
+     <p class="hline">斷線約一分鐘會標<b>離線</b>，房主可以按<b>不等他</b></p><p class="hsub">房主不見時，線上最早進房的人會自動接手；回來的人可以繼續玩</p>`},
    {k:'modes',g:G3,t:'三種玩法',h:`<div class="hpic"><div class="h3">
      <div><span class="hic">${helpIcon({x:30,look:L,crown:true,face:'A'})}</span><b>全部猜完</b><span>次數少的贏</span></div>
      <div><span class="hic">${helpIcon({x:30,look:a,face:'wow'})}</span><b>先猜中</b><span>有人中就結束</span></div>
@@ -960,7 +1037,11 @@ function drawToc(){const P=helpC||(helpC=helpPages()),$=id=>document.getElementB
   $('helpBody').innerHTML=`<div class="htoc">${P.map((p,i)=>{if(seen[p.g])return'';seen[p.g]=1;return`<button type="button" data-hgo="${i}">${p.g}</button>`;}).join('')}</div>`;}
 function helpGo(d){if(helpToc)return;const T=helpTopic();if(T.i+d<0)return;if(T.i+d>=T.n){showHelp(false);return;}helpP+=d;drawHelp(d);}
 /* 第幾頁的問號就打開對應的主題；沒指定時從第 1 頁開始 */
-function showHelp(o,topic){const h=document.getElementById('help');if(o){helpC=helpPages();helpP=topic?Math.max(0,helpC.findIndex(p=>p.k===topic)):0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+function showHelp(o,topic){const h=document.getElementById('help');if(o){helpC=helpPages();helpP=topic?Math.max(0,helpC.findIndex(p=>p.k===topic)):0;drawHelp(1);}else document.getElementById('helpBody').innerHTML='';h.hidden=!o;if(o)document.getElementById('helpClose').focus({preventScroll:true});try{if(o)ls.set('ab_help_seen','1');}catch(e){}}
+/* 對話框開著時，Tab 只在對話框裡面轉 */
+document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const box=[...document.querySelectorAll('.upd:not([hidden])')].pop();if(!box)return;
+  const f=[...box.querySelectorAll('button,input,select,textarea,a[href]')].filter(x=>!x.disabled&&x.getClientRects().length);if(!f.length)return;
+  const a=f[0],z=f[f.length-1],c=document.activeElement;if(!box.contains(c)){e.preventDefault();a.focus();}else if(e.shiftKey&&c===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&c===z){e.preventDefault();a.focus();}});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-help]');if(b)showHelp(true,b.dataset.help);});
 document.getElementById('helpToc').onclick=()=>{if(helpToc)drawHelp(1);else drawToc();};
 document.getElementById('helpBody').onclick=e=>{const b=e.target.closest('[data-hgo]');if(!b)return;helpP=+b.dataset.hgo;drawHelp(1);};
@@ -1066,7 +1147,7 @@ document.getElementById('sendForm').onsubmit=async e=>{e.preventDefault();const 
 /* ---------- 房間 ---------- */
 async function act(fn){
   try{await fn();noAccess='';}
-  catch(e){noAccess=`連線出了問題，請稍後再試一次。（代碼：${(e&&(e.code||e.message))||'unknown'}）`;}
+  catch(e){noAccess=navigator.onLine===false?'目前沒有網路，連上後再試一次。':`連線出了問題，請稍後再試一次。（代碼：${(e&&(e.code||e.message))||'unknown'}）`;}
   render();
 }
 const roomRef=c=>db.doc('rooms/'+(c||code));
@@ -1078,7 +1159,7 @@ async function createRoom(){
   homeErr=''; busy=true; render();
   await act(async()=>{
     let c=newCode(); for(let t=0;t<5;t++){const sn=await roomRef(c).get();if(!sn.exists)break;c=newCode();}
-    await roomRef(c).set({ver:APP_VERSION,chatSince:0,code:c,host:me,createdAt:Date.now(),round:1,len:4,rep:false,finish:true,phase:'lobby',assign:'{}',seats:{[me]:{name:n,ready:true,joinedAt:Date.now(),look:lookStr(myLook())}}});
+    await roomRef(c).set({ver:ROOM_VER,chatSince:0,code:c,host:me,createdAt:Date.now(),round:1,len:4,rep:false,finish:true,phase:'lobby',assign:'{}',seats:{[me]:{name:n,ready:true,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}});
     enterRoom(c);
   });
   busy=false; render();
@@ -1090,12 +1171,12 @@ async function joinRoom(c,watch){
   homeErr=''; busy=true; render();
   await act(async()=>{
     const sn=await roomRef(c).get();
-    if(!sn.exists){if(ls.get('ab_room')===c)ls.del('ab_room');homeErr=`找不到房間 ${c}，請確認邀請碼`;return;}
-    if(sn.data().ver!==APP_VERSION){
+    if(!sn.exists||!(sn.data()||{}).ver){if(ls.get('ab_room')===c)ls.del('ab_room');homeErr=`找不到房間 ${c}，請確認邀請碼`;return;}
+    if(!roomOK(sn.data().ver)){
       if(ls.get('ab_room')===c)ls.del('ab_room');
-      if(verNewer(sn.data().ver,APP_VERSION)){homeErr=`你的遊戲版本比房間舊，更新後再加入一次`;updShown=true;updTick();return;}
+      if(verNewer(sn.data().ver,ROOM_VER)){homeErr=`你的遊戲版本比房間舊，更新後再加入一次`;updShown=true;updTick();return;}
       homeErr=`房間 ${c} 是舊版本建立的，請房主重新開房`;return;}
-    const d=sn.data(), cnt=Object.values(d.seats||{}).filter(Boolean).length;
+    const d=cleanRoom(sn.data()), cnt=Object.values(d.seats||{}).filter(Boolean).length;
     if(watch&&!(d.seats||{})[me]){
       if(Object.values(d.watchers||{}).filter(Boolean).length>=20){homeErr='觀眾太多了，等一下再來';return;}
       await roomRef(c).update({watchers:{[me]:{name:n,look:lookStr(myLook()),joinedAt:Date.now()}}});
@@ -1104,11 +1185,16 @@ async function joinRoom(c,watch){
     if((d.watchers||{})[me]&&!(d.seats||{})[me]&&!watch&&ls.get('ab_watch')===c){enterRoom(c);return;}
     if(!(d.seats||{})[me]){
       const same=Object.entries(d.seats||{}).filter(([id,v])=>v&&v.name===n&&id!==me);
-      if(same.length===1&&confirm(`房間裡已經有「${n}」，是你剛剛斷線或重新整理嗎？\n\n按「確定」接回原本的位子（題目和猜過的紀錄都會保留）\n按「取消」用新的身分加入`)){
+      /* 同名的人還在線上就不是「斷線的你」，不能接手他的位子；沒有在線訊號的舊版手機維持原本的詢問 */
+      const taken=same.some(([id,v])=>v.hb&&Math.abs(Date.now()-v.hb)<HB_DEAD);
+      if(same.length===1&&!taken&&confirm(`房間裡已經有「${n}」，是你剛剛斷線或重新整理嗎？\n\n按「確定」接回原本的位子（題目和猜過的紀錄都會保留）\n按「取消」用新的身分加入`)){
         me=same[0][0]; ls.set('ab_alias_'+c,me); toast('已接回原本的位子'); enterRoom(c); return;}
       if(cnt>=MAXP){homeErr='這個房間人數已滿';return;}
-      await roomRef(c).update({seats:{[me]:{name:n,ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}});
-    } else await roomRef(c).update({seats:{[me]:{look:lookStr(myLook())}}});
+      /* 房間裡沒有房主（例如最後一個人關掉頁面）：先進來的人直接當房主 */
+      const up={seats:{[me]:{name:n,ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}};
+      if(!(d.seats||{})[d.host])up.host=me;
+      await roomRef(c).update(up);
+    } else await roomRef(c).update({seats:{[me]:{look:lookStr(myLook()),hb:Date.now()}}});
     enterRoom(c);
   });
   busy=false; render();
@@ -1118,29 +1204,36 @@ function enterRoom(c){
   code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now();
   mySecret=null; input=''; err=''; view=null; scored.clear(); notesKey=null;
   ls.set('ab_room',c); ss.set('ab_live',c);
+  hbSeen={}; hbLast=0; hostClaim=0; presKey=''; roomSigV=''; roomAt=Date.now();
   unsubs.push(roomRef(c).onSnapshot(snap=>{
-    if(!snap.exists){roomMissing=true;R=null;return render();}
-    applyRoom(snap.data()); render(); renderChat(); autoScore();
+    if(!snap.exists||!(snap.data()||{}).ver){roomMissing=true;R=null;return render();}
+    const d=snap.data(), sig=roomSig(d), same=!!R&&sig===roomSigV;
+    applyRoom(d);
+    if(same)return; /* 只有在線訊號變動：不用重畫，也不算遊戲有進度 */
+    roomSigV=sig; roomAt=Date.now(); render(); renderChat(); autoScore();
   },()=>{noAccess='連線中斷，請重新整理頁面。';render();}));
   unsubs.push(db.collection(`rooms/${c}/chat`).orderBy('at','desc').limit(30).onSnapshot(snap=>{
     const seen=new Set(chat.map(m=>m.id));
-    chat=snap.docs.map(x=>({id:x.id,...x.data()})).reverse();
+    chat=docsOf(snap,cleanChat).reverse();
     if(chatLoaded) for(const m of chat){ if(!seen.has(m.id)&&m.pid!==me&&m.at>chatStart&&m.at>=((R&&R.chatSince)||0)){ if(!chatOpen){pushPop(m.name||'玩家',m.text);unread++;const b=document.getElementById('chatBadge');if(b){b.hidden=false;b.textContent=unread>9?'9+':unread;}} } }
     chatLoaded=true; renderChat();
   },()=>{}));
   fxLoaded=false; fxSeen=new Set();
   unsubs.push(db.collection(`rooms/${c}/fx`).orderBy('at','desc').limit(12).onSnapshot(snap=>{
-    for(const d of snap.docs){const x={id:d.id,...d.data()};if(fxSeen.has(x.id))continue;fxSeen.add(x.id);if(fxLoaded&&x.pid!==me&&x.at>fxStart-2000)playFx(x,false);}
+    for(const x of docsOf(snap,cleanFx)){if(fxSeen.has(x.id))continue;fxSeen.add(x.id);if(fxLoaded&&x.pid!==me&&x.at>fxStart-2000)playFx(x,false);}
     fxLoaded=true;
   },()=>{}));
-  unsubs.push(db.collection(`rooms/${c}/secrets`).onSnapshot(snap=>{secrets=snap.docs.map(x=>({id:x.id,...x.data()}));loadSecret();render();},()=>{}));
-  unsubs.push(db.collection(`rooms/${c}/guesses`).onSnapshot(snap=>{guesses=snap.docs.map(x=>({id:x.id,...x.data()}));render();autoScore();},()=>{}));
+  unsubs.push(db.collection(`rooms/${c}/secrets`).onSnapshot(snap=>{secrets=docsOf(snap,cleanSecret);roomAt=Date.now();loadSecret();render();},()=>{}));
+  unsubs.push(db.collection(`rooms/${c}/guesses`).onSnapshot(snap=>{guesses=docsOf(snap,cleanGuess);roomAt=Date.now();render();autoScore();},()=>{}));
   clearInterval(pollT); pollT=setInterval(()=>pollOnce(false),3000);
   renderChat(); render();
 }
 let reviewHTML='', overRound=0, reviewing=false, selfAgain=false;
 function applyRoom(d){
-  const prev=R&&R.round; R=d; roomMissing=false;
+  const prev=R&&R.round, prevHost=R&&R.host; R=cleanRoom(d); roomMissing=false; hbTrack();
+  for(const id in R.seats){const v=R.seats[id];if(v&&v.name)nameBook[id]=v.name;}
+  if(prevHost&&R.host===me&&prevHost!==me) toast('你現在是房主');
+  seatGuard();
   if(prev&&R.round!==prev){ if(overRound===prev&&!selfAgain&&reviewHTML) reviewing=true; selfAgain=false; overRound=0;input='';err='';view=null;scored.clear();mySecret=null;}
   loadSecret();
 }
@@ -1158,8 +1251,8 @@ async function pollOnce(force){
     const [rs,ss,gs]=await Promise.all(jobs);
     if(c!==code)return;
     if(rs.exists) applyRoom(rs.data());
-    secrets=ss.docs.map(x=>({id:x.id,...x.data()}));
-    if(gs) guesses=gs.docs.map(x=>({id:x.id,...x.data()}));
+    secrets=docsOf(ss,cleanSecret);
+    if(gs) guesses=docsOf(gs,cleanGuess);
     loadSecret(); render(); autoScore();
   }catch(e){}
   finally{polling=false;}
@@ -1168,11 +1261,17 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollOnce(t
 window.addEventListener('online',()=>pollOnce(true));
 window.addEventListener('pageshow',()=>pollOnce(true));
 let updShown=false;
+const roomOK=v=>!!v&&!verNewer(v,ROOM_VER)&&!verNewer(ROOM_MIN,v);
 const verNum=v=>String(v||'').split(/[.-]/).map(Number);
 function verNewer(a,b){const A=verNum(a),B=verNum(b);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]||0)-(B[i]||0);if(d)return d>0;}return false;}
+let updTag='';
 async function checkUpdate(){
   if(updShown||location.protocol==='file:')return;
-  try{const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});const t=await r.text();
+  try{const u=location.pathname+'?_='+Date.now();
+    /* 先只問檔案有沒有變，沒變就不用下載整頁 */
+    const h=await fetch(u,{method:'HEAD',cache:'no-store'}),tag=h.headers.get('etag')||h.headers.get('last-modified')||'';
+    if(tag&&tag===updTag)return;updTag=tag;
+    const r=await fetch(u,{cache:'no-store'});const t=await r.text();
     const m=t.match(/const APP_VERSION='([^']+)'/);
     if(m&&m[1]!==APP_VERSION){updShown=true;updTick();}}catch(e){}
 }
@@ -1195,17 +1294,73 @@ setInterval(wakeSync,5000);document.addEventListener('visibilitychange',wakeSync
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
-function goHome(){homeStep='menu';homeEdit=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+/* ---------- 誰還在線 ----------
+   seats[me].hb：每 25 秒更新一次的數字。只看「有沒有變動」，不比較不同手機的時鐘。
+   舊版手機不會寫 hb，所以沒有 hb 的人一律當「不知道」，不會自動判定他離線。 */
+const HB_GAP=25000, HB_DEAD=80000, HB_STALE=600000;
+let hbSeen={}, hbLast=0, hbBusy=false, hostClaim=0, roomSigV='', roomAt=0, presKey='', netBad=false, leaving=false;
+const roomSig=d=>JSON.stringify(d,(k,v)=>k==='hb'?undefined:v);
+function hbTrack(){const S=(R&&R.seats)||{},now=Date.now();
+  for(const id in S){const v=S[id]&&S[id].hb;if(v==null)continue;const o=hbSeen[id];
+    if(!o)hbSeen[id]={v,t:now-v>HB_STALE?now-HB_DEAD-1:now};else if(o.v!==v)hbSeen[id]={v,t:now};}}
+const isGone=id=>{if(!id||id===me)return false;const v=((R&&R.seats)||{})[id];if(!v||v.hb==null)return false;const o=hbSeen[id];return !!o&&Date.now()-o.t>HB_DEAD;};
+const noBeat=id=>{const v=((R&&R.seats)||{})[id];return !!v&&v.hb==null&&id!==me;};
+const stalled=()=>!!roomAt&&Date.now()-roomAt>90000;
+const unseen=id=>isGone(id)||(noBeat(id)&&stalled());
+async function hbBeat(force){
+  if(!code||!db||!R||roomMissing||hbBusy||leaving||!isSeated(me))return;
+  const now=Date.now();if(!force&&now-hbLast<HB_GAP-2000)return;
+  hbLast=now;hbBusy=true;const c=code,slow=setTimeout(()=>{netBad=true;netUI();},12000);
+  try{await roomRef(c).update({seats:{[me]:{hb:now}}});}catch(e){}
+  finally{clearTimeout(slow);hbBusy=false;if(netBad){netBad=false;netUI();pollOnce(true);}}
+}
+/* 要離開座位時先停掉在線訊號、等送到一半的那筆結束，不然它會在座位清掉後才到，留下沒有名字的座位 */
+const hbStop=async()=>{leaving=true;for(let i=0;i<30&&hbBusy;i++)await new Promise(r=>setTimeout(r,100));};
+/* 房主不見了：線上最早進房的人自動接手（大家算出來的是同一個人）。舊版手機不會接手，所以只算有在線訊號的人 */
+function hostCheck(){
+  const s=g();if(!R||!isSeated(me)||s.host===me)return;
+  if((s.seats||{})[s.host]&&!isGone(s.host))return;
+  const next=players().find(p=>p.hb!=null&&!isGone(p.id));
+  if(!next||next.id!==me||Date.now()-hostClaim<8000)return;
+  hostClaim=Date.now();roomRef().update({host:me}).catch(()=>{hostClaim=0;});
+}
+/* 最後一個位子同時被兩人搶：大家排好順序，排在 8 個以外的人自己退出 */
+function seatGuard(){
+  if(leaving||!R||R.phase!=='lobby'||!isSeated(me))return;const L=players();if(L.length<=MAXP||L.findIndex(p=>p.id===me)<MAXP)return;
+  leaving=true;setTimeout(async()=>{await hbStop();try{await roomRef().update({seats:{[me]:null}});}catch(e){}goHome();homeErr='這個房間人數已滿';render();},0);
+}
+function presenceTick(){
+  if(!code||!R||roomMissing)return;
+  hbBeat();hbTrack();hostCheck();
+  const k=Object.keys(R.seats||{}).filter(unseen).join()+(stalled()?'|s':'');
+  if(k!==presKey){presKey=k;render();}
+}
+setInterval(presenceTick,5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)hbBeat(true);});
+window.addEventListener('online',()=>{if(!db&&!fbWait&&!solo)location.reload();else hbBeat(true);});
+/* 有人斷線時的出路：房主可以不等他（和他自己按離開完全一樣），其他人看得到發生什麼事 */
+async function skipPlayer(id,btn){
+  if(!isHost()||id===me)return;if(!confirmTap(btn,'確定？再按一次'))return;
+  const nm=nameOf(id);await act(()=>roomRef().update({seats:{[id]:null}}));toast(`已經不等 ${nm} 了`);
+}
+async function takeHost(){if(!isSeated(me))return;if(!confirmTap('takeHost','確定要接手？再按一次'))return;await act(()=>roomRef().update({host:me}));}
+function goneBar(ids){
+  if(!ids.length)return'';const host=isHost();
+  return`<div class="card gonebar"><span class="lbl">有人斷線了</span><div class="plist">${ids.map((id,i)=>`<div class="prow"><span class="pn">${esc(nameOf(id))}<span class="pill off">離線</span></span>${host?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(id)}">不等他</button>`:''}</div>`).join('')}</div>${host?'':'<p class="rules" style="margin:0">等他回來，或由房主決定不等他。</p>'}</div>`;
+}
+const takeBar=s=>!isHost()&&isSeated(me)&&isSeated(s.host)&&noBeat(s.host)&&stalled()?`<div class="card gonebar"><p class="rules" style="margin:0">房主一直沒有動作，可能已經離開了。</p><button class="btn ghost" type="button" id="takeHost">我來當房主</button></div>`:'';
+function goHome(){homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
-  ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}}));
+  ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
 }
 async function leaveRoom(){
   if(isWatcher(me)){ls.del('ab_watch');try{await roomRef().update({watchers:{[me]:null}});}catch(e){} goHome();return;}
   if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
-  const s=g(); const rest=players().filter(p=>p.id!==me);
+  await hbStop();
+  const s=g(); const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
   /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
-  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){}goHome();return;}
+  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){try{await roomRef(c).update({seats:{[me]:null}});}catch(e2){}}goHome();return;}
   const upd={seats:{[me]:null}}; if(s.host===me) upd.host=rest[0].id;
   try{await roomRef().update(upd);}catch(e){}
   goHome();
@@ -1240,7 +1395,7 @@ async function syncStep(D){
 }
 async function startGame(){
   if(g().mode==='coop') return startCoop();
-  if(!isHost())return; const P=players(); if(P.length<2)return;
+  if(!isHost())return; const P=players().filter(p=>!isGone(p.id)); if(P.length<2)return;
   await act(()=>roomRef().update({phase:'secret',startAt:0,assign:JSON.stringify(derange(P.map(p=>p.id)))}));
 }
 /* ---------- 勝利畫面 ---------- */
@@ -1492,7 +1647,7 @@ const LOOK={
  beard:[['none','無'],['stache','八字鬍'],['bigbeard','大鬍子'],['goatee','山羊鬍']]
 };
 const LK=['skin','shirt','hair','hc','face','acc','beard'];
-function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length===6)a.push(0);if(a.length!==7||a.some(x=>!(x>=0)))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
+function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length===6)a.push(0);if(a.length!==7||a.some(x=>!Number.isInteger(x)||x<0))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
 const lookStr=o=>LK.map(k=>o[k]).join('.');
 function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):hashStr('look_'+seed);const o={};LK.forEach((k,i)=>{o[k]=x%LOOK[k].length;x=Math.floor(x/LOOK[k].length)+(seed==null?Math.floor(Math.random()*997):i*131);});if(o.hair===0&&o.acc===0)o.hair=1;if(o.beard&&x%3)o.beard=0;return o;}
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();o.face=[0,1,3,5,7][Math.floor(Math.random()*5)];ls.set('ab_look',lookStr(o));}return o;}
@@ -1603,10 +1758,10 @@ async function backToLobby(force){
   await act(()=>roomRef().update(upd));
   if(isHost()){wipe(code,'chat',()=>true); wipe(code,'fx',()=>true); wipe(code,'guesses',d=>(d.round||0)<nr); wipe(code,'secrets',d=>(d.round||0)<nr);}
 }
-const arms={};
+const arms={}, armMsg={};
 function confirmTap(id,msg){
   const now=Date.now(); if(now-(arms[id]||0)<4000){arms[id]=0;return true;}
-  arms[id]=now; const b=document.getElementById(id); if(b) b.textContent=msg;
+  arms[id]=now; armMsg[id]=msg; const b=document.getElementById(id); if(b) b.textContent=msg;
   setTimeout(()=>{if(arms[id]===now)render();},4000); return false;
 }
 async function useHint(){
@@ -1695,6 +1850,8 @@ function key(k){
 }
 function bind(){
   const $=id=>document.getElementById(id);
+  /* 畫面重畫後，等第二下的按鈕要繼續顯示「再按一次」 */
+  for(const id in arms)if(arms[id]&&Date.now()-arms[id]<4000&&$(id))$(id).textContent=armMsg[id];
   app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
   app.querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>setRule('len',+b.dataset.len));
   app.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>setRule('rep',b.dataset.rep==='1'));
@@ -1746,6 +1903,8 @@ function bind(){
   app.querySelectorAll('[data-fbt]').forEach(b=>b.onclick=()=>{fbType=b.dataset.fbt;render();});
   if($('fbOpen')) $('fbOpen').onclick=()=>{fbOpen=!fbOpen;fbMsg='';render();};
   if($('verBtn')) $('verBtn').onclick=showDiag;
+  app.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>skipPlayer(b.dataset.skip,b.id));
+  if($('takeHost')) $('takeHost').onclick=takeHost;
   if($('installBtn')) $('installBtn').onclick=async()=>{if(installEv){const ev=installEv;installEv=null;try{await ev.prompt();}catch(e){}}else showHelp(true,'install');};
   if($('fbText')) $('fbText').oninput=e=>{fbDraft=e.target.value;};
   if($('fbSend')) $('fbSend').onclick=async()=>{const t=(fbDraft||'').trim();if(!t){fbMsg='請先寫點內容';return render();}const ok=await sendFeedback(fbType,t);if(ok){fbDraft='';fbMsg='收到了，謝謝你的回饋！';}render();};
@@ -1861,7 +2020,7 @@ function soloCard(){
   return`<div class="card solo">
     ${seg('data-smode',[['practice',`${uiIcon('note')}練習`,'tea'],['duel',`${bossIc('office')}挑戰魔王`,'red']],soloCfg.mode,'','big')}
     ${duel?`<span class="opt">選職場</span>${roleGrid('data-stage',soloCfg.stage||'random',true)}
-    ${soloCfg.stage==='custom'?`<div class="custom"><input type="text" id="cvName" maxlength="5" placeholder="魔王名稱，例如：客訴家屬" value="${esc((soloCfg.custom||{}).n||'')}"><input type="text" id="cvSays" maxlength="16" placeholder="他的口頭禪，例如：又在開會" value="${esc((soloCfg.custom||{}).says||'')}"><label class="share"><input type="checkbox" id="cvShare" ${soloCfg.share===false?'':'checked'}> 推薦給開發者（匿名）</label></div>`:''}
+    ${soloCfg.stage==='custom'?`<div class="custom"><input type="text" id="cvName" maxlength="5" placeholder="魔王名稱，例如：客訴家屬" value="${esc((soloCfg.custom||{}).n||'')}"><input type="text" id="cvSays" maxlength="16" placeholder="他的口頭禪，例如：又在開會" value="${esc((soloCfg.custom||{}).says||'')}"><label class="share"><input type="checkbox" id="cvShare" ${soloCfg.share===true?'checked':''}> 推薦給開發者（匿名）</label></div>`:''}
     ${seg('data-diff',[['easy',`簡單<small>讓你 ${EASY_GIVE} 回合</small>`,'tea'],['hard','困難<small>電腦硬算</small>','red']],soloCfg.diff==='hard'?'hard':'easy')}
     <button class="peek more" id="soloAdvBtn" type="button" aria-expanded="${soloAdv}">${soloCfg.len} 位數、${soloCfg.rep?'可重複':'不重複'}　${soloAdv?'收起':'修改'}</button>
     ${soloAdv?lenSeg('data-slen','data-srep',soloCfg.len,soloCfg.rep):''}`:`${lenSeg('data-slen','data-srep',soloCfg.len,soloCfg.rep)}`}
@@ -1870,7 +2029,7 @@ function soloCard(){
 function soloSecret(len,rep){let d='0123456789'.split(''),s='';if(rep){for(let i=0;i<len;i++)s+=d[Math.floor(Math.random()*10)];return s;}for(let i=9;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d.slice(0,len).join('');}
 function soloNew(len,rep){
   const sel=soloCfg.stage||'random', vl=villainFor(sel), stg=sel==='custom'?'custom':(vl.stageKey||sel);
-  if(sel==='custom'&&soloCfg.share!==false){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
+  if(sel==='custom'&&soloCfg.share===true){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
   const duel=soloCfg.mode==='duel';
   solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff==='hard'?'hard':'easy',give:duel&&soloCfg.diff!=='hard'?EASY_GIVE:0,secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.win||vl.says)}};
@@ -1912,7 +2071,7 @@ function coopAuto(){
   autoMarkFrom(C.T,s.len);
 }
 async function startCoop(){
-  const s=g(), P=players(); if(!isHost()||!P.length)return;
+  const s=g(), P=players().filter(p=>!isGone(p.id)); if(!isHost()||!P.length)return;
   const vl=villainFor(s.stage||'random');
   await act(()=>roomRef().update({phase:'coop',startAt:0,assign:'{}',coop:{order:shuffle(P.map(p=>p.id)),startAt:Date.now()+3500,
     bossC:enc(soloSecret(s.len,s.rep),s.round,'boss'),team:soloSecret(s.len,s.rep),surrender:false,turnSec:s.turnSec===0?0:(s.turnSec||60),notes:null,
@@ -2134,6 +2293,9 @@ function renderWatch(){
   if(coop) h=h.replace(/<button class="btn ghost" id="(closeRoom|surrender)">[^<]*<\/button>/g,'').replace(/<button class="peek" id="leave">[^<]*<\/button>/g,'');
   h+=`<button class="peek" id="leave">離開觀戰</button>`;
   paint(h); sideUI(true,false);
+  clearTimeout(tickT);
+  if(!coop&&D.status==='loading') tickT=setTimeout(()=>{if(R&&derive().status==='loading')render();},3200);
+  if(!coop&&D.status==='countdown') tickT=setTimeout(render,Math.max(200,s.startAt-Date.now()+30));
 }
 function coopView(s){
   const C=coopState(), v=(C.c.vil||{n:'魔王',p:'👹',c:'#e08a6a',says:'',back:'',says2:''}), inTeam=C.order.includes(me);
@@ -2158,7 +2320,7 @@ function coopView(s){
     if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}${mine?'':'，可以語音或在聊天室幫忙出主意'}</p></div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
-      (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}`:'')+
+      (mine&&!C.waitingBoss?`<div class="padbox">${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}</div>`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?`<button class="btn ghost small tool" id="hintBtn">${uiIcon('bulb')}提示</button>`:''}${inTeam&&angelMax()?`<button class="btn ghost small tool" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>${angelIc()}小天使 ×${coopAngelsLeft()}</button>`:''}</div>`:'')+`</div>`;
     h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
     h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
@@ -2356,7 +2518,7 @@ async function flushFx(){
 /* ---------- 意見回饋 ---------- */
 let fbOpen=false, fbType='idea', fbDraft='', fbMsg='', fbLast=0;
 const FBT={job:'想新增的職業／魔王',bug:'遇到問題',idea:'其他建議'};
-function footer(){return `<p class="ver"><button type="button" id="verBtn">版本 ${APP_VERSION}</button><br>© 2026 KenChen0728 · 字型：俐方體11號（OFL）</p>`;}
+function footer(){return `<p class="ver"><button type="button" id="verBtn">版本 ${APP_VERSION}</button><br>© 2026 Ken Chen · 字型：俐方體11號（OFL）</p>`;}
 function fbCard(){
   return `<div class="card"><div class="row" style="align-items:center"><h2 style="flex:1 1 auto">意見回饋</h2><button class="peek" id="fbOpen" style="flex:0 0 auto">收起</button></div>
     <div class="chips stage">${Object.entries(FBT).map(([k,v])=>`<button type="button" data-fbt="${k}" aria-pressed="${fbType===k}">${v}</button>`).join('')}</div>
@@ -2368,7 +2530,8 @@ async function sendFeedback(type,text,silent){
   if(!db){if(!silent){fbMsg='目前連不上伺服器，晚點再試';}return false;}
   if(!silent&&Date.now()-fbLast<20000){fbMsg='剛送出過，稍等一下再送';return false;}
   try{
-    await db.collection('feedback').add({type,text:String(text).slice(0,300),name:type==='villain'?'':(nick||'').slice(0,8),ver:APP_VERSION,at:Date.now()});
+    const doc={type,text:String(text).slice(0,300),ver:APP_VERSION,at:Date.now()};if(type!=='villain')doc.name=(nick||'').slice(0,8);
+    await db.collection('feedback').add(doc);
     if(!silent)fbLast=Date.now(); return true;
   }catch(e){if(!silent)fbMsg=`送出失敗（${(e&&(e.code||e.message))||'unknown'}）`;return false;}
 }
@@ -2570,7 +2733,7 @@ function renderSolo(){
   let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
+      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>
       <button class="peek" id="soloQuit">回首頁</button>`;
     paint(h); sideUI(false,false); return;
   }
@@ -2581,7 +2744,7 @@ function renderSolo(){
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
     if(duel) h+=`<div class="card vil${sayFx()}"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>`;
     h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
-      ${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}
+      <div class="padbox">${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}</div>
       <div class="tools"><button class="btn ghost small tool" id="hintBtn" ${hl<=0||waiting?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button><button class="btn ghost small tool" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>${angelIc()}小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
     if(duel) h+=`<div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${s.chist.length||!s.give?cpuHistHTML(s.chist):`<div class="empty-h">${esc(vil.n)}讓你 ${s.give} 回合，第 ${s.give+1} 回合才開始猜</div>`}</div>`;
@@ -2604,7 +2767,12 @@ solo=null;
 
 setTimeout(()=>{if(!db){fbWait=false;render();}},11000);
 /* 離線也打得開；開網頁時一律先問網站有沒有新版，規則寫在 sw.js */
-if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});
+  /* 畫面和連線都好了才存說明圖片，沒網路時說明也看得到 */
+  setTimeout(()=>{try{const c=navigator.connection;if(c&&c.saveData)return;navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('warm'));}catch(e){}},9000);});
+/* 400KB 的像素字型只用在角色名字和對話框：等畫面出來才在背景下載，省流量模式不下載，沒下載時用內建字體 */
+function loadPixelFont(){try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||'')))return;const f=new FontFace('Cubic11','url(Cubic_11.woff2)',{display:'swap'});document.fonts.add(f);f.load().catch(()=>{});}catch(e){}}
+addEventListener('load',()=>setTimeout(()=>{(window.requestIdleCallback||(fn=>fn()))(loadPixelFont,{timeout:4000});},1800));
 </script>
 
 </body>

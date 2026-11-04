@@ -1,4 +1,6 @@
 [Cubic 11]
+Copyright (c) 2022-2025 ACh
+Copyright (c) 2022 Cubic 11 Project Authors
 These fonts are free software.
 Unlimited permission is granted to use, copy, and distribute them, with or without modification, either commercially or noncommercially.
 THESE FONTS ARE PROVIDED "AS IS" WITHOUT WARRANTY.
