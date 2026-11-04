@@ -435,6 +435,8 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
 @media (max-height:700px){.pad{gap:6px}.pad button{padding:7px 0}.slot{height:50px;font-size:30px}.card{gap:10px}}
+/* 手機橫放：鍵盤排成兩列，不用捲動 */
+@media (max-height:480px){.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:5px 0;font-size:22px}.pad .ok{font-size:16px}.slot{height:40px;font-size:26px}.wrap{padding-block:8px 16px}}
 .stk{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .card.stk{padding-block:10px;gap:8px}
 .btn.ghost.stk{background:var(--card)}
@@ -518,7 +520,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-5';
+const APP_VERSION='2026.11.05-6';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
