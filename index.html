@@ -62,7 +62,7 @@ img{max-width:100%}
 <style>
 /* Layout: one-column notebook page; grid-paper ground, ink-blue digits, red stamp for A. Two seats, each on its own phone. */
 :root{
-  --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#66707f;
+  --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#5f6978;
   --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#9a6000; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
   --f-body:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",system-ui,sans-serif;
   --f-disp:"Huninn",var(--f-body);
@@ -135,10 +135,10 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .reveal{display:flex;gap:10px}
 .reveal div{flex:1;text-align:center;min-width:0}
 .reveal b{display:block;font-family:var(--f-num);font-size:26px;letter-spacing:.15em;color:var(--ink)}
-.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px}
+.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px;min-height:44px}
 .peek.more{align-self:stretch;text-align:left;padding-inline:0;font-size:15px;line-height:1.5}
 .peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
-.rules{font-size:15px;color:var(--muted);line-height:1.7;margin:0}
+.rules{font-size:16px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
 @keyframes blink{50%{opacity:.25}}
 #chatWrap .msgs{max-height:none;flex:1 1 auto;min-height:120px}
@@ -156,7 +156,7 @@ body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20
 .dhead{display:flex;align-items:center;gap:10px}
 .dhead .lbl{flex:1 1 auto;min-width:0}
 .dclose{font:inherit;font-size:20px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;flex:0 0 auto}
-.drawer .digits{gap:5px}.drawer .digits button{font-size:18px;padding:6px 0}
+.drawer .digits{gap:5px}.drawer .digits button{font-size:18px;padding:6px 0;min-height:44px}
 .drawer .pos select{width:50px;font-size:20px}
 .dmine{background:var(--paper);border-radius:10px;padding:4px 10px;max-height:34vh;overflow-y:auto}
 .dmine .hrow{padding:5px 2px}.dmine .hg{font-size:18px}.dmine .score{font-size:17px}
@@ -164,7 +164,7 @@ body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20
 .mine-h .hrow{padding:5px 2px}.mine-h .hg{font-size:19px}.mine-h .score{font-size:17px}
 @media (prefers-reduced-motion:reduce){.drawer{animation:none}}
 .digits{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.digits button{font-family:var(--f-num);font-weight:700;font-size:20px;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;position:relative}
+.digits button{font-family:var(--f-num);font-weight:700;font-size:20px;min-height:44px;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:transparent;color:var(--fg);cursor:pointer;position:relative}
 .digits button.yes{border-color:var(--ok);color:var(--ok)}
 .digits button.no{color:var(--muted);text-decoration:line-through;opacity:.55}
 .digits button i{position:absolute;top:1px;right:5px;font-style:normal;font-size:11px;font-weight:500}
@@ -250,7 +250,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @media (prefers-reduced-motion:reduce){.bob,.spin,.squish{animation:none}}
 .stagesel{font:inherit;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%}
 .custom{display:flex;flex-direction:column;gap:8px}
-.share{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.share{display:flex;align-items:center;gap:8px;min-height:44px;font-size:15px;color:var(--muted)}
 .share input{width:20px;height:20px}
 .chips.stage button[aria-pressed=true]{background:var(--ink);color:var(--card);border-color:var(--ink)}
 .vil{flex-direction:row;align-items:center;gap:12px;padding-block:12px}
@@ -270,7 +270,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .hpic svg{display:block}
 .hpic .stage2{width:100%;height:100%}
 .hline{font-size:16px;line-height:1.55;margin:0;text-align:center;text-wrap:balance}
-.hsub{font-size:14px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
+.hsub{font-size:15px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
 .htile{display:flex;align-items:center;gap:6px;font-family:var(--f-num);font-weight:700}
 .htile .lb{font-family:var(--f-body);font-weight:400;font-size:13px;color:var(--muted);width:34px}
 .htile i{font-style:normal;width:38px;height:38px;display:grid;place-items:center;font-size:22px;border-radius:9px;background:var(--card);border:2px solid var(--line);color:var(--fg)}
@@ -468,7 +468,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .card.stk{padding-block:10px;gap:8px}
 .btn.ghost.stk{background:var(--card)}
 .diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
-#verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;cursor:pointer}
+#verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;min-height:44px;cursor:pointer}
 .stage,.podium,.stage2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .pill.off{color:var(--a);border-color:var(--a);margin-left:6px}
 .gonebar{gap:8px;border-color:var(--a)}
@@ -1264,12 +1264,14 @@ const noBeat=id=>{const v=((R&&R.seats)||{})[id];return !!v&&v.hb==null&&id!==me
 const stalled=()=>!!roomAt&&Date.now()-roomAt>90000;
 const unseen=id=>isGone(id)||(noBeat(id)&&stalled());
 async function hbBeat(force){
-  if(!code||!db||!R||roomMissing||hbBusy||!isSeated(me))return;
+  if(!code||!db||!R||roomMissing||hbBusy||leaving||!isSeated(me))return;
   const now=Date.now();if(!force&&now-hbLast<HB_GAP-2000)return;
   hbLast=now;hbBusy=true;const c=code,slow=setTimeout(()=>{netBad=true;netUI();},12000);
   try{await roomRef(c).update({seats:{[me]:{hb:now}}});}catch(e){}
   finally{clearTimeout(slow);hbBusy=false;if(netBad){netBad=false;netUI();pollOnce(true);}}
 }
+/* 要離開座位時先停掉在線訊號、等送到一半的那筆結束，不然它會在座位清掉後才到，留下沒有名字的座位 */
+const hbStop=async()=>{leaving=true;for(let i=0;i<30&&hbBusy;i++)await new Promise(r=>setTimeout(r,100));};
 /* 房主不見了：線上最早進房的人自動接手（大家算出來的是同一個人）。舊版手機不會接手，所以只算有在線訊號的人 */
 function hostCheck(){
   const s=g();if(!R||!isSeated(me)||s.host===me)return;
@@ -1281,7 +1283,7 @@ function hostCheck(){
 /* 最後一個位子同時被兩人搶：大家排好順序，排在 8 個以外的人自己退出 */
 function seatGuard(){
   if(leaving||!R||R.phase!=='lobby'||!isSeated(me))return;const L=players();if(L.length<=MAXP||L.findIndex(p=>p.id===me)<MAXP)return;
-  leaving=true;setTimeout(async()=>{try{await roomRef().update({seats:{[me]:null}});}catch(e){}leaving=false;goHome();homeErr='這個房間人數已滿';render();},0);
+  leaving=true;setTimeout(async()=>{await hbStop();try{await roomRef().update({seats:{[me]:null}});}catch(e){}goHome();homeErr='這個房間人數已滿';render();},0);
 }
 function presenceTick(){
   if(!code||!R||roomMissing)return;
@@ -1303,7 +1305,7 @@ function goneBar(ids){
   return`<div class="card gonebar"><span class="lbl">有人斷線了</span><div class="plist">${ids.map((id,i)=>`<div class="prow"><span class="pn">${esc(nameOf(id))}<span class="pill off">離線</span></span>${host?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(id)}">不等他</button>`:''}</div>`).join('')}</div>${host?'':'<p class="rules" style="margin:0">等他回來，或由房主決定不等他。</p>'}</div>`;
 }
 const takeBar=s=>!isHost()&&isSeated(me)&&isSeated(s.host)&&noBeat(s.host)&&stalled()?`<div class="card gonebar"><p class="rules" style="margin:0">房主一直沒有動作，可能已經離開了。</p><button class="btn ghost" type="button" id="takeHost">我來當房主</button></div>`:'';
-function goHome(){homeStep='menu';homeEdit=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
@@ -1311,6 +1313,7 @@ async function becomePlayer(){
 async function leaveRoom(){
   if(isWatcher(me)){ls.del('ab_watch');try{await roomRef().update({watchers:{[me]:null}});}catch(e){} goHome();return;}
   if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
+  await hbStop();
   const s=g(); const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
   /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
   if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){try{await roomRef(c).update({seats:{[me]:null}});}catch(e2){}}goHome();return;}
@@ -1676,10 +1679,10 @@ async function backToLobby(force){
   await act(()=>roomRef().update(upd));
   if(isHost()){wipe(code,'chat',()=>true); wipe(code,'fx',()=>true); wipe(code,'guesses',d=>(d.round||0)<nr); wipe(code,'secrets',d=>(d.round||0)<nr);}
 }
-const arms={};
+const arms={}, armMsg={};
 function confirmTap(id,msg){
   const now=Date.now(); if(now-(arms[id]||0)<4000){arms[id]=0;return true;}
-  arms[id]=now; const b=document.getElementById(id); if(b) b.textContent=msg;
+  arms[id]=now; armMsg[id]=msg; const b=document.getElementById(id); if(b) b.textContent=msg;
   setTimeout(()=>{if(arms[id]===now)render();},4000); return false;
 }
 async function useHint(){
@@ -1768,6 +1771,8 @@ function key(k){
 }
 function bind(){
   const $=id=>document.getElementById(id);
+  /* 畫面重畫後，等第二下的按鈕要繼續顯示「再按一次」 */
+  for(const id in arms)if(arms[id]&&Date.now()-arms[id]<4000&&$(id))$(id).textContent=armMsg[id];
   app.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>key(b.dataset.k));
   app.querySelectorAll('[data-len]').forEach(b=>b.onclick=()=>setRule('len',+b.dataset.len));
   app.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>setRule('rep',b.dataset.rep==='1'));
