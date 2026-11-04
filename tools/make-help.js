@@ -31,7 +31,7 @@ async function grab(p,n,sel,dy=0){ // 把 sel 捲到畫面上方，截一塊固�
  await reset();const r=await room(b,3,opt);const [h,a,x]=r.ps;for(const q of r.ps)await q.evaluate(l=>localStorage.setItem('ab_look',l),LOOK);await h.waitForTimeout(300);
  await grab(a,'friends3','#ready',140);
  await grab(h,'fun1','.ibar',190);
- await h.click('[data-fin="0"]');await h.waitForTimeout(250);await grab(h,'modes2','[data-fin="1"]',60);await h.click('[data-fin="1"]');await h.waitForTimeout(150);
+ await h.click('#rulesBtn');await h.waitForTimeout(150);await h.click('[data-fin="0"]');await h.waitForTimeout(250);await grab(h,'modes2','[data-fin="1"]',60);await h.click('[data-fin="1"]');await h.waitForTimeout(150);await h.click('#rulesOk');await h.waitForTimeout(100);
  await a.click('#ready');await x.click('#ready');await h.waitForTimeout(250);await h.click('#start');await a.waitForSelector('.pad');await a.waitForTimeout(150);await grab(a,'friends4','#randSecret',96);
  for(const q of [h,a,x]){await q.click('#randSecret');await q.click('.pad [data-k="ok"]');}
  await h.waitForTimeout(5200);await h.waitForSelector('.pad');for(const q of [h,a,x]){const v=await q.evaluate(()=>secretOf(derive().A[me]));if(q!==x){await guess(q,v);}else{await q.click('#giveUp');await q.click('#giveUp');}}
@@ -39,7 +39,7 @@ async function grab(p,n,sel,dy=0){ // 把 sel 捲到畫面上方，截一塊固�
  await h.click('#again');await h.waitForTimeout(300);await a.click('#endReview').catch(()=>{});await x.click('#endReview').catch(()=>{});await a.waitForTimeout(200);
  await h.click('[data-gmode="coop"]');await h.waitForTimeout(200);await a.click('#ready');await x.click('#ready');
  const wc=await ctx(b,opt);await init(wc);const w=await page(wc,BASE+'#'+r.code);await name(w,'路人','#watchBtn');await grab(w,'watch0','.card',8);await w.click('#watchBtn');await w.waitForTimeout(300);
- await h.waitForTimeout(250);await h.click('#start');await h.waitForTimeout(3900);
+ await h.waitForTimeout(250);await h.click('#start');await h.waitForTimeout(5000);
  const mine=[h,a,x];for(const q of mine){if(await q.evaluate(()=>coopState().guesser===me)){await grab(q,'modes3','.turn',64);break;}}
  await w.waitForTimeout(200);await grab(w,'watch1','.ghostcard',8);
  await b.close();})().catch(e=>{console.error(e);process.exit(1)});

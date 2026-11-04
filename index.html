@@ -118,7 +118,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .pill.ok{color:var(--ok);border-color:var(--ok)}
 .pill.me{color:var(--card);background:var(--ink);border-color:var(--ink)}
 .slots{display:flex;justify-content:center;gap:10px}
-.slot{width:54px;height:64px;border-bottom:4px solid var(--ink);display:grid;place-items:center;font-family:var(--f-num);font-size:44px;color:var(--ink)}
+.slot{width:54px;height:54px;border-bottom:4px solid var(--ink);display:grid;place-items:center;font-family:var(--f-num);font-size:38px;color:var(--ink)}
 .slot.empty{border-bottom-color:var(--line)}
 .slot.lock{color:var(--ok);border-bottom-color:var(--ok)}
 .err{min-height:20px;color:var(--a);font-size:15px;text-align:center;margin:0}
@@ -214,10 +214,21 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes wig{25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 @keyframes bubOut{to{transform:translateY(-20px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bub,.bub.out{animation:none}}
-.roomhead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.roomhead>div:first-child{flex:1 1 150px}
-.codebox{display:flex;flex-direction:column;align-items:center;gap:0;border:2px dashed var(--ink);border-radius:12px;padding:6px 14px}
-.codebox b{font-family:var(--f-num);font-size:26px;letter-spacing:.2em;color:var(--ink);line-height:1.2}
+.roomhead{display:flex;align-items:center;gap:2px 10px;flex-wrap:wrap}
+.roomhead>.titlerow{flex:1 1 0;min-width:0;flex-wrap:nowrap}
+.titlerow h1{flex:0 0 auto}
+.titlerow .sub{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.subrow{flex:1 0 100%;display:flex;align-items:center;gap:14px;min-height:22px}
+.subrow .sub{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+/* 小連結：看起來小，手指按得到的範圍還是 44 */
+.hlink{font:inherit;font-size:14px;line-height:1.3;background:none;border:0;color:var(--ink);text-decoration:underline;white-space:nowrap;cursor:pointer;padding:12px 6px;margin:-12px -6px}
+.chead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.chead .sub{font-size:14px;white-space:nowrap}
+.chead h2{min-width:0}
+.codebox{display:flex;align-items:center;gap:4px;border:2px dashed var(--ink);border-radius:10px;padding:0 2px 0 10px;flex:0 0 auto}
+.codebox .lbl{display:none}
+.codebox b{font-family:var(--f-num);font-size:21px;font-weight:400;letter-spacing:.12em;color:var(--ink);line-height:1.2}
+.codebox .peek{min-height:40px;padding:4px 8px;font-size:14px}
 .pill.host{color:var(--b);border-color:var(--b)}
 .target{border:2px solid var(--ink)}
 .ptable{display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
@@ -242,7 +253,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .tools .btn{flex:1;font-size:14px;padding:6px 2px;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px}
 .hintrow .hg{font-family:var(--f-body);font-size:16px;letter-spacing:0;color:var(--ok)}
 .hc{display:block;font-size:11px;color:var(--muted);font-family:var(--f-body)}
-.lastres{margin:0;font-size:17px;color:var(--ink)}
+.lastres{margin:0;font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .opt{font-size:16px;color:var(--fg);margin-bottom:-6px}
 .seg button{font-family:var(--f-body)}
 .podium{width:100%;height:auto;display:block;margin-top:4px}
@@ -489,12 +500,36 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes walk{from{transform:translateX(-52px)}to{transform:translateX(262px)}}
 .wf2{visibility:hidden;animation:wf2 .36s steps(1,end) infinite}.wf1{animation:wf1 .36s steps(1,end) infinite}
 @keyframes wf1{50%{visibility:hidden}}@keyframes wf2{50%{visibility:visible}}
-#vsM{position:fixed;inset:0;z-index:68;display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:1fr auto;align-items:center;justify-items:center;background:#1d3a6b;overflow:hidden;padding:0 12px;cursor:pointer}
+#vsM{position:fixed;inset:0;z-index:68;display:grid;grid-template-columns:1fr auto 1fr;grid-template-rows:1fr auto auto auto;align-items:center;justify-items:center;background:#1d3a6b;overflow:hidden;padding:0 12px;cursor:pointer}
 #vsM[hidden]{display:none}
 #vsM svg{width:min(38vw,240px);height:auto;display:block}
+.vssub,.vsros,.vsload{grid-column:1/-1}
+.vsros{justify-self:stretch;margin-bottom:14px;color:#fff}
+.vsros:empty{display:none}
+.vsros .rost{justify-content:center}
+.vsros .rp b,.vsros .rp small{color:#fff}
+.vsload{width:min(280px,76vw);margin:0 0 calc(9vh + var(--safe-bot));text-align:center}
+.vsbar{height:18px;box-sizing:border-box;border:3px solid #fff;padding:2px;background:#142a4f}
+.vsbar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,var(--amb) 0 9px,transparent 9px 12px)}
+.vspct{margin:8px 0 0;font-family:var(--f-disp);font-size:18px;color:#fff;min-height:27px}
+.rost{display:grid;grid-template-columns:repeat(var(--n),minmax(0,64px));justify-content:center;gap:4px}
+.rp{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center}
+.rp svg{width:34px!important;height:34px!important;display:block}
+.rp b{font-weight:400;font-size:13px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
+.rp small{font-size:12px;line-height:1.2;color:var(--ok)}
+.rp.wait b,.rp.wait small{color:var(--muted)}
+.rp.wait small::after{content:"…"}
+.card.rostc{padding-block:8px}
+.rulebtn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.rulebtn .pwrap{flex:1 1 auto;min-width:0}
+.rulego{flex:0 0 auto;font-size:15px;color:var(--ink);text-decoration:underline}
+.pks.mode .pk{flex-direction:row;gap:6px;font-size:17px;min-height:46px}
+.pks.mode .pk svg{width:26px;height:26px}
+.rulesbox{max-width:440px;width:100%;box-sizing:border-box;max-height:calc(100dvh - 40px - var(--safe-top) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch}
+#rulesM{padding-block:calc(16px + var(--safe-top)) calc(16px + env(safe-area-inset-bottom,0px))}
 .vsl{animation:vsl .42s steps(6,end) backwards}.vsr{animation:vsr .42s steps(6,end) backwards}
 .vsx{font-family:var(--f-disp);font-weight:400;font-size:66px;color:var(--amb);text-shadow:-3px -3px 0 #1e1b2e,3px -3px 0 #1e1b2e,-3px 3px 0 #1e1b2e,3px 3px 0 #1e1b2e;animation:vsx .2s steps(3,end) .4s backwards}
-.vssub{grid-column:1/-1;margin:0 0 18vh;font-family:var(--f-disp);font-size:22px;color:#fff;animation:vsx .2s steps(2,end) .55s backwards}
+.vssub{margin:0 0 16px;font-family:var(--f-disp);font-size:22px;color:#fff;animation:vsx .2s steps(2,end) .55s backwards}
 @keyframes vsl{from{transform:translateX(-110vw)}}@keyframes vsr{from{transform:translateX(110vw)}}@keyframes vsx{from{transform:scale(2);opacity:0}}
 .dropin{animation:dropin .42s steps(6,end) backwards}.bubin{animation:bubin .2s steps(2,end) .42s backwards}
 @keyframes dropin{from{transform:translateY(-130px)}}@keyframes bubin{from{opacity:0}}
@@ -506,13 +541,19 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
 /* 輸入區（數字格＋提示列＋鍵盤）固定貼在畫面下緣，紀錄從後面滑過：不用捲動就按得到「確定」 */
-.padbox{position:sticky;bottom:calc(8px + var(--safe-bot) - var(--vgap));z-index:5;display:flex;flex-direction:column;gap:14px;background:var(--card);margin-inline:-8px;padding:6px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
-@media (max-height:760px){.wrap{padding-block:12px 20px;gap:12px}.card{gap:10px;padding:12px}.padbox{gap:8px}.pad{gap:6px}.pad button{padding:7px 0}.slot{height:46px;font-size:30px}.target{flex-direction:row;justify-content:center;align-items:baseline;gap:8px;padding-block:6px}.target h2{font-size:18px}.card>h2{font-size:18px}h1{font-size:24px}.roomhead .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.codebox{padding:2px 10px}.codebox b{font-size:20px}}
+.padbox{position:sticky;bottom:calc(8px + var(--safe-bot) - var(--vgap));z-index:5;display:flex;flex-direction:column;gap:8px;background:var(--card);margin-inline:-8px;padding:4px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
+@media (max-height:760px){.wrap{padding-block:12px 20px;gap:12px}.card{gap:10px;padding:12px}.padbox{gap:8px}.pad{gap:6px}.pad button{padding:7px 0}.slot{height:46px;font-size:30px}.target{flex-direction:row;justify-content:center;align-items:baseline;gap:8px;padding-block:6px}.target h2{font-size:18px}.card>h2,.chead h2{font-size:18px}h1{font-size:24px}.btn{padding:11px}}
+@media (max-height:780px){.homemenu .btn,.homeact .btn{padding:12px}.homemenu{gap:8px}}
+@media (max-height:700px){.stage{max-height:116px}.homemenu .btn,.homeact .btn{padding:9px;font-size:20px}}
+@media (max-height:660px){.stage{max-height:96px}}
 @media (max-height:600px){.slot{height:38px;font-size:26px}.pad button{padding:4px 0;font-size:23px}.padbox{gap:4px}}
 /* 手機橫放：鍵盤排成兩列，上方再壓縮 */
-@media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.roomhead{align-items:center}.roomhead .sub{display:none}.codebox{flex-direction:row;gap:8px}.codebox .lbl{display:none}.peekrow .peek{padding-block:2px}}
+@media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.subrow{flex:0 0 auto}.subrow .sub{display:none}.peekrow .peek{padding-block:2px}}
+.padbox>.err:empty{display:none}
+@media (min-height:780px){.padbox.setp{gap:12px}.padbox.setp .slot{height:64px;font-size:44px}.padbox.setp .pad{gap:10px}.padbox.setp .pad button{padding-block:16px}.padbox.setp .pad .ok{padding-block:15px}}
 .stk{position:sticky;bottom:calc(10px + var(--safe-bot) - var(--vgap));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .card.stk{padding-block:10px;gap:8px}
+.row.stk.nosh{box-shadow:none}
 .btn.ghost.stk{background:var(--card)}
 .diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
 #verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;min-height:44px;cursor:pointer}
@@ -598,7 +639,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-9';
+const APP_VERSION='2026.11.05-10';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -734,17 +775,17 @@ function progress(D){
 }
 function seg(attr,opts,cur,col,cls){return`<div class="pks ${cls||''}">${opts.map(([v,l,c])=>`<button type="button" class="pk ${c||col||''}" ${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join('')}</div>`;}
 
-let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, advOpen=false;
+let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false;
 let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
-const leaveLbl=()=>isHost()&&players().length>1?'離開房間（房主交給下一位）':'離開房間';
+const roomHead=(help,sub,links)=>`<header class="roomhead"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${help}" aria-label="這一頁怎麼玩">？</button></div><div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div><div class="subrow"><p class="sub">${sub}</p>${links}</div></header>`;
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
 const wideNow=()=>innerWidth>=740||(innerWidth>=620&&innerHeight<480); let wasWide=wideNow();
 function twoCol(){if(!wideNow()||!app.querySelector(':scope>.card svg.stage:not(.one)'))return;
   const L=document.createElement('div'),R=document.createElement('div');L.className='colL';R.className='colR';
-  [...app.children].forEach(c=>{if(c.tagName==='HEADER')return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
+  [...app.children].forEach(c=>{if(c.tagName==='HEADER'||c.classList.contains('upd'))return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
   app.append(L,R);}
 window.addEventListener('resize',()=>{const w=wideNow();if(w!==wasWide){wasWide=w;render();}});
 let lastKey='', swapT=null;
@@ -757,7 +798,9 @@ function paint(html){
   pendingPaint=null;
   const live=[...app.querySelectorAll('svg.stage,svg.podium')];
   const keep=[];app.querySelectorAll('g.char[data-who]').forEach(c=>{const hs=[...c.querySelectorAll('g.hit:not(.shed)')];const st=KST[c.dataset.who];if(hs.length||(st&&st.down))keep.push([c.dataset.who,hs]);});
+  const rb0=app.querySelector('.rulesbox'), rby=rb0?rb0.scrollTop:0;
   app.innerHTML=html; twoCol();
+  const rb1=app.querySelector('.rulesbox'); if(rb1)rb1.scrollTop=rby;
   const k=scrKey();if(k!==lastKey){lastKey=k;app.classList.remove('swap');void app.offsetWidth;app.classList.add('swap');clearTimeout(swapT);swapT=setTimeout(()=>app.classList.remove('swap'),240);}
   /* 場景內容沒變就留著原本的節點：呼吸動畫不會重來，身上的道具也不用重貼 */
   app.querySelectorAll('svg.stage,svg.podium').forEach(n=>{const src=n.outerHTML,o=live.find(x=>x._src===src);if(o)n.replaceWith(o);else n._src=src;});
@@ -799,55 +842,51 @@ function render(){
   const s=g(), D=derive(), inGame=me in D.A, hostName=nameOf(s.host);
   const nk=code+'_'+s.round; if(s.phase!=='coop'&&inGame&&D.status!=='lobby'&&(notesKey!==nk||notesLen!==s.len)) loadNotes(nk,s.len);
   if(inGame&&(D.status==='playing'||D.status==='over')) autoMarkFrom(D.by[me]||[],s.len);
-  h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">第 ${s.round} 局${s.rep?' · 可重複':''}${s.mode==='coop'?' · 合作':s.finish?'':' · 先猜中'}</p></div>
-    <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
+  const CH=s.phase==='coop'?coopState():null;
+  const links=`${isHost()&&!CH&&D.status!=='lobby'&&D.status!=='over'?'<button class="hlink" id="again" type="button">結束這局</button>':''}${isHost()&&CH&&!CH.over?'<button class="hlink" id="surrender" type="button">全隊投降</button>':''}<button class="hlink" id="leave" type="button">離開房間</button>`;
+  h=roomHead(D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck',`第 ${s.round} 局${s.rep?' · 可重複':''}${s.mode==='coop'?' · 合作':s.finish?'':' · 先猜中'}`,links)+h;
 
   const lost=s.phase==='coop'?(coopState().over?[]:coopState().order.filter(unseen)):D.status==='lobby'||D.status==='over'?[]:D.parts.filter(id=>unseen(id)&&!D.out[id]&&!D.solved[id]);
   h+=goneBar(lost)+takeBar(s);
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
   else if(D.status==='lobby'){
-    if(s.lastResult&&s.lastResult.text) h+=`<div class="card"><span class="lbl">上一局（第 ${s.lastResult.round} 局）</span><p class="lastres">${esc(s.lastResult.text)}</p></div>`;
     const here=D.P.filter(p=>!isGone(p.id)), others=here.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
     const allReady=here.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
-    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="pwrap">${D.P.map((p,i)=>`<span class="pchip ${p.id!==s.host&&p.ready?'ok':''}">${esc(p.name)}${p.id===me?'（你）':''}<small>${p.id===s.host?'房主':p.ready?'已準備':'未準備'}${unseen(p.id)?' · 離線':''}</small>${isHost()&&p.id!==me&&(unseen(p.id)||(stalled()&&!p.ready))?`<button class="peek" type="button" id="skip${i}" data-skip="${esc(p.id)}">請他離開</button>`:''}</span>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
-    ${D.P.length<2?`<button class="btn blue" id="inviteBtn" type="button">邀請朋友</button>`:''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
     const coopM=s.mode==='coop', hostM=isHost(), hcN=s.hintCost==null?2:s.hintCost, anN=angelMax(), acN=s.angelCost==null?1:s.angelCost, turnS=s.turnSec===0?0:(s.turnSec||60);
-    if(hostM) h+=`<div class="card center stk"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
+    const skips=hostM?D.P.map((p,i)=>[p,i]).filter(([p])=>p.id!==me&&(unseen(p.id)||(stalled()&&!p.ready))):[];
+    h+=`<div class="card"><div class="chead"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span><button class="hlink" id="lookBtn" type="button">換造型</button></div>${s.lastResult&&s.lastResult.text?`<p class="lastres">上一局：${esc(s.lastResult.text)}</p>`:''}${stageSVG(lobbyCast(D,s))}${itemBar('lobby')}
+      ${skips.length?`<div class="pwrap">${skips.map(([p,i])=>`<span class="pchip">${esc(p.name)}<button class="peek" type="button" id="skip${i}" data-skip="${esc(p.id)}">請他離開</button></span>`).join('')}</div>`:''}
+      ${watchersList().length?`<p class="lastres">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}</p>`:''}</div>`;
+    const chip=(t,c)=>`<span class="pchip ${c}">${esc(t)}</span>`;
+    const chips=`${hostM?'':chip(coopM?'合作打魔王':'互相猜','fill red')}${coopM?chip(STAGE_SHORT[s.stage]||'隨機職場','fill pur')+chip(s.diff==='hard'?'魔王困難':'魔王簡單','fill pur'):''}${chip(`${s.len} 位數`,'fill tea')}${chip(s.rep?'可重複':'不重複','fill amb')}${chip(coopM?(turnS?`每人 ${turnS} 秒`:'不限時'):s.finish?'全部猜完':'先猜中','fill blu')}${coopM?'':chip(hcN?`提示算 ${hcN} 次`:'沒有提示','')}${chip(anN?`小天使 ${anN} 次`:'沒有小天使','')}`;
+    h+=hostM?`<div class="card">${seg('data-gmode',[['battle',`${uiIcon('versus')}互相猜`,'red'],['coop',`${bossIc('office')}合作打魔王`,'pur']],s.mode||'battle','','mode')}<button class="rulebtn" id="rulesBtn" type="button"><span class="pwrap">${chips}</span><span class="rulego">修改</span></button></div>`:`<div class="card"><div class="pwrap">${chips}</div></div>`;
+    if(hostM){const inv=D.P.length<2, st=`<button class="btn ${inv?'':'stk'}" id="start" ${allReady?'':'disabled'}>${allReady?'開始遊戲':others.length?`等大家準備 ${readyN}/${others.length}`:'等朋友加入'}</button>`;
+      h+=inv?`<div class="row stk nosh"><button class="btn blue" id="inviteBtn" type="button">邀請朋友</button>${st}</div>`:st;}
     else { const rd=s.seats[me].ready; h+=`<button class="btn stk ${rd?'ghost':''}" id="ready">${rd?'取消準備':'準備完成'}</button>${rd?`<p class="hand" style="text-align:center;align-self:center"><span class="dot"></span>等 ${esc(hostName)} 開始遊戲</p>`:''}`; }
-    const toolTxt=[coopM?'':hcN?`提示算 ${hcN} 次`:'沒有提示',anN?`小天使${coopM?'全隊':'每人'} ${anN} 次`:'沒有小天使'].filter(Boolean).join('、');
-    if(!hostM){
-      const chip=(t,c)=>`<span class="pchip ${c}">${esc(t)}</span>`;
-      h+=`<div class="card"><span class="lbl">這局的玩法</span><div class="pwrap">${chip(coopM?'合作打魔王':'互相猜','fill red')}${chip(`${s.len} 位數`,'fill tea')}${chip(s.rep?'可重複':'不重複','fill amb')}${chip(coopM?(turnS?`每人 ${turnS} 秒`:'不限時'):s.finish?'全部猜完':'先猜中','fill blu')}${coopM?chip(s.diff==='hard'?'魔王困難':'魔王簡單','fill pur'):''}</div><p class="sub">${esc(toolTxt)}</p></div>`;
-    } else {
-      h+=`<div class="card"><span class="lbl">遊戲設定</span>
-      ${seg('data-gmode',[['battle',`${uiIcon('versus')}互相猜`,'red'],['coop',`${bossIc('office')}合作打魔王`,'pur']],s.mode||'battle','','big')}
+    if(!hostM) rulesOpen=false;
+    if(rulesOpen) h+=`<div class="upd" id="rulesM"><div class="card rulesbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">遊戲設定</h2><button type="button" class="dclose" id="rulesX" aria-label="關閉">✕</button></div>
       ${coopM?`<span class="opt">選職場</span>${roleGrid('data-rstage',s.stage||'random')}
-      ${seg('data-gdiff',[['easy','魔王簡單','tea'],['hard','魔王困難','red']],s.diff==='hard'?'hard':'easy')}
-      ${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],turnS,'blu')}`:seg('data-fin',[[1,'全部猜完<small>次數少的贏</small>'],[0,'先猜中<small>有人中就結束</small>']],s.finish?1:0)}
-      ${lenSeg('data-len','data-rep',s.len,s.rep)}
-      <button class="peek more" id="advBtn" type="button" aria-expanded="${advOpen}">${esc(toolTxt)}　${advOpen?'收起':'修改'}</button>
-      ${advOpen?`${coopM?'':`<span class="opt">用提示算幾次</span>
-      ${seg('data-hcost',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],hcN,'amb')}`}
-      <span class="opt">小天使可以叫幾次</span>
-      ${seg('data-ann',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],anN,'tea')}
-      ${coopM||!anN?'':`<span class="opt">叫小天使算幾次</span>
-      ${seg('data-acost',[[0,'不算'],[1,'1 次'],[2,'2 次']],acN,'tea')}`}`:''}</div>`;
-    }
-    h+=isHost()?`<div class="row"><button class="btn ghost" id="closeRoom">關閉房間</button></div><button class="peek" id="leave">${leaveLbl()}</button>`:`<button class="peek" id="leave">離開房間</button>`;
+      <span class="opt">魔王難度</span>${seg('data-gdiff',[['easy','魔王簡單','tea'],['hard','魔王困難','red']],s.diff==='hard'?'hard':'easy')}
+      <span class="opt">每人時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],turnS,'blu')}`:`<span class="opt">怎麼算贏</span>${seg('data-fin',[[1,'全部猜完<small>次數少的贏</small>'],[0,'先猜中<small>有人中就結束</small>']],s.finish?1:0)}`}
+      <span class="opt">題目</span>${lenSeg('data-len','data-rep',s.len,s.rep)}
+      ${coopM?'':`<span class="opt">用提示算幾次</span>${seg('data-hcost',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],hcN,'amb')}`}
+      <span class="opt">小天使可以叫幾次</span>${seg('data-ann',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],anN,'tea')}
+      ${coopM||!anN?'':`<span class="opt">叫小天使算幾次</span>${seg('data-acost',[[0,'不算'],[1,'1 次'],[2,'2 次']],acN,'tea')}`}
+      <button class="btn blue" id="rulesOk" type="button">完成</button><button class="peek" id="closeRoom" type="button">關閉房間</button></div></div>`;
   }
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
+    const ros=`<div class="card rostc">${roster(D.parts.map(id=>({name:nameOf(id),look:lookOf(id),ok:hasSecret(id),txt:hasSecret(id)?'已出題':unseen(id)?'離線':'出題中'})))}</div>`;
     if(inGame&&!hasSecret(me)){
-      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
+      h+=ros+`<div class="card"><div class="chead"><h2>出一題給別人猜</h2><span class="sub">${s.rep?'可以重複':'不能重複'}</span></div><div class="padbox setp">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
     } else if(inGame){
-      h+=`<div class="card center"><h2>題目送出了</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}）</p></div>`;
-    } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`;
-    h+=`<div class="card"><span class="lbl">出題進度</span><div class="plist">${D.parts.map(id=>`<div class="prow"><span class="pn">${esc(nameOf(id))}${id===me?'<span class="pill me">你</span>':''}</span><span class="pc"><span class="pill ${hasSecret(id)?'ok':''}">${hasSecret(id)?'已出題':'出題中'}</span></span></div>`).join('')}</div></div>`;
+      h+=`<div class="card center"><h2>題目送出了</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}）</p></div>`+ros;
+    } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`+ros;
   }
   else if(D.status==='loading'){
-    h+=`<div class="card center"><h2>送題目中</h2>${loaderHTML('大家收到就開始')}</div>
-    <div class="card"><span class="lbl">準備狀態（${D.acked.length}/${D.parts.length}）</span><div class="plist">${D.parts.map(id=>{const ok=D.acked.includes(id);return`<div class="prow"><span class="pn">${esc(nameOf(id))}${id===me?'<span class="pill me">你</span>':''}</span><span class="pc"><span class="pill ${ok?'ok':''}">${ok?'已就緒':'接收中…'}</span></span></div>`;}).join('')}</div>
-    ${D.acked.length<D.parts.length?'<p class="rules">一直顯示「接收中」的人，請他重新整理頁面，或改用 Safari 開啟。</p>':''}</div>`;
+    h+=`<div class="card center"><h2>等大家連線</h2>${loaderHTML(`${D.acked.length}/${D.parts.length} 人好了`)}</div>
+    <div class="card rostc">${roster(D.parts.map(id=>{const ok=D.acked.includes(id);return{name:nameOf(id),look:lookOf(id),ok,txt:ok?'好了':unseen(id)?'離線':'載入中'};}))}</div>
+    ${D.acked.length<D.parts.length?'<p class="rules">一直灰色的人，請他重新整理頁面，或改用 Safari 開啟。</p>':''}`;
   }
   else if(D.status==='countdown'){
     const left=Math.max(1,Math.ceil((s.startAt-Date.now())/1000));
@@ -868,7 +907,7 @@ function render(){
         <div class="tools">${D.hc?`<button class="btn ghost small tool" id="hintBtn" ${hl<=0||!secretOf(tgt)?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button>`:''}${D.aN?`<button class="btn ghost small tool" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>${angelIc()}小天使 ×${Math.max(0,D.aN-D.angels[me])}</button>`:''}<button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
-    h+=`<div class="card">${stageSVG(D.parts.map(id=>({id,name:nameOf(id),look:lookOf(id)})))}${itemBar('lobby')}</div>`;
+    h+=`<div class="card">${stageSVG(D.parts.map(id=>({id,name:nameOf(id),look:lookOf(id),off:unseen(id)})))}${itemBar('lobby')}</div>`;
     h+=progress(D);
     h+=board(D, D.parts.find(id=>id!==me)||D.parts[0]);
   }
@@ -878,12 +917,8 @@ function render(){
       <h1>${!top.length?'沒有人猜中':top.length>1?top.map(r=>esc(nameOf(r.id))).join('、')+' 並列第一！':esc(nameOf(top[0].id))+' 獲勝！'}</h1>${podium(D)}</div>
       <div class="card"><span class="lbl">排名</span><div class="plist">${D.rank.map(r=>`<div class="prow"><span class="pn"><b class="place">${r.place?r.place:'－'}</b>${esc(nameOf(r.id))}${r.id===me?'<span class="pill me">你</span>':''}</span><span class="pc">${r.c?`${r.c} 次猜中${usedTxt(r,D)}`:r.out==='gave'?`放棄（${r.n} 次）`:r.out==='left'?'已離開':`${r.n} 次，最高 ${r.best?r.best.A+'A'+r.best.B+'B':'—'}`}</span></div>`).join('')}</div></div>
       <div class="card"><span class="lbl">大家的題目</span><div class="plist">${D.parts.map(id=>`<div class="prow"><span class="pn">${esc(nameOf(id))} 出的題</span><span class="pc"><b class="secret">${esc(secretOf(id)||'？')}</b></span></div>`).join('')}</div></div>`;
-    h+=`<button class="btn" id="again">回到大廳</button><p class="rules" style="text-align:center">任何人按下，大家都會一起回大廳</p>`;
+    h+=`<button class="btn stk" id="again">回到大廳</button>`;
     h+=board(D, inGame?me:D.parts[0]);
-  }
-  if(D.status!=='lobby'){
-    if(isHost()&&D.status!=='over') h+=`<button class="btn ghost" id="again">結束這局，回到大廳</button>`;
-    h+=`<button class="peek" id="leave">${leaveLbl()}</button>`;
   }
   const CS=s.phase==='coop'?coopState():null;
   if(!CS&&D.status==='over'){const sec={},names={};D.parts.forEach(id=>{sec[id]=secretOf(id);names[id]=nameOf(id);});overSnap={len:s.len,rep:s.rep,by:D.by,A:D.A,sec,names};}
@@ -892,7 +927,7 @@ function render(){
     paint(`<div class="card center review"><p class="hand">大家已經回到大廳了，你可以慢慢看完再回去</p><button class="btn" id="endReview">回到大廳</button></div>`+reviewHTML.replace(/<button class="btn[^"]*" id="again">[^<]*<\/button>/g,''));
     sideUI(true,false); return;
   }
-  paint(h);
+  paint(h); vsRoom(s,D,CS,inGame);
   setTimeout(()=>{if(s.phase==='coop')coopStep();else syncStep(D);},0);
   const showN=CS?(CS.order.includes(me)&&!CS.countdown&&!CS.over):inGame&&(D.status==='playing'||D.status==='over');
   sideUI(true,showN);
@@ -1375,7 +1410,7 @@ function goneBar(ids){
   return`<div class="card gonebar"><span class="lbl">有人斷線了</span><div class="plist">${ids.map((id,i)=>`<div class="prow"><span class="pn">${esc(nameOf(id))}<span class="pill off">離線</span></span>${host?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(id)}">不等他</button>`:''}</div>`).join('')}</div>${host?'':'<p class="rules" style="margin:0">等他回來，或由房主決定不等他。</p>'}</div>`;
 }
 const takeBar=s=>!isHost()&&isSeated(me)&&isSeated(s.host)&&noBeat(s.host)&&stalled()?`<div class="card gonebar"><p class="rules" style="margin:0">房主一直沒有動作，可能已經離開了。</p><button class="btn ghost" type="button" id="takeHost">我來當房主</button></div>`:'';
-function goHome(){homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){vsOff();rulesOpen=false;homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
@@ -1414,7 +1449,7 @@ async function syncStep(D){
   }
   if(D.status==='loading'&&!s.startAt&&D.parts.length&&D.parts.every(id=>D.acked.includes(id)||D.out[id])&&Date.now()-starting>3000){
     starting=Date.now();
-    try{await roomRef().update({startAt:Date.now()+3000});}catch(e){starting=0;}
+    try{await roomRef().update({startAt:Date.now()+3500});}catch(e){starting=0;}
   }
   clearTimeout(tickT);
   if(D.status==='loading') tickT=setTimeout(()=>{if(derive().status==='loading')render();},3200);
@@ -1656,11 +1691,45 @@ function walkSVG(){const b=pxBuild({look:myLook()}),A=new Map(b.M);(b.F[b.face]|
   const P=M=>pxPaths(pxOutline(M))+pxPaths(M),x=pxBox(A);
   return`<svg class="walker" viewBox="${x.x0-1} ${x.y0-1} ${x.x1-x.x0+3} ${x.y1-x.y0+3}" shape-rendering="crispEdges" aria-hidden="true"><g class="wf1">${P(A)}</g><g class="wf2">${P(B)}</g></svg>`;}
 const loaderHTML=t=>`<div class="loader"><div class="ltrack">${walkSVG()}</div><p class="hand">${esc(t)}<span class="dots"></span></p></div>`;
-/* 開打前的對決畫面：兩邊滑進來，點一下可以跳過 */
-function vsIntro(a,b,sub){let el=document.getElementById('vsM');if(!el){el=document.createElement('div');el.id='vsM';document.body.appendChild(el);}
-  const pic=c=>`<svg viewBox="0 0 120 124" aria-hidden="true">${charSVG(60,120,c.name||'',c.color||'#9aa3b5',c)}</svg>`;
-  el.innerHTML=`<div class="vsl">${pic(a)}</div><b class="vsx">VS</b><div class="vsr">${pic(b)}</div><p class="vssub">${esc(sub||'')}</p>`;el.hidden=false;
-  const hide=()=>{clearTimeout(el._t);el.hidden=true;el.innerHTML='';};el.onclick=hide;el._t=setTimeout(hide,1500);}
+/* 開打前的對決畫面。一個人玩：跑進度條，點一下可以跳過。多人：等每個人連上，好了才上色，由 vsRoom 跟著房間狀態更新 */
+const VS_MS=2600, VS_STUCK=7000;
+let vsT=0, vsS=null, vsLoadK='', vsLoadAt=0, extending=0;
+const vsPic=c=>`<svg viewBox="0 0 120 124" aria-hidden="true">${charSVG(60,120,c.name||'',c.color||'#9aa3b5',c)}</svg>`;
+const vsEase=t=>t<.35?t*1.7:t<.6?.595+(t-.35)*.4:.695+(t-.6)*.7625;
+function vsOff(){clearInterval(vsT);vsS=null;const el=document.getElementById('vsM');if(el){el.hidden=true;el.innerHTML='';el.onclick=null;}}
+function vsTick(){const S=vsS,el=document.getElementById('vsM');if(!S||!el)return;const now=Date.now(),t=S.until>S.t0?Math.min(1,Math.max(0,(now-S.t0)/(S.until-S.t0))):1;
+  S.p=Math.min(100,Math.max(S.p||0,Math.round(S.from+(S.to-S.from)*(S.ease?S.ease(t):t))));
+  el.querySelector('.vsbar i').style.width=Math.round(S.p/5)*5+'%';
+  el.querySelector('.vspct').textContent=S.msg?S.msg(S.p,S.until-now):S.p<100?`載入中 ${S.p}%`:'開打！';
+  if(S.skip&&S.p>=100&&now>=S.until+220)vsOff();
+  if(S.room&&S.until&&now>S.until+1500)vsOff();}
+function vsShow(o){const el=document.getElementById('vsM');
+  if(!vsS||vsS.key!==o.key){clearInterval(vsT);vsS={};el.innerHTML=`<div class="vsl"></div><b class="vsx">VS</b><div class="vsr"></div><p class="vssub"></p><div class="vsros"></div><div class="vsload"><div class="vsbar"><i></i></div><p class="vspct"></p></div>`;el.hidden=false;vsT=setInterval(vsTick,70);}
+  const pa=vsPic(o.a), pb=vsPic(o.b), ro=o.ros&&o.ros.length>2?roster(o.ros):'';
+  if(vsS.pa!==pa)el.querySelector('.vsl').innerHTML=pa;
+  if(vsS.pb!==pb)el.querySelector('.vsr').innerHTML=pb;
+  if(vsS.ro!==ro)el.querySelector('.vsros').innerHTML=ro;
+  if(vsS.sub!==o.sub)el.querySelector('.vssub').textContent=o.sub||'';
+  Object.assign(vsS,o,{pa,pb,ro}); el.onclick=o.skip?vsOff:null; vsTick();}
+function vsIntro(a,b,sub){const now=Date.now();vsShow({key:'solo'+now,a,b,sub,t0:now,until:now+VS_MS,from:0,to:100,ease:vsEase,skip:true});}
+function vsRoom(s,D,C,inGame){
+  const on=C?C.countdown&&C.order.includes(me):inGame&&(D.status==='countdown'||D.status==='loading');
+  if(!on){if(vsS&&vsS.room)vsOff();return;}
+  const key='r'+code+'_'+s.round; if(vsLoadK!==key){vsLoadK=key;vsLoadAt=Date.now();}
+  /* 卡住就退回一般畫面，那裡有「不等他」可以按 */
+  if(!C&&D.status==='loading'&&Date.now()-vsLoadAt>VS_STUCK){if(vsS&&vsS.room)vsOff();return;}
+  const ok=C?id=>(s.seats[id]||{}).ack===s.round:id=>D.acked.includes(id)||!!D.out[id];
+  const ids=C?C.order:D.parts, wait=ids.filter(id=>!ok(id)), v=C&&(C.c.vil||{n:'魔王',c:'#e08a6a'}), tg=C?null:D.A[me];
+  const who=wait.length===1?nameOf(wait[0]):wait.length+' 人', phase=C?'coop':D.status, same=vsS&&vsS.key===key&&vsS.phase===phase;
+  const until=C?C.c.startAt:D.status==='countdown'?s.startAt:0;
+  const msg=(p,ms)=>wait.length?`等 ${who} 連線 ${p}%`:until?`${Math.max(1,Math.ceil(ms/1000))} 秒後開始`:'馬上開始';
+  vsShow({key,phase,room:true,t0:same?vsS.t0:Date.now(),until,msg,skip:false,
+    from:C?0:D.status==='countdown'?70:0,to:C?(wait.length?90:100):D.status==='countdown'?100:Math.round(70*(ids.length-wait.length)/Math.max(1,ids.length)),
+    a:{name:'你',look:lookOf(me),face:'A',off:!ok(me)},
+    b:C?{name:v.n,prop:v.p,boss:true,color:v.c}:{name:nameOf(tg),look:lookOf(tg),off:!ok(tg)},
+    sub:C?`全隊 ${ids.length} 人 VS ${v.n}`:`你要猜 ${nameOf(tg)}`,
+    ros:ids.map(id=>({name:nameOf(id),look:lookOf(id),ok:ok(id),txt:ok(id)?'好了':unseen(id)?'離線':'載入中'}))});
+}
 const angelIc=()=>`<span class="uii">${angelSVG()}</span>`;
 function ghostSVG(){return pxIcon(PX_GHOST,{W:'#f4f6fb',w:'#c9d1e2',K:'#1e1b2e',C:'#ffb3c1'});}
 function angelSVG(){return pxIcon(PX_ANGEL,{Y:'#ffd34d',y:'#e0a800',W:'#ffffff',w:'#d9e2f2',H:'#f2c94c',S:'#ffe0c2',K:'#1e1b2e',C:'#ff9a9a',R:'#fff4c2',r:'#e9d58a'});}
@@ -1715,10 +1784,14 @@ function vilIcon(v){return pxHead({prop:v.p,boss:true,color:v.c});}
 /* 角色身上的名字：白字深色描邊，不加框，什麼衣服顏色都看得清楚 */
 function nameTag(x,y,name,fs){if(!name)return '';
   return `<text x="${x}" y="${y}" text-anchor="middle" font-size="${fs}" fill="#fff" stroke="#1e1b2e" stroke-width="2.6" stroke-linejoin="round" paint-order="stroke" font-family="Cubic11,sans-serif">${esc(name)}</text>`;}
+/* 還沒好的人畫成灰色：直接換顏色碼，iPhone 對 SVG 內的 CSS 濾鏡支援不完整 */
+const grayPx=s=>s.replace(/#[0-9a-f]{6}\b/gi,c=>{const n=parseInt(c.slice(1),16),y=.3*(n>>16)+.59*(n>>8&255)+.11*(n&255),v=Math.round(100+y*.48).toString(16).padStart(2,'0');return'#'+v+v+v;});
+const roster=L=>`<div class="rost" style="--n:${Math.min(8,Math.max(2,L.length))}">${L.map(p=>`<div class="rp ${p.ok?'':'wait'}">${p.ok?headSVG(p.look):grayPx(headSVG(p.look))}<b>${esc(p.name)}</b>${L.length<=6?`<small>${esc(p.txt)}</small>`:''}</div>`).join('')}</div>`;
+const lobbyCast=(D,s)=>D.P.map(p=>{const gone=unseen(p.id), ok=p.id===s.host||p.ready;return{id:p.id,name:p.name,look:lookOf(p.id),off:gone||!ok,tag:gone?['離線','var(--a)']:p.id===s.host?['房主','var(--b)']:p.ready?['已準備','var(--ok)']:['未準備','var(--muted)']};});
 function charSVG(x,feetY,name,color,o){
   o=o||{}; const s=o.scale||1, fs=Math.min(12,34/Math.max(2,[...name].reduce((n,c)=>n+(c.charCodeAt(0)<256?.55:1),0)));
   const P=pxStand(x,feetY,{look:o.look,color,prop:o.prop,boss:o.boss,face:o.face,crown:o.crown});
-  const inner=`${P.svg}<g ${P.bz}>${nameTag(x,feetY-22,name,fs)}</g>
+  const inner=`${o.off?grayPx(P.svg):P.svg}<g ${P.bz}>${nameTag(x,feetY-22,name,fs)}</g>
    ${o.target?`<rect x="${x-36}" y="${P.top-6}" width="72" height="${feetY-P.top+12}" fill="transparent"/>`:''}`;
   const sc=s!==1?`<g transform="translate(${x} ${feetY}) scale(${s}) translate(${-x} ${-feetY})">${inner}</g>`:inner;
   return `<g class="char ${o.cls||''}" ${o.who?`data-who="${esc(o.who)}"`:''} ${o.target?`data-target="${esc(o.target)}"`:''} style="transform-origin:${x}px ${feetY}px;--hw:${Math.round(38*s)}px;${o.delay?`animation-delay:${o.delay}s`:''}">${sc}</g>`;
@@ -1732,9 +1805,10 @@ function stageSVG(list){
   const s=n<=3?1:n<=5?.85:n<=7?.72:.64, W=360, feet=152, gap=W/(n+1), X=i=>n===2?[W*.32,W*.64][i]:gap*(i+1);
   let out='';
   list.forEach((p,i)=>{const isMe=p.self||p.id===me;
-    out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':''});
-    if(isMe&&p.name!=='你'&&!p.noyou) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="var(--muted)" stroke="var(--muted)" stroke-width=".45" font-family="Cubic11,sans-serif">你</text>`;});
-  return `<svg class="stage" viewBox="0 ${feet-150} ${W} 172" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${n===1?54:W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
+    out+=charSVG(X(i),feet,p.name,p.color||PCOL[i%PCOL.length],{look:p.look,boss:p.boss,prop:p.prop,scale:p.boss?Math.min(1.1,s+.2):s,target:isMe?null:p.id,who:p.id,cls:isMe?'me':'',off:p.off});
+    const you=isMe&&p.name!=='你'&&!p.noyou, tx=p.tag?(you&&n<=4?'你 · ':'')+p.tag[0]:you?'你':'', tc=p.tag?p.tag[1]:'var(--muted)';
+    if(tx) out+=`<text x="${X(i)}" y="${feet+16}" text-anchor="middle" font-size="11" fill="${tc}" stroke="${tc}" stroke-width=".45" font-family="Cubic11,sans-serif">${tx}</text>`;});
+  return `<svg class="stage" viewBox="0 ${feet-124} ${W} 146" role="img" aria-label="玩家角色"><ellipse cx="${W/2}" cy="${feet+3}" rx="${n===1?54:W/2-10}" ry="6" fill="#000" opacity=".2"/>${out}</svg>`;
 }
 function scene(ws,ls,line,label,opt){ opt=opt||{};
   const W=360, ground=246, per=4, layers=[], big=ls.length<=2, px=big?4:3, base=big?18:14;
@@ -1948,7 +2022,9 @@ function bind(){
   if($('again')) $('again').onclick=()=>backToLobby();
   if($('copyCode')) $('copyCode').onclick=copyCode;
   if($('inviteBtn')) $('inviteBtn').onclick=copyCode;
-  if($('advBtn')) $('advBtn').onclick=()=>{advOpen=!advOpen;render();};
+  if($('rulesBtn')) $('rulesBtn').onclick=()=>{rulesOpen=true;render();};
+  ['rulesX','rulesOk'].forEach(id=>{if($(id))$(id).onclick=()=>{rulesOpen=false;render();};});
+  if($('rulesM')) $('rulesM').onclick=e=>{if(e.target.id==='rulesM'){rulesOpen=false;render();}};
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
   if($('rpBtn')) $('rpBtn').onclick=e=>replayNow(e.currentTarget.dataset.rpw);
   if($('randSecret')) $('randSecret').onclick=()=>{input=soloSecret(g().len,g().rep);err='';render();};
@@ -2098,10 +2174,11 @@ function coopAuto(){
   }
   autoMarkFrom(C.T,s.len);
 }
+const COOP_LEAD=4500;
 async function startCoop(){
   const s=g(), P=players().filter(p=>!isGone(p.id)); if(!isHost()||!P.length)return;
   const vl=villainFor(s.stage||'random');
-  await act(()=>roomRef().update({phase:'coop',startAt:0,assign:'{}',coop:{order:shuffle(P.map(p=>p.id)),startAt:Date.now()+3500,
+  await act(()=>roomRef().update({phase:'coop',startAt:0,assign:'{}',coop:{order:shuffle(P.map(p=>p.id)),startAt:Date.now()+COOP_LEAD,
     bossC:enc(soloSecret(s.len,s.rep),s.round,'boss'),team:soloSecret(s.len,s.rep),surrender:false,turnSec:s.turnSec===0?0:(s.turnSec||60),notes:null,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.win||vl.says),stage:vl.stageKey||''}}}));
 }
@@ -2147,6 +2224,12 @@ function coopStep(){
   if(C.B.length>lastBossN&&!C.over&&C.c.vil){lastBossN=C.B.length;coopSay={r:s.round,t:pick(C.c.vil.all||[C.c.vil.says])};saidNow=true;return render();}
   lastBossN=C.B.length;
   if(C.over)return;
+  /* 開場：每個人連上就回報；有人還沒好，房主把開始時間往後延，最多兩次，不會卡死 */
+  if(C.countdown){
+    if(C.order.includes(me)&&(s.seats[me]||{}).ack!==s.round&&Date.now()-acking>3000){acking=Date.now();roomRef().update({seats:{[me]:{ack:s.round}}}).catch(()=>{acking=0;});}
+    const ext=num(C.c.ext);
+    if(isHost()&&ext<2&&C.c.startAt-Date.now()<1100&&Date.now()-extending>1500&&C.order.some(id=>(s.seats[id]||{}).ack!==s.round&&!unseen(id))){extending=Date.now();roomRef().update({coop:{startAt:Date.now()+2600,ext:ext+1}}).catch(()=>{extending=0;});}
+  }
   const sk=s.round+'_'+C.r;
   if(skipSeen.k!==sk){skipSeen={k:sk,n:C.skips};}
   else if(C.skips>skipSeen.n){skipSeen.n=C.skips;const who=C.skipped,v=C.c.vil||{};
@@ -2288,8 +2371,7 @@ function angelTextFrom(L,len,rep){const W=deduce(L,len,rep),t=[];
   return t.join('');}
 function renderWatch(){
   const s=g(), D=derive(), coop=s.phase==='coop';
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="watch" aria-label="這一頁怎麼玩">？</button></div><p class="sub">觀戰中 · 第 ${s.round} 局</p></div>
-    <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`;
+  let h=roomHead('watch',`觀戰中 · 第 ${s.round} 局`,'<button class="hlink" id="leave" type="button">離開觀戰</button>');
   const tg=ghostTargets(), left=ghostsLeft(), aleft=angelsLeft();
   if(!tg.length||left<=0)ghostArmed=false; if(!tg.length||aleft<=0)angelArmed=false;
   const tip=!tg.length?'遊戲開始後才能用，每局幽靈 5 隻、天使 3 位':ghostArmed?'選一個玩家，他的畫面會被幽靈佔滿':angelArmed?'選一個玩家，天使會悄悄告訴他「照他自己的線索能確定什麼」':'幽靈：嚇人、擋住畫面 3 秒　天使：幫忙整理線索、提醒哪次猜錯';
@@ -2304,7 +2386,7 @@ function renderWatch(){
     h+=coopView(s).replace(/<button class="btn" id="again">[^<]*<\/button>/g,'');
   } else if(D.status==='lobby'){
     if(s.lastResult&&s.lastResult.text) h+=`<div class="card"><span class="lbl">上一局（第 ${s.lastResult.round} 局）</span><p class="lastres">${esc(s.lastResult.text)}</p></div>`;
-    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}<p class="hand" style="text-align:center"><span class="dot"></span>等 ${esc(nameOf(s.host))} 開始遊戲</p></div>
+    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(lobbyCast(D,s))}<p class="hand" style="text-align:center"><span class="dot"></span>等 ${esc(nameOf(s.host))} 開始遊戲</p></div>
       ${D.P.length<MAXP?`<button class="btn ghost" id="becomePlayer">我也要玩（改成加入玩家）</button>`:''}`;
   } else if(D.status==='over'){
     const top=D.rank.filter(r=>r.place===1);
@@ -2318,8 +2400,6 @@ function renderWatch(){
       return`<div class="card gv"><div class="gvh"><span><b>${esc(nameOf(id))}</b> 猜 <b>${esc(nameOf(t))}</b> 的題　${st}</span><span class="gvn">${D.cnt[id]} 次${D.hints[id]?`（含提示）`:''}</span></div>
         <div class="gvs"><span class="sub">答案</span><b class="secret">${D.status==='secret'?(hasSecret(t)?esc(sec||'？'):'出題中'):esc(sec||'？')}</b></div>${D.status==='secret'?'':watchHist(id,D.by[id],t)}</div>`;}).join('');
   }
-  if(coop) h=h.replace(/<button class="btn ghost" id="(closeRoom|surrender)">[^<]*<\/button>/g,'').replace(/<button class="peek" id="leave">[^<]*<\/button>/g,'');
-  h+=`<button class="peek" id="leave">離開觀戰</button>`;
   paint(h); sideUI(true,false);
   clearTimeout(tickT);
   if(!coop&&D.status==='loading') tickT=setTimeout(()=>{if(R&&derive().status==='loading')render();},3200);
@@ -2335,7 +2415,7 @@ function coopView(s){
     const pic=C.result==='win'?scene(team,[boss],v.back,'全隊踩在'+v.n+'身上',{ai:'p:boss|'+team.map(t=>t.who).join(',')}):C.result==='tie'?scene(team.concat([{...boss,boss:true}]),[],'下一局分勝負','平手'):scene([{...boss,boss:true,tg:isSeated(me)}],team,v.says2,v.n+'踩在全隊身上')+(isSeated(me)?podBar():'');
     h+=`<div class="card center" style="padding-block:24px"><span class="who" style="align-self:center">合作模式 · 第 ${s.round} 局結束</span><h1>${title}</h1><p class="hand">${sub}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${esc(v.n)}的題目</span><b>${esc(C.bossSecret||'？')}</b></div><div><span class="sub">全隊的題目</span><b>${esc(C.c.team||'')}</b></div></div></div>
-      <button class="btn ghost" id="rpBtn">看復盤</button><button class="btn" id="again">回到大廳</button>`;
+      <div class="row"><button class="btn ghost" id="rpBtn">看復盤</button><button class="btn" id="again">回到大廳</button></div>`;
     overSnap={coop:true,len:s.len,rep:s.rep,diff:s.diff==='hard'?'hard':'easy',name:v.n,T:C.T,B:C.B,boss:C.bossSecret,team:C.c.team};
   } else if(C.countdown){
     const left=Math.max(1,Math.ceil((C.c.startAt-Date.now())/1000));
@@ -2350,14 +2430,12 @@ function coopView(s){
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
       (mine&&!C.waitingBoss?`<div class="padbox">${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}</div>`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?`<button class="btn ghost small tool" id="hintBtn">${uiIcon('bulb')}提示</button>`:''}${inTeam&&angelMax()?`<button class="btn ghost small tool" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>${angelIc()}小天使 ×${coopAngelsLeft()}</button>`:''}</div>`:'')+`</div>`;
-    h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
+    h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id),off:unseen(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
     h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
       ${isHost()&&!C.T.length?`<div class="sendrow"><input type="text" id="teamSet" inputmode="numeric" maxlength="${s.len}" placeholder="房主可以改成自己出的題"><button class="btn" id="teamSetBtn" style="width:auto;padding:10px 14px">改題目</button></div>`:''}</div>`;
     h+=`<div class="card"><span class="lbl">${esc(v.n)}猜全隊的題</span>${cpuHistHTML(C.B)}</div>`;
     h+=`<div class="card"><span class="lbl">輪流順序</span><div class="chips">${C.order.map(id=>`<span class="pill ${id===C.guesser&&!C.waitingBoss?'ok':''}">${esc(nameOf(id))}${id===me?'（你）':''}</span>`).join('')}</div>${!inTeam?'<p class="rules">這一局開始時你還沒加入，可以先觀戰。</p>':''}</div>`;
-    if(isHost()) h+=`<button class="btn ghost" id="surrender">全隊投降</button>`;
   }
-  h+=`<button class="peek" id="leave">${leaveLbl()}</button>`;
   return h;
 }
 /* ---------- 丟東西、敲魔王（純互動） ---------- */
@@ -2758,11 +2836,10 @@ function renderSolo(){
   saveSolo();
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil;
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div></header>`;
+  let h=`<header class="roomhead"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div><button class="hlink" id="soloQuit" type="button">回首頁</button></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'可以重複':'不能重複'}</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>
-      <button class="peek" id="soloQuit">回首頁</button>`;
+      <div class="card"><div class="chead"><h2>出一題給${esc(vil.n)}猜</h2><span class="sub">${s.rep?'可以重複':'不能重複'}</span></div><div class="padbox setp">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
     paint(h); sideUI(false,false); return;
   }
   if(notesKey!==nk||notesLen!==s.len) loadNotes(nk,s.len);
@@ -2776,7 +2853,6 @@ function renderSolo(){
       <div class="tools"><button class="btn ghost small tool" id="hintBtn" ${hl<=0||waiting?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button><button class="btn ghost small tool" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>${angelIc()}小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
     if(duel) h+=`<div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${s.chist.length||!s.give?cpuHistHTML(s.chist):`<div class="empty-h">${esc(vil.n)}讓你 ${s.give} 回合，第 ${s.give+1} 回合才開始猜</div>`}</div>`;
-    h+=`<button class="peek" id="soloQuit">回首頁</button>`;
   } else {
     const r=s.result, n=s.hist.length;
     const title=!duel?(r==='win'?`${n} 次猜中！`:'下次再來'):r==='win'?`你贏了！`:r==='tie'?'平手！':r==='lose'?`${esc(vil.n)}贏了…`:'下次再來';
@@ -2786,8 +2862,7 @@ function renderSolo(){
       :scene([{who:'p:boss',tg:true,name:vil.n,color:vil.c,boss:true,prop:vil.p}],[{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],vil.says2,vil.n+'踩在你身上')+podBar();
     h+=`<div class="card center" style="padding-block:24px"><h1>${title}</h1><p class="hand">${sub}${used?`（用了 ${used} 次提示）`:''}，花了 ${fmtTime(s.end-s.start)}</p>${pic}
       <div class="reveal" style="width:100%"><div><span class="sub">${duel?esc(vil.n)+'的題目':'答案'}</span><b>${esc(s.secret)}</b></div>${duel?`<div><span class="sub">你的題目</span><b>${esc(s.mine)}</b></div>`:''}</div></div>
-      <button class="btn ghost" id="rpBtn">看復盤</button>
-      <button class="btn" id="soloAgain">再玩一局</button><button class="peek" id="soloQuit">回首頁</button>`;
+      <div class="row"><button class="btn ghost" id="rpBtn">看復盤</button><button class="btn" id="soloAgain">再玩一局</button></div>`;
   }
   paint(h); sideUI(false,!s.result);
 }

@@ -10,6 +10,8 @@ node tools/test-slow-net.js   # Firebase 很慢時畫面要先出來
 node tools/test-sizes.js      # 各種裝置尺寸有沒有超出畫面
 node tools/test-stress.js     # 8 個人、超長名字、猜很多次
 node tools/test-rooms.js     # 放一天沒動靜的房間自動收掉、首頁改名字
+node tools/test-start.js     # 開場：VS 進度條、多人等連線（好了才上色）、合作延後開始
+node tools/test-fit.js all   # 各種手機尺寸每個畫面要不要滑（FIT=1 時超出算失敗）
 node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
 node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）
 ```
