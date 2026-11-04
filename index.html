@@ -443,6 +443,9 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .diag{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;font-family:var(--f-num)}
 #verBtn{font:inherit;color:inherit;background:none;border:0;padding:6px 8px;cursor:pointer}
 .stage,.podium,.stage2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.pill.off{color:var(--a);border-color:var(--a);margin-left:6px}
+.gonebar{gap:8px;border-color:var(--a)}
+.gonebar .prow{padding-block:4px}
 .offl{position:fixed;top:calc(10px + var(--st));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
@@ -520,11 +523,13 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-6';
+const APP_VERSION='2026.11.05-7';
+/* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
+const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
 /* ab_live：這個分頁現在在玩什麼（'solo' 或房號）。手機切出去被系統重新載入、或按重新整理時，靠它直接回到原本的局 */
 const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del(k){try{sessionStorage.removeItem(k);}catch(e){}}};
@@ -538,11 +543,45 @@ function hk(pid){let h=0;for(const ch of String(pid))h=(h*31+ch.charCodeAt(0))%9
 function enc(s,r,pid){const k=r*7+hk(pid)*3;return btoa(s.split('').map((d,i)=>String.fromCharCode(65+((+d+k+i*5)%10)+10*((i*7+r)%2))).join('')).split('').reverse().join('');}
 function dec(c,r,pid){const k=r*7+hk(pid)*3;try{return atob(c.split('').reverse().join('')).split('').map((ch,i)=>{const v=(ch.charCodeAt(0)-65)%10;return String(((v-(k+i*5))%10+1000000)%10);}).join('');}catch(e){return null;}}
 
+/* 資料庫讀回來的東西一律當成外來資料：數字轉成數字、代號和顏色只收認得的格式，畫面和邏輯都只用清過的資料。
+   只在讀取時處理，寫進資料庫的格式完全不變，新舊版手機可以同房。 */
+const num=(v,d=0)=>{const n=typeof v==='number'?v:(typeof v==='string'&&v.trim()!=='')?Number(v):NaN;return Number.isFinite(n)?n:d;};
+const txt=(v,n=300)=>typeof v==='string'?v.slice(0,n):typeof v==='number'?String(v):'';
+const own=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
+const isMap=v=>!!v&&typeof v==='object'&&!Array.isArray(v);
+const usage=v=>isMap(v)?{r:num(v.r),n:num(v.n)}:undefined;
+function cleanSeat(v){if(!isMap(v)||!txt(v.name,16))return null;const o={...v,name:txt(v.name,16),ready:!!v.ready,joinedAt:num(v.joinedAt),look:txt(v.look,40)};
+  for(const k of ['ack','gaveUp','hb'])if(o[k]!=null)o[k]=num(o[k]);
+  for(const k of ['an','gh'])if(o[k]!=null)o[k]=usage(o[k]);
+  return o;}
+const cleanSeats=m=>{const o={};if(isMap(m))for(const id in m)o[id]=cleanSeat(m[id]);return o;};
+function cleanVil(v){if(!isMap(v))return undefined;return{...v,n:txt(v.n,12),p:v.p==='dino'||own(PX_VIL,v.p)?v.p:'',c:/^#[0-9a-f]{6}$/i.test(v.c)?v.c:'#9aa3b5',all:Array.isArray(v.all)?v.all.map(x=>txt(x,60)):undefined,says:txt(v.says,60),back:txt(v.back,60),says2:txt(v.says2,60),stage:txt(v.stage,24)};}
+function cleanCoop(c){if(!isMap(c))return null;const o={...c,order:Array.isArray(c.order)?c.order.map(x=>txt(x,64)):[],startAt:num(c.startAt),bossC:txt(c.bossC,40),team:txt(c.team,8).replace(/\D/g,''),surrender:!!c.surrender,vil:cleanVil(c.vil)};
+  if(c.turnSec!=null)o.turnSec=num(c.turnSec);if(c.an!=null)o.an=usage(c.an);
+  const n=c.notes;o.notes=isMap(n)?{d:Array.isArray(n.d)?n.d.map(x=>x===1||x===2?x:0):undefined,pos:Array.isArray(n.pos)?n.pos.map(x=>/^\d$/.test(String(x??''))?String(x):''):[],memo:txt(n.memo),auto:Array.isArray(n.auto)?n.auto.filter(x=>typeof x==='number'):[]}:null;
+  return o;}
+function cleanRoom(d){d=isMap(d)?d:{};const L=num(d.len),o={...d};
+  for(const [k,n] of [['ver',24],['host',64],['code',8],['assign',3000],['phase',12],['mode',12],['diff',8],['stage',24]])o[k]=txt(d[k],n);
+  o.round=Math.max(1,Math.floor(num(d.round,1)));o.len=L===3||L===5?L:4;o.rep=!!d.rep;o.finish=!!d.finish;o.startAt=num(d.startAt);o.chatSince=num(d.chatSince);
+  for(const k of ['turnSec','hintCost','angelN','angelCost'])if(d[k]!=null)o[k]=num(d[k]);
+  o.seats=cleanSeats(d.seats);o.watchers=cleanSeats(d.watchers);
+  if(isMap(d.lastResult))o.lastResult={round:num(d.lastResult.round),text:txt(d.lastResult.text)};else delete o.lastResult;
+  o.coop=cleanCoop(d.coop);return o;}
+function cleanGuess(x){if(!/^\d{1,8}$/.test(String(x.g??'')))return null;
+  const o={...x,g:String(x.g),round:num(x.round),n:num(x.n),at:num(x.at),pid:txt(x.pid,64),target:txt(x.target,64),kind:txt(x.kind,8),think:txt(x.think,400),hint:!!x.hint,A:x.A==null?null:num(x.A),B:x.B==null?null:num(x.B)};
+  if(x.pos!=null)o.pos=num(x.pos);return o;}
+const cleanSecret=x=>({...x,round:num(x.round),pid:txt(x.pid,64),c:txt(x.c,40)});
+const cleanChat=x=>({...x,pid:txt(x.pid,64),name:txt(x.name,16),text:txt(x.text,60),at:num(x.at)});
+function cleanFx(x){const it=txt(x.item,10);if(it!=='ghost'&&it!=='angel'&&!own(PX_ITEM,it))return null;
+  return{...x,item:it,pid:txt(x.pid,64),name:txt(x.name,16),target:txt(x.target,70),n:Math.min(20,Math.max(1,Math.floor(num(x.n,1)))),res:txt(x.res,20),text:txt(x.text,300),at:num(x.at)};}
+const docsOf=(snap,fn)=>snap.docs.map(x=>fn({id:x.id,...x.data()})).filter(Boolean);
+
 const g=()=>solo||R||{};
 function assignMap(){try{return JSON.parse(g().assign||'{}')||{};}catch(e){return{};}}
-function players(){const S=g().seats||{};return Object.entries(S).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v})).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));}
+function players(){const S=g().seats||{};return Object.entries(S).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v})).sort((a,b)=>((a.joinedAt||0)-(b.joinedAt||0))||(a.id<b.id?-1:1));}
 const isSeated=id=>!!(id&&g().seats&&g().seats[id]);
-const nameOf=id=>(g().seats&&g().seats[id]&&g().seats[id].name)||(g().watchers&&g().watchers[id]&&g().watchers[id].name)||'玩家';
+const nameBook={}; /* 離開的人座位會清空，名字留一份，畫面才不會變成「玩家」 */
+const nameOf=id=>(g().seats&&g().seats[id]&&g().seats[id].name)||(g().watchers&&g().watchers[id]&&g().watchers[id].name)||nameBook[id]||'玩家';
 const isWatcher=id=>!!(id&&!isSeated(id)&&g().watchers&&g().watchers[id]);
 const watchersList=()=>Object.entries(g().watchers||{}).filter(([id,v])=>v&&typeof v==='object').map(([id,v])=>({id,...v}));
 const isHost=()=>g().host===me;
@@ -602,7 +641,7 @@ function pad(useNotes,okOff){
     return`<button data-k="${k}" class="${!g().rep&&(input.includes(k)||locks.includes(k))?'used':''} ${nt}">${k}</button>`;
   }).join('')+'</div>';
 }
-const ab=x=>x?`<span class="A">${x.A}A</span><span class="B">${x.B}B</span>`:'—';
+const ab=x=>x?`<span class="A">${num(x.A)}A</span><span class="B">${num(x.B)}B</span>`:'—';
 const errKey=()=>err?`<p class="err">${esc(err)}</p>`:'<p class="err abkey"><b class="A">A</b> 數字、位置都對　<b class="B">B</b> 數字對、位置錯</p>';
 function histHTML(list){
   if(!list||!list.length)return'<div class="empty-h">還沒猜過</div>';
@@ -649,7 +688,7 @@ function paint(html){
 app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
 function render(){
   if(solo) return renderSolo();
-  if(!db&&!fbWait){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>${footer()}`;bind();sideUI(false,false);return;}
+  if(!db&&!fbWait){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">${navigator.onLine===false?'目前沒有網路。可以先玩邊緣人模式，連上網路後會自動回到首頁':'目前連不上多人伺服器，可以先玩邊緣人模式'}</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center"><button class="peek" onclick="location.reload()">重新連線</button></p>${footer()}`;bind();sideUI(false,false);return;}
   let h='';
   if(noAccess) h+=`<div class="card"><p class="err" style="text-align:left">${esc(noAccess)}</p></div>`;
 
@@ -671,7 +710,7 @@ function render(){
     paint(h); sideUI(false,false); return;
   }
   if(roomMissing){ls.del('ab_room');lastHTML='';app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>房間 ${esc(code)} 已關閉</h2><p class="hand">房主已經關閉這個房間，聊天和遊戲紀錄都清除了。</p><button class="btn" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
-  if(R&&R.ver!==APP_VERSION){ls.del('ab_room');setTimeout(()=>{goHome();toast('遊戲已更新，請重新開房');},0);lastHTML='';app.innerHTML='';sideUI(false,false);return;}
+  if(R&&!roomOK(R.ver)){ls.del('ab_room');setTimeout(()=>{goHome();toast('遊戲已更新，請重新開房');},0);lastHTML='';app.innerHTML='';sideUI(false,false);return;}
   if(!R){lastHTML='';app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>房間 ${esc(code)}</h2><p class="sub">讀取中…</p></div>`;sideUI(false,false);return;}
   if(!isSeated(me)&&isWatcher(me)) return renderWatch();
   if(!isSeated(me)){lastHTML='';app.innerHTML=`<div class="card center" style="padding-block:32px"><h2>你已不在房間 ${esc(code)}</h2><button class="btn" id="rejoin">重新加入</button><button class="peek" id="home">回首頁</button></div>`;bind();sideUI(false,false);return;}
@@ -682,12 +721,14 @@ function render(){
   h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">第 ${s.round} 局 · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${s.mode==='coop'?'合作打魔王 · '+(s.diff==='hard'?'困難':'簡單'):s.finish?'全部猜完':'先中先贏'}</p></div>
     <div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div></header>`+h;
 
+  const lost=s.phase==='coop'?(coopState().over?[]:coopState().order.filter(unseen)):D.status==='lobby'||D.status==='over'?[]:D.parts.filter(id=>unseen(id)&&!D.out[id]&&!D.solved[id]);
+  h+=goneBar(lost)+takeBar(s);
   if(s.phase==='coop'){ coopAuto(); h+=coopView(s); }
   else if(D.status==='lobby'){
     if(s.lastResult&&s.lastResult.text) h+=`<div class="card"><span class="lbl">上一局（第 ${s.lastResult.round} 局）</span><p class="lastres">${esc(s.lastResult.text)}</p></div>`;
-    const others=D.P.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
-    const allReady=D.P.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
-    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="plist">${D.P.map(p=>`<div class="prow"><span class="pn">${esc(p.name)}${p.id===me?'<span class="pill me">你</span>':''}</span><span class="pc">${p.id===s.host?'<span class="pill host">房主</span>':`<span class="pill ${p.ready?'ok':''}">${p.ready?'已準備':'未準備'}</span>`}</span></div>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
+    const here=D.P.filter(p=>!isGone(p.id)), others=here.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
+    const allReady=here.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
+    h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="plist">${D.P.map((p,i)=>`<div class="prow"><span class="pn">${esc(p.name)}${p.id===me?'<span class="pill me">你</span>':''}</span><span class="pc">${p.id===s.host?'<span class="pill host">房主</span>':`<span class="pill ${p.ready?'ok':''}">${p.ready?'已準備':'未準備'}</span>`}${unseen(p.id)?'<span class="pill off">離線</span>':''}${isHost()&&p.id!==me&&(unseen(p.id)||(stalled()&&!p.ready))?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(p.id)}">請他離開</button>`:''}</span></div>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
     ${D.P.length<2?`<button class="btn" id="inviteBtn" type="button">邀請朋友</button><p class="rules" style="text-align:center">朋友點連結就能加入，也可以在首頁輸入邀請碼 ${esc(code)}</p>`:''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
     const coopM=s.mode==='coop', hostM=isHost(), hcN=s.hintCost==null?2:s.hintCost, anN=angelMax(), acN=s.angelCost==null?1:s.angelCost, turnS=s.turnSec===0?0:(s.turnSec||60);
     if(hostM) h+=`<div class="card center stk"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
@@ -776,7 +817,7 @@ function render(){
   const CS=s.phase==='coop'?coopState():null;
   if((CS&&CS.over)||(!CS&&D.status==='over')){reviewHTML=h;overRound=s.round;}
   if(reviewing&&reviewHTML){
-    paint(`<div class="card center review"><p class="hand">房主已經回到大廳準備下一局，你可以慢慢看完再回去</p><button class="btn" id="endReview">回到大廳</button></div>`+reviewHTML.replace(/<button class="btn[^"]*" id="again">[^<]*<\/button>/g,''));
+    paint(`<div class="card center review"><p class="hand">大家已經回到大廳準備下一局，你可以慢慢看完再回去</p><button class="btn" id="endReview">回到大廳</button></div>`+reviewHTML.replace(/<button class="btn[^"]*" id="again">[^<]*<\/button>/g,''));
     sideUI(true,false); return;
   }
   paint(h);
@@ -786,7 +827,7 @@ function render(){
   if(!CS&&showN&&(notesKey!==code+'_'+s.round||notesLen!==s.len)) loadNotes(code+'_'+s.round,s.len);
 }
 let notesOpen=false, chatOpen=false, unread=0;
-function netUI(){const el=document.getElementById('offl');if(el)el.hidden=navigator.onLine!==false||!!solo;}
+function netUI(){const el=document.getElementById('offl');if(!el)return;const off=navigator.onLine===false;el.hidden=(!off&&!netBad)||!!solo;el.textContent=off?'沒有網路，連上後會自動繼續':'連線不穩，正在重新連線…';}
 addEventListener('online',netUI);addEventListener('offline',netUI);
 function sideUI(chatOn,notesOn){
   netUI();
@@ -1023,7 +1064,7 @@ document.getElementById('sendForm').onsubmit=async e=>{e.preventDefault();const 
 /* ---------- 房間 ---------- */
 async function act(fn){
   try{await fn();noAccess='';}
-  catch(e){noAccess=`連線出了問題，請稍後再試一次。（代碼：${(e&&(e.code||e.message))||'unknown'}）`;}
+  catch(e){noAccess=navigator.onLine===false?'目前沒有網路，連上後再試一次。':`連線出了問題，請稍後再試一次。（代碼：${(e&&(e.code||e.message))||'unknown'}）`;}
   render();
 }
 const roomRef=c=>db.doc('rooms/'+(c||code));
@@ -1035,7 +1076,7 @@ async function createRoom(){
   homeErr=''; busy=true; render();
   await act(async()=>{
     let c=newCode(); for(let t=0;t<5;t++){const sn=await roomRef(c).get();if(!sn.exists)break;c=newCode();}
-    await roomRef(c).set({ver:APP_VERSION,chatSince:0,code:c,host:me,createdAt:Date.now(),round:1,len:4,rep:false,finish:true,phase:'lobby',assign:'{}',seats:{[me]:{name:n,ready:true,joinedAt:Date.now(),look:lookStr(myLook())}}});
+    await roomRef(c).set({ver:ROOM_VER,chatSince:0,code:c,host:me,createdAt:Date.now(),round:1,len:4,rep:false,finish:true,phase:'lobby',assign:'{}',seats:{[me]:{name:n,ready:true,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}});
     enterRoom(c);
   });
   busy=false; render();
@@ -1047,12 +1088,12 @@ async function joinRoom(c,watch){
   homeErr=''; busy=true; render();
   await act(async()=>{
     const sn=await roomRef(c).get();
-    if(!sn.exists){if(ls.get('ab_room')===c)ls.del('ab_room');homeErr=`找不到房間 ${c}，請確認邀請碼`;return;}
-    if(sn.data().ver!==APP_VERSION){
+    if(!sn.exists||!(sn.data()||{}).ver){if(ls.get('ab_room')===c)ls.del('ab_room');homeErr=`找不到房間 ${c}，請確認邀請碼`;return;}
+    if(!roomOK(sn.data().ver)){
       if(ls.get('ab_room')===c)ls.del('ab_room');
-      if(verNewer(sn.data().ver,APP_VERSION)){homeErr=`你的遊戲版本比房間舊，更新後再加入一次`;updShown=true;updTick();return;}
+      if(verNewer(sn.data().ver,ROOM_VER)){homeErr=`你的遊戲版本比房間舊，更新後再加入一次`;updShown=true;updTick();return;}
       homeErr=`房間 ${c} 是舊版本建立的，請房主重新開房`;return;}
-    const d=sn.data(), cnt=Object.values(d.seats||{}).filter(Boolean).length;
+    const d=cleanRoom(sn.data()), cnt=Object.values(d.seats||{}).filter(Boolean).length;
     if(watch&&!(d.seats||{})[me]){
       if(Object.values(d.watchers||{}).filter(Boolean).length>=20){homeErr='觀眾太多了，等一下再來';return;}
       await roomRef(c).update({watchers:{[me]:{name:n,look:lookStr(myLook()),joinedAt:Date.now()}}});
@@ -1061,11 +1102,16 @@ async function joinRoom(c,watch){
     if((d.watchers||{})[me]&&!(d.seats||{})[me]&&!watch&&ls.get('ab_watch')===c){enterRoom(c);return;}
     if(!(d.seats||{})[me]){
       const same=Object.entries(d.seats||{}).filter(([id,v])=>v&&v.name===n&&id!==me);
-      if(same.length===1&&confirm(`房間裡已經有「${n}」，是你剛剛斷線或重新整理嗎？\n\n按「確定」接回原本的位子（題目和猜過的紀錄都會保留）\n按「取消」用新的身分加入`)){
+      /* 同名的人還在線上就不是「斷線的你」，不能接手他的位子；沒有在線訊號的舊版手機維持原本的詢問 */
+      const taken=same.some(([id,v])=>v.hb&&Math.abs(Date.now()-v.hb)<HB_DEAD);
+      if(same.length===1&&!taken&&confirm(`房間裡已經有「${n}」，是你剛剛斷線或重新整理嗎？\n\n按「確定」接回原本的位子（題目和猜過的紀錄都會保留）\n按「取消」用新的身分加入`)){
         me=same[0][0]; ls.set('ab_alias_'+c,me); toast('已接回原本的位子'); enterRoom(c); return;}
       if(cnt>=MAXP){homeErr='這個房間人數已滿';return;}
-      await roomRef(c).update({seats:{[me]:{name:n,ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}});
-    } else await roomRef(c).update({seats:{[me]:{look:lookStr(myLook())}}});
+      /* 房間裡沒有房主（例如最後一個人關掉頁面）：先進來的人直接當房主 */
+      const up={seats:{[me]:{name:n,ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}};
+      if(!(d.seats||{})[d.host])up.host=me;
+      await roomRef(c).update(up);
+    } else await roomRef(c).update({seats:{[me]:{look:lookStr(myLook()),hb:Date.now()}}});
     enterRoom(c);
   });
   busy=false; render();
@@ -1075,29 +1121,36 @@ function enterRoom(c){
   code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now();
   mySecret=null; input=''; err=''; view=null; scored.clear(); notesKey=null;
   ls.set('ab_room',c); ss.set('ab_live',c);
+  hbSeen={}; hbLast=0; hostClaim=0; presKey=''; roomSigV=''; roomAt=Date.now();
   unsubs.push(roomRef(c).onSnapshot(snap=>{
-    if(!snap.exists){roomMissing=true;R=null;return render();}
-    applyRoom(snap.data()); render(); renderChat(); autoScore();
+    if(!snap.exists||!(snap.data()||{}).ver){roomMissing=true;R=null;return render();}
+    const d=snap.data(), sig=roomSig(d), same=!!R&&sig===roomSigV;
+    applyRoom(d);
+    if(same)return; /* 只有在線訊號變動：不用重畫，也不算遊戲有進度 */
+    roomSigV=sig; roomAt=Date.now(); render(); renderChat(); autoScore();
   },()=>{noAccess='連線中斷，請重新整理頁面。';render();}));
   unsubs.push(db.collection(`rooms/${c}/chat`).orderBy('at','desc').limit(30).onSnapshot(snap=>{
     const seen=new Set(chat.map(m=>m.id));
-    chat=snap.docs.map(x=>({id:x.id,...x.data()})).reverse();
+    chat=docsOf(snap,cleanChat).reverse();
     if(chatLoaded) for(const m of chat){ if(!seen.has(m.id)&&m.pid!==me&&m.at>chatStart&&m.at>=((R&&R.chatSince)||0)){ if(!chatOpen){pushPop(m.name||'玩家',m.text);unread++;const b=document.getElementById('chatBadge');if(b){b.hidden=false;b.textContent=unread>9?'9+':unread;}} } }
     chatLoaded=true; renderChat();
   },()=>{}));
   fxLoaded=false; fxSeen=new Set();
   unsubs.push(db.collection(`rooms/${c}/fx`).orderBy('at','desc').limit(12).onSnapshot(snap=>{
-    for(const d of snap.docs){const x={id:d.id,...d.data()};if(fxSeen.has(x.id))continue;fxSeen.add(x.id);if(fxLoaded&&x.pid!==me&&x.at>fxStart-2000)playFx(x,false);}
+    for(const x of docsOf(snap,cleanFx)){if(fxSeen.has(x.id))continue;fxSeen.add(x.id);if(fxLoaded&&x.pid!==me&&x.at>fxStart-2000)playFx(x,false);}
     fxLoaded=true;
   },()=>{}));
-  unsubs.push(db.collection(`rooms/${c}/secrets`).onSnapshot(snap=>{secrets=snap.docs.map(x=>({id:x.id,...x.data()}));loadSecret();render();},()=>{}));
-  unsubs.push(db.collection(`rooms/${c}/guesses`).onSnapshot(snap=>{guesses=snap.docs.map(x=>({id:x.id,...x.data()}));render();autoScore();},()=>{}));
+  unsubs.push(db.collection(`rooms/${c}/secrets`).onSnapshot(snap=>{secrets=docsOf(snap,cleanSecret);roomAt=Date.now();loadSecret();render();},()=>{}));
+  unsubs.push(db.collection(`rooms/${c}/guesses`).onSnapshot(snap=>{guesses=docsOf(snap,cleanGuess);roomAt=Date.now();render();autoScore();},()=>{}));
   clearInterval(pollT); pollT=setInterval(()=>pollOnce(false),3000);
   renderChat(); render();
 }
 let reviewHTML='', overRound=0, reviewing=false, selfAgain=false;
 function applyRoom(d){
-  const prev=R&&R.round; R=d; roomMissing=false;
+  const prev=R&&R.round, prevHost=R&&R.host; R=cleanRoom(d); roomMissing=false; hbTrack();
+  for(const id in R.seats){const v=R.seats[id];if(v&&v.name)nameBook[id]=v.name;}
+  if(prevHost&&R.host===me&&prevHost!==me) toast('你現在是房主');
+  seatGuard();
   if(prev&&R.round!==prev){ if(overRound===prev&&!selfAgain&&reviewHTML) reviewing=true; selfAgain=false; overRound=0;input='';err='';view=null;scored.clear();mySecret=null;}
   loadSecret();
 }
@@ -1115,8 +1168,8 @@ async function pollOnce(force){
     const [rs,ss,gs]=await Promise.all(jobs);
     if(c!==code)return;
     if(rs.exists) applyRoom(rs.data());
-    secrets=ss.docs.map(x=>({id:x.id,...x.data()}));
-    if(gs) guesses=gs.docs.map(x=>({id:x.id,...x.data()}));
+    secrets=docsOf(ss,cleanSecret);
+    if(gs) guesses=docsOf(gs,cleanGuess);
     loadSecret(); render(); autoScore();
   }catch(e){}
   finally{polling=false;}
@@ -1125,6 +1178,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollOnce(t
 window.addEventListener('online',()=>pollOnce(true));
 window.addEventListener('pageshow',()=>pollOnce(true));
 let updShown=false;
+const roomOK=v=>!!v&&!verNewer(v,ROOM_VER)&&!verNewer(ROOM_MIN,v);
 const verNum=v=>String(v||'').split(/[.-]/).map(Number);
 function verNewer(a,b){const A=verNum(a),B=verNum(b);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]||0)-(B[i]||0);if(d)return d>0;}return false;}
 async function checkUpdate(){
@@ -1152,15 +1206,68 @@ setInterval(wakeSync,5000);document.addEventListener('visibilitychange',wakeSync
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
+/* ---------- 誰還在線 ----------
+   seats[me].hb：每 25 秒更新一次的數字。只看「有沒有變動」，不比較不同手機的時鐘。
+   舊版手機不會寫 hb，所以沒有 hb 的人一律當「不知道」，不會自動判定他離線。 */
+const HB_GAP=25000, HB_DEAD=80000, HB_STALE=600000;
+let hbSeen={}, hbLast=0, hbBusy=false, hostClaim=0, roomSigV='', roomAt=0, presKey='', netBad=false, leaving=false;
+const roomSig=d=>JSON.stringify(d,(k,v)=>k==='hb'?undefined:v);
+function hbTrack(){const S=(R&&R.seats)||{},now=Date.now();
+  for(const id in S){const v=S[id]&&S[id].hb;if(v==null)continue;const o=hbSeen[id];
+    if(!o)hbSeen[id]={v,t:now-v>HB_STALE?now-HB_DEAD-1:now};else if(o.v!==v)hbSeen[id]={v,t:now};}}
+const isGone=id=>{if(!id||id===me)return false;const v=((R&&R.seats)||{})[id];if(!v||v.hb==null)return false;const o=hbSeen[id];return !!o&&Date.now()-o.t>HB_DEAD;};
+const noBeat=id=>{const v=((R&&R.seats)||{})[id];return !!v&&v.hb==null&&id!==me;};
+const stalled=()=>!!roomAt&&Date.now()-roomAt>90000;
+const unseen=id=>isGone(id)||(noBeat(id)&&stalled());
+async function hbBeat(force){
+  if(!code||!db||!R||roomMissing||hbBusy||!isSeated(me))return;
+  const now=Date.now();if(!force&&now-hbLast<HB_GAP-2000)return;
+  hbLast=now;hbBusy=true;const c=code,slow=setTimeout(()=>{netBad=true;netUI();},12000);
+  try{await roomRef(c).update({seats:{[me]:{hb:now}}});}catch(e){}
+  finally{clearTimeout(slow);hbBusy=false;if(netBad){netBad=false;netUI();pollOnce(true);}}
+}
+/* 房主不見了：線上最早進房的人自動接手（大家算出來的是同一個人）。舊版手機不會接手，所以只算有在線訊號的人 */
+function hostCheck(){
+  const s=g();if(!R||!isSeated(me)||s.host===me)return;
+  if((s.seats||{})[s.host]&&!isGone(s.host))return;
+  const next=players().find(p=>p.hb!=null&&!isGone(p.id));
+  if(!next||next.id!==me||Date.now()-hostClaim<8000)return;
+  hostClaim=Date.now();roomRef().update({host:me}).catch(()=>{hostClaim=0;});
+}
+/* 最後一個位子同時被兩人搶：大家排好順序，排在 8 個以外的人自己退出 */
+function seatGuard(){
+  if(leaving||!R||R.phase!=='lobby'||!isSeated(me))return;const L=players();if(L.length<=MAXP||L.findIndex(p=>p.id===me)<MAXP)return;
+  leaving=true;setTimeout(async()=>{try{await roomRef().update({seats:{[me]:null}});}catch(e){}leaving=false;goHome();homeErr='這個房間人數已滿';render();},0);
+}
+function presenceTick(){
+  if(!code||!R||roomMissing)return;
+  hbBeat();hbTrack();hostCheck();
+  const k=Object.keys(R.seats||{}).filter(unseen).join()+(stalled()?'|s':'');
+  if(k!==presKey){presKey=k;render();}
+}
+setInterval(presenceTick,5000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)hbBeat(true);});
+window.addEventListener('online',()=>{if(!db&&!fbWait&&!solo)location.reload();else hbBeat(true);});
+/* 有人斷線時的出路：房主可以不等他（和他自己按離開完全一樣），其他人看得到發生什麼事 */
+async function skipPlayer(id,btn){
+  if(!isHost()||id===me)return;if(!confirmTap(btn,'確定？再按一次'))return;
+  const nm=nameOf(id);await act(()=>roomRef().update({seats:{[id]:null}}));toast(`已經不等 ${nm} 了`);
+}
+async function takeHost(){if(!isSeated(me))return;if(!confirmTap('takeHost','確定要接手？再按一次'))return;await act(()=>roomRef().update({host:me}));}
+function goneBar(ids){
+  if(!ids.length)return'';const host=isHost();
+  return`<div class="card gonebar"><span class="lbl">有人斷線了</span><div class="plist">${ids.map((id,i)=>`<div class="prow"><span class="pn">${esc(nameOf(id))}<span class="pill off">離線</span></span>${host?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(id)}">不等他</button>`:''}</div>`).join('')}</div>${host?'':'<p class="rules" style="margin:0">等他回來，或由房主決定不等他。</p>'}</div>`;
+}
+const takeBar=s=>!isHost()&&isSeated(me)&&isSeated(s.host)&&noBeat(s.host)&&stalled()?`<div class="card gonebar"><p class="rules" style="margin:0">房主一直沒有動作，可能已經離開了。</p><button class="btn ghost" type="button" id="takeHost">我來當房主</button></div>`:'';
 function goHome(){homeStep='menu';homeEdit=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
-  ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}}));
+  ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
 }
 async function leaveRoom(){
   if(isWatcher(me)){ls.del('ab_watch');try{await roomRef().update({watchers:{[me]:null}});}catch(e){} goHome();return;}
   if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
-  const s=g(); const rest=players().filter(p=>p.id!==me);
+  const s=g(); const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
   /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
   if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){}goHome();return;}
   const upd={seats:{[me]:null}}; if(s.host===me) upd.host=rest[0].id;
@@ -1197,7 +1304,7 @@ async function syncStep(D){
 }
 async function startGame(){
   if(g().mode==='coop') return startCoop();
-  if(!isHost())return; const P=players(); if(P.length<2)return;
+  if(!isHost())return; const P=players().filter(p=>!isGone(p.id)); if(P.length<2)return;
   await act(()=>roomRef().update({phase:'secret',startAt:0,assign:JSON.stringify(derange(P.map(p=>p.id)))}));
 }
 /* ---------- 勝利畫面 ---------- */
@@ -1414,7 +1521,7 @@ const LOOK={
  beard:[['none','無'],['stache','八字鬍'],['bigbeard','大鬍子'],['goatee','山羊鬍']]
 };
 const LK=['skin','shirt','hair','hc','face','acc','beard'];
-function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length===6)a.push(0);if(a.length!==7||a.some(x=>!(x>=0)))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
+function parseLook(s){if(!s||typeof s!=='string')return null;const a=s.split('.').map(Number);if(a.length===6)a.push(0);if(a.length!==7||a.some(x=>!Number.isInteger(x)||x<0))return null;const o={};LK.forEach((k,i)=>o[k]=a[i]%LOOK[k].length);return o;}
 const lookStr=o=>LK.map(k=>o[k]).join('.');
 function randLook(seed){let x=seed==null?Math.floor(Math.random()*2147483647):hashStr('look_'+seed);const o={};LK.forEach((k,i)=>{o[k]=x%LOOK[k].length;x=Math.floor(x/LOOK[k].length)+(seed==null?Math.floor(Math.random()*997):i*131);});if(o.hair===0&&o.acc===0)o.hair=1;if(o.beard&&x%3)o.beard=0;return o;}
 function myLook(){let o=parseLook(ls.get('ab_look'));if(!o){o=randLook();ls.set('ab_look',lookStr(o));}return o;}
@@ -1669,6 +1776,8 @@ function bind(){
   app.querySelectorAll('[data-fbt]').forEach(b=>b.onclick=()=>{fbType=b.dataset.fbt;render();});
   if($('fbOpen')) $('fbOpen').onclick=()=>{fbOpen=!fbOpen;fbMsg='';render();};
   if($('verBtn')) $('verBtn').onclick=showDiag;
+  app.querySelectorAll('[data-skip]').forEach(b=>b.onclick=()=>skipPlayer(b.dataset.skip,b.id));
+  if($('takeHost')) $('takeHost').onclick=takeHost;
   if($('installBtn')) $('installBtn').onclick=async()=>{if(installEv){const ev=installEv;installEv=null;try{await ev.prompt();}catch(e){}}else showHelp(true,'install');};
   if($('fbText')) $('fbText').oninput=e=>{fbDraft=e.target.value;};
   if($('fbSend')) $('fbSend').onclick=async()=>{const t=(fbDraft||'').trim();if(!t){fbMsg='請先寫點內容';return render();}const ok=await sendFeedback(fbType,t);if(ok){fbDraft='';fbMsg='收到了，謝謝你的回饋！';}render();};
@@ -1790,14 +1899,14 @@ function soloCard(){
       ${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${soloCfg.stage===k?'selected':''}>${v.label}</option>`).join('')}</optgroup>`).join('')}
       <option value="custom" ${soloCfg.stage==='custom'?'selected':''}>自訂魔王（清單裡沒有我的身分）</option>
     </select>
-    ${soloCfg.stage==='custom'?`<div class="custom"><input type="text" id="cvName" maxlength="5" placeholder="魔王名稱，例如：客訴家屬" value="${esc((soloCfg.custom||{}).n||'')}"><input type="text" id="cvSays" maxlength="16" placeholder="他的口頭禪，例如：又在開會" value="${esc((soloCfg.custom||{}).says||'')}"><label class="share"><input type="checkbox" id="cvShare" ${soloCfg.share===false?'':'checked'}> 推薦給開發者（匿名傳送，之後可能加進遊戲）</label></div>`:''}
+    ${soloCfg.stage==='custom'?`<div class="custom"><input type="text" id="cvName" maxlength="5" placeholder="魔王名稱，例如：客訴家屬" value="${esc((soloCfg.custom||{}).n||'')}"><input type="text" id="cvSays" maxlength="16" placeholder="他的口頭禪，例如：又在開會" value="${esc((soloCfg.custom||{}).says||'')}"><label class="share"><input type="checkbox" id="cvShare" ${soloCfg.share===true?'checked':''}> 推薦給開發者（匿名傳送，不含你的暱稱，之後可能加進遊戲）</label></div>`:''}
 `:''}
     <button class="btn stk" id="soloStart">${duel?'開始挑戰':'開始練習'}</button></div>`;
 }
 function soloSecret(len,rep){let d='0123456789'.split(''),s='';if(rep){for(let i=0;i<len;i++)s+=d[Math.floor(Math.random()*10)];return s;}for(let i=9;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]];}return d.slice(0,len).join('');}
 function soloNew(len,rep){
   const sel=soloCfg.stage||'random', vl=villainFor(sel), stg=sel==='custom'?'custom':(vl.stageKey||sel);
-  if(sel==='custom'&&soloCfg.share!==false){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
+  if(sel==='custom'&&soloCfg.share===true){const c=soloCfg.custom||{};const t=`${(c.n||'').trim()}：${(c.says||'').trim()}`;if((c.n||'').trim()&&ls.get('ab_fb_last_v')!==t){ls.set('ab_fb_last_v',t);sendFeedback('villain',t,true);}}
   const duel=soloCfg.mode==='duel';
   solo={ver:APP_VERSION,id:Date.now().toString(36),len,rep,mode:duel?'duel':'practice',diff:soloCfg.diff==='hard'?'hard':'easy',secret:soloSecret(len,rep),mine:'',phase:duel?'setup':'play',hist:[],chist:[],cpuBusy:false,start:Date.now(),end:0,result:'',stage:stg,
     vil:{n:vl.n,p:vl.p,c:vl.c,all:vl.says,says:pick(vl.says),back:pick(vl.back),says2:pick(vl.says)}};
@@ -1839,7 +1948,7 @@ function coopAuto(){
   autoMarkFrom(C.T,s.len);
 }
 async function startCoop(){
-  const s=g(), P=players(); if(!isHost()||!P.length)return;
+  const s=g(), P=players().filter(p=>!isGone(p.id)); if(!isHost()||!P.length)return;
   const vl=villainFor(s.stage||'random');
   await act(()=>roomRef().update({phase:'coop',startAt:0,assign:'{}',coop:{order:shuffle(P.map(p=>p.id)),startAt:Date.now()+3500,
     bossC:enc(soloSecret(s.len,s.rep),s.round,'boss'),team:soloSecret(s.len,s.rep),surrender:false,turnSec:s.turnSec===0?0:(s.turnSec||60),notes:null,
@@ -2052,6 +2161,9 @@ function renderWatch(){
   if(coop) h=h.replace(/<button class="btn ghost" id="(closeRoom|surrender)">[^<]*<\/button>/g,'').replace(/<button class="peek" id="leave">[^<]*<\/button>/g,'');
   h+=`<button class="peek" id="leave">離開觀戰</button>`;
   paint(h); sideUI(true,false);
+  clearTimeout(tickT);
+  if(!coop&&D.status==='loading') tickT=setTimeout(()=>{if(R&&derive().status==='loading')render();},3200);
+  if(!coop&&D.status==='countdown') tickT=setTimeout(render,Math.max(200,s.startAt-Date.now()+30));
 }
 function coopView(s){
   const C=coopState(), v=(C.c.vil||{n:'魔王',p:'👹',c:'#e08a6a',says:'',back:'',says2:''}), inTeam=C.order.includes(me);
@@ -2305,7 +2417,8 @@ async function sendFeedback(type,text,silent){
   if(!db){if(!silent){fbMsg='目前連不上伺服器，晚點再試';}return false;}
   if(!silent&&Date.now()-fbLast<20000){fbMsg='剛送出過，稍等一下再送';return false;}
   try{
-    await db.collection('feedback').add({type,text:String(text).slice(0,300),name:type==='villain'?'':(nick||'').slice(0,8),ver:APP_VERSION,at:Date.now()});
+    const doc={type,text:String(text).slice(0,300),ver:APP_VERSION,at:Date.now()};if(type!=='villain')doc.name=(nick||'').slice(0,8);
+    await db.collection('feedback').add(doc);
     if(!silent)fbLast=Date.now(); return true;
   }catch(e){if(!silent)fbMsg=`送出失敗（${(e&&(e.code||e.message))||'unknown'}）`;return false;}
 }
