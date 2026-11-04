@@ -22,7 +22,7 @@ img{max-width:100%}
 /* Layout: one-column notebook page; grid-paper ground, ink-blue digits, red stamp for A. Two seats, each on its own phone. */
 :root{
   --paper:#f6f8fb; --grid:#dde5ef; --ink:#1d3a6b; --fg:#1f2733; --muted:#66707f;
-  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#d08a12; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
+  --card:#ffffff; --line:#cfd8e4; --a:#c8372d; --b:#c98210; --key:#eef2f8; --keyfg:#1d3a6b; --ok:#2f7d4f;
   --f-disp:"Huninn","Noto Sans TC",system-ui,sans-serif;
   --f-body:"Noto Sans TC",system-ui,sans-serif;
   --f-num:"Azeret Mono",ui-monospace,Menlo,monospace;
@@ -34,6 +34,7 @@ img{max-width:100%}
   --paper:#141a24; --grid:#1d2533; --ink:#9cc1ff; --fg:#e6ebf2; --muted:#93a0b3;
   --card:#1b2331; --line:#2c384b; --a:#ff6b5f; --b:#f2b544; --key:#232d3e; --keyfg:#cfe0ff; --ok:#6fd39a; color-scheme:dark}
 html,body{min-height:100%}
+html{touch-action:manipulation}
 body{background-color:var(--paper);color:var(--fg);font-family:var(--f-body);font-size:16px;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:22px 22px;}
@@ -95,7 +96,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .reveal{display:flex;gap:10px}
 .reveal div{flex:1;text-align:center;min-width:0}
 .reveal b{display:block;font-family:var(--f-num);font-size:26px;letter-spacing:.15em;color:var(--ink)}
-.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center}
+.peek{font:inherit;font-size:16px;background:none;border:0;color:var(--ink);text-decoration:underline;cursor:pointer;align-self:center;padding:8px 10px}
+.peek.more{align-self:stretch;text-align:left;padding-inline:0;font-size:15px;line-height:1.5}
 .peekrow{display:flex;justify-content:center;gap:20px;align-self:center}
 .rules{font-size:14px;color:var(--muted);line-height:1.7;margin:0}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--b);margin-right:6px;animation:blink 1.2s infinite}
@@ -104,11 +106,11 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--b);outline-offs
 .nfab.cfab{top:calc(38% + 96px)}.nfab.cfab.solo{top:38%}
 .badge{position:absolute;top:-6px;left:-6px;min-width:18px;height:18px;border-radius:9px;background:var(--a);color:#fff;font-size:11px;line-height:18px;text-align:center;padding:0 4px}
 .nfab{position:fixed}
-.nfab{position:fixed;right:0;top:38%;z-index:35;width:calc(42px + env(safe-area-inset-right,0px));font:inherit;font-weight:700;font-size:15px;line-height:1.3;padding:12px calc(6px + env(safe-area-inset-right,0px)) 12px 8px;text-align:center;border-radius:14px 0 0 14px;border:2px solid var(--card);border-right:0;background:var(--ink);color:var(--card);box-shadow:-4px 6px 18px rgba(0,0,0,.35);cursor:pointer;box-sizing:border-box}
+.nfab{position:fixed;right:0;top:38%;z-index:35;width:calc(31px + env(safe-area-inset-right,0px));font:inherit;font-weight:700;font-size:15px;line-height:1.3;padding:12px calc(4px + env(safe-area-inset-right,0px)) 12px 6px;text-align:center;border-radius:14px 0 0 14px;border:2px solid var(--card);border-right:0;background:var(--ink);color:var(--card);box-shadow:-4px 6px 18px rgba(0,0,0,.35);cursor:pointer;box-sizing:border-box}
 .nfab{translate:0 var(--fabdy,0px);touch-action:none;-webkit-user-select:none;user-select:none;transition:translate .25s ease,right .25s ease,left .25s ease}
 .nfab.drag{transition:none;opacity:.85}
-body.fabl .nfab{right:auto;left:0;border-radius:0 14px 14px 0;border:2px solid var(--card);border-left:0;padding:12px 8px 12px calc(6px + env(safe-area-inset-left,0px));width:calc(42px + env(safe-area-inset-left,0px));box-shadow:4px 6px 18px rgba(0,0,0,.35)}
-body.fabt .nfab{right:-30px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-30px}
+body.fabl .nfab{right:auto;left:0;border-radius:0 14px 14px 0;border:2px solid var(--card);border-left:0;padding:12px 6px 12px calc(4px + env(safe-area-inset-left,0px));width:calc(31px + env(safe-area-inset-left,0px));box-shadow:4px 6px 18px rgba(0,0,0,.35)}
+body.fabt .nfab{right:-20px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-20px}
 .nback{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.35)}
 .drawer{position:fixed;top:0;right:0;bottom:0;z-index:40;width:min(360px,86vw);background:var(--card);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(0,0,0,.3);overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) calc(14px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) 14px;box-sizing:border-box;animation:dIn .22s ease}
 @keyframes dIn{from{transform:translateX(100%)}to{transform:none}}
@@ -130,7 +132,7 @@ body.fabt .nfab{right:-30px;opacity:.75}body.fabt.fabl .nfab{right:auto;left:-30
 .pos{display:flex;gap:8px;justify-content:center}
 .pos select{font-family:var(--f-num);font-size:22px;font-weight:700;width:56px;padding:6px 0;text-align:center;text-align-last:center;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--ink)}
 .pos select.set{border-color:var(--a)}
-textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%;box-sizing:border-box;min-height:64px;resize:vertical}
+textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--fg);width:100%;box-sizing:border-box;min-height:64px;resize:vertical}
 .pad button.no{text-decoration:line-through;opacity:.45}
 .pad button.yes{box-shadow:inset 0 0 0 2px var(--ok)}
 .msgs{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;padding-right:2px}
@@ -187,7 +189,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .count{font-family:var(--f-num);font-weight:700;font-size:96px;line-height:1;color:var(--a);animation:countPop .9s ease}
 @keyframes countPop{0%{transform:scale(1.6);opacity:0}30%{transform:scale(1);opacity:1}}
 @media (prefers-reduced-motion:reduce){.count,.dots::after{animation:none}}
-.upd{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(0,0,0,.55);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.upd{position:fixed;inset:0;z-index:50;display:grid;place-items:center;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(0,0,0,.55);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .upd .card{max-width:400px}
 .tools{display:flex;gap:10px}
 .tools .btn{flex:1;font-size:15px;padding:10px 8px;min-width:0}
@@ -269,7 +271,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .gv .gvh{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%}
 .gv .gvn{color:var(--muted);font-size:14px;white-space:nowrap}
 .hrow.improw{flex-wrap:wrap}
-.whyl{grid-column:1/-1;flex:1 0 100%;font-size:13px;line-height:1.5;color:#ff9f95;padding:2px 0 4px 34px}
+.whyl{grid-column:1/-1;flex:1 0 100%;font-size:13px;line-height:1.5;color:var(--a);padding:2px 0 4px 34px}
 .ghostbtn.angel.armed{border-color:#ffd34d;box-shadow:0 0 0 3px rgba(255,211,77,.3)}
 .posbox{max-width:420px;width:100%;align-items:stretch;text-align:left;gap:12px}
 .posrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
@@ -285,7 +287,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .angelcard .lbl{color:#9a7b16}.angelcard p{margin:4px 0 0;font-size:15px;line-height:1.6}
 .angelcard .aclose{position:absolute;right:8px;top:8px;border:0;background:transparent;font-size:18px;color:#7a6a3a;width:30px;height:30px;cursor:pointer}
 @keyframes angelin{from{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
-.hg .imp{display:inline-block;margin-left:8px;font-size:12px;letter-spacing:0;color:#ff8a80;border:1px solid #ff8a80;border-radius:999px;padding:1px 7px;vertical-align:middle;font-family:"Noto Sans TC",system-ui,sans-serif}
+.hg .imp{display:inline-block;margin-left:8px;font-size:12px;letter-spacing:0;color:var(--a);border:1px solid var(--a);border-radius:999px;padding:1px 7px;vertical-align:middle;font-family:"Noto Sans TC",system-ui,sans-serif}
 .wtip{margin:8px 0 0;font-size:14px;line-height:1.6;color:var(--muted)}.wtip b{color:var(--fg)}
 .gv .gvs{display:flex;align-items:baseline;gap:10px}
 .minighost{position:fixed;width:54px;transform:translate(-50%,-50%);pointer-events:none;animation:mghost 1.6s ease-out forwards}
@@ -307,7 +309,7 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 .homemenu .btn,.homeact .btn{color:#fff;font-size:21px;padding:18px;border-radius:14px;box-shadow:0 5px 0 var(--bs);transition:transform .08s,box-shadow .08s}
 .homemenu .btn:active,.homeact .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--bs)}
 .homemenu{gap:16px;padding-bottom:6px}
-.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:#000}
+.homemenu #create{background:#d9503e;--bs:#a53427}.homemenu #goJoin{background:#2a7fc4;--bs:#1c5c92}.homemenu #goSolo{background:rgba(128,134,146,.32);--bs:rgba(128,134,146,.4);color:var(--fg)}
 .homeact{gap:12px;padding-bottom:5px}
 .homeact .btn{font-size:18px;padding:13px;--bs:#1f7a70;background:#2a9d8f}.homeact #nameBtn{background:#f2b544;color:#3a2a06;--bs:#b98319}
 .expl ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
@@ -404,6 +406,12 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 @keyframes shake{20%{transform:translateX(-6px) rotate(-1deg)}40%{transform:translateX(6px) rotate(1deg)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
 @media (prefers-reduced-motion:reduce){.fly{transition:none}.shake,.splat,.char.down,.char.ku,.char.love{animation:none}}
 #codeIn::placeholder{letter-spacing:normal;text-transform:none;font-family:var(--f-body)}
+.ver{margin:0;font-size:12px;color:var(--muted);text-align:center;font-family:var(--f-num)}
+.err.wait{color:var(--muted)}
+.pad .ok:disabled{opacity:.4}
+#closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
+.stage,.podium,.stage2{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.offl{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);z-index:60;max-width:calc(100% - 32px);background:var(--a);color:#fff;font-size:14px;font-weight:700;padding:6px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.25);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -424,11 +432,13 @@ textarea{font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--li
 <div class="chips" id="chips"></div>
 <form class="sendrow" id="sendForm"><input type="text" id="chatIn" maxlength="60" placeholder="輸入訊息…" autocomplete="off"><button class="btn" type="submit">送出</button></form></aside>
 <div class="toast" id="toast" hidden></div>
-<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room');localStorage.removeItem('ab_solo')}catch(e){};location.reload()">重新載入</button></div></div>
+<div class="offl" id="offl" role="status" hidden>沒有網路，連上後會自動繼續</div>
+<div class="upd" id="upd" hidden><div class="card center"><h2>遊戲已更新</h2><p class="hand">有新版本了，請重新載入。重新載入後會回到首頁，房間要重新開。</p><button class="btn" onclick="try{localStorage.removeItem('ab_room')}catch(e){};location.reload()">重新載入</button></div></div>
 <div class="upd" id="help" hidden><div class="card helpc" role="dialog" aria-label="遊戲說明">
 <div class="dhead"><h2 id="helpT" style="flex:1 1 auto;margin:0"></h2><button type="button" class="dclose" id="helpClose" aria-label="關閉說明">✕</button></div>
 <div id="helpBody"></div>
 <div class="hnav"><button class="btn ghost" id="helpPrev" type="button">上一頁</button><div class="hdots" id="helpDots"></div><button class="btn" id="helpNext" type="button">下一頁</button></div>
+<p class="ver" id="helpVer"></p>
 </div></div>
 <div class="fxl" id="fxl" aria-hidden="true"></div>
 <div class="stack" id="stack" aria-live="polite"></div>
@@ -478,12 +488,14 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.03-2';
+const APP_VERSION='2026.11.05-1';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 let baseMe=null, solo=null, why='', db=null, me=null, code=null, R=null, roomMissing=false, guesses=[], secrets=[], chat=[], unsubs=[];
 let mySecret=null, input='', err='', homeErr='', peek=false, view=null, nick='', busy=false, scored=new Set(), noAccess='';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const ls={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,v);}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
+/* ab_live：這個分頁現在在玩什麼（'solo' 或房號）。手機切出去被系統重新載入、或按重新整理時，靠它直接回到原本的局 */
+const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del(k){try{sessionStorage.removeItem(k);}catch(e){}}};
 
 function score(secret,guess){
   let A=0;const cs={},cg={};
@@ -543,17 +555,17 @@ function derive(){
   return{hc,aN,ac,angels,cnt,turn,P,A,parts,by,solved,pend,best,hints,out,status,rank,can,waiting,allIn,acked,minN,S};
 }
 
-function validate(v){const s=g();if(v.length!==s.len)return`請輸入 ${s.len} 位數字`;if(!s.rep&&new Set(v).size!==v.length)return'數字不能重複';return'';}
+function validate(v){const s=g();if(v.length!==s.len)return`請輸入 ${s.len} 位數字`;if(!/^\d+$/.test(v))return'只能輸入數字';if(!s.rep&&new Set(v).size!==v.length)return'數字不能重複';return'';}
 /* 提示開過的位數鎖住：input 裡直接帶著那個數字，打字會自動跳過 */
 let locks=[];
 function fillLocks(){const n=g().len;while(input.length<n&&locks[input.length])input+=locks[input.length];}
 function syncLocks(){const rep=g().rep;if(locks.some((d,i)=>d&&((i<input.length&&input[i]!==d)||(!rep&&input.includes(d)&&input.indexOf(d)!==i))))input='';fillLocks();}
 function slots(masked,lock){locks=masked?[]:(lock||[]);syncLocks();let h='<div class="slots">';for(let i=0;i<g().len;i++){const d=input[i]!==undefined?input[i]:(locks[i]||undefined);h+=`<div class="slot ${d===undefined?'empty':''} ${locks[i]?'lock':''}">${d===undefined?'':(masked&&!peek?'●':d)}</div>`;}return h+'</div>';}
-function pad(useNotes){
+function pad(useNotes,okOff){
   const ks=['1','2','3','4','5','6','7','8','9','del','0','ok'];
   return'<div class="pad">'+ks.map(k=>{
     if(k==='del')return`<button data-k="del" aria-label="刪除">⌫</button>`;
-    if(k==='ok')return`<button class="ok" data-k="ok" ${busy?'disabled':''}>確定</button>`;
+    if(k==='ok')return`<button class="ok" data-k="ok" ${busy||okOff?'disabled':''}>確定</button>`;
     const nt=useNotes?(notes.d[+k]===2?'no':notes.d[+k]===1?'yes':''):'';
     return`<button data-k="${k}" class="${!g().rep&&(input.includes(k)||locks.includes(k))?'used':''} ${nt}">${k}</button>`;
   }).join('')+'</div>';
@@ -575,7 +587,8 @@ function progress(D){
 }
 function seg(attr,opts,cur,dis){return`<div class="seg">${opts.map(([v,l])=>`<button ${attr}="${v}" aria-pressed="${String(cur)===String(v)}" ${dis?'disabled':''}>${l}</button>`).join('')}</div>`;}
 
-let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false;
+let lastHTML='', pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, advOpen=false;
+const leaveLbl=()=>isHost()&&players().length>1?'離開房間（房主交給下一位）':'離開房間';
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
 const WIDE=900; let wasWide=innerWidth>=WIDE;
 function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
@@ -586,7 +599,8 @@ window.addEventListener('resize',()=>{const w=innerWidth>=WIDE;if(w!==wasWide){w
 function paint(html){
   const ae=document.activeElement;
   // 下拉選單或輸入框正在使用中：先不要重畫，等使用者選完再更新
-  if(ae&&app.contains(ae)&&ae.tagName==='SELECT'){pendingPaint=html;return;}
+  const hold=e=>e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet');
+  if(hold(ae)){pendingPaint=html;return;}
   pendingPaint=null;
   if(html===lastHTML) return;
   const keep=[];app.querySelectorAll('g.char[data-who]').forEach(c=>{const hs=[...c.querySelectorAll('g.hit:not(.shed)')];const st=KST[c.dataset.who];if(hs.length||(st&&st.down))keep.push([c.dataset.who,hs]);});
@@ -595,10 +609,10 @@ function paint(html){
   for(const k in POS){const c=charOf(k);if(c)c.style.translate=POS[k]+'px 0';}
   keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('.hd');if(hd)hs.forEach(n=>hd.parentNode.appendChild(n));const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
 }
-app.addEventListener('focusout',()=>setTimeout(()=>{if(pendingPaint!==null&&!(document.activeElement&&app.contains(document.activeElement)&&document.activeElement.tagName==='SELECT')){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
+app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;lastHTML='';paint(x);}},0));
 function render(){
   if(solo) return renderSolo();
-  if(!db){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p>`;bind();sideUI(false,false);return;}
+  if(!db){lastHTML='';app.innerHTML=`<header><div class="titlerow"><h1>猜數字：幾A幾B</h1><button class="helpbtn" type="button" data-help>？ 說明</button></div><p class="sub">目前連不上多人伺服器，可以先玩邊緣人模式</p></header>${soloBackCard()}${soloCard()}<p class="rules" style="text-align:center">錯誤代碼：${esc(why||'-')} <button class="peek" onclick="location.reload()">重新整理</button></p><p class="ver">版本 ${APP_VERSION}</p>`;bind();sideUI(false,false);return;}
   let h='';
   if(noAccess) h+=`<div class="card"><p class="err" style="text-align:left">${esc(noAccess)}</p></div>`;
 
@@ -612,10 +626,10 @@ function render(){
       if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
       if(homeStep==='join') return `<div class="card"><h2>加入房間</h2><div class="sendrow"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入 4 碼邀請碼" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase;letter-spacing:.2em;font-family:var(--f-num)"><button class="btn" id="joinBtn" ${busy?'disabled':''}>加入</button></div>
         <div class="watchrow"><span class="sub">只想看、不想玩？用同一個邀請碼</span><button class="btn ghost small" id="watchBtn" ${busy?'disabled':''}>進去觀戰</button></div></div>${err}${back}`;
-      if(homeStep==='solo') return soloCard()+back;
+      if(homeStep==='solo') return soloBackCard()+soloCard()+back;
       return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="nameBtn">換名字</button><button class="btn" id="lookBtn">換造型</button></div></div>
-      ${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
-      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}`;
+      ${soloBackCard()}${ls.get('ab_room')?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
+      <div class="homemenu"><button class="btn" id="create" ${busy?'disabled':''}>開新房間</button><button class="btn" id="goJoin">加入房間</button><button class="btn" id="goSolo">邊緣人模式</button></div>${err}${fbCard()}<p class="ver">版本 ${APP_VERSION}</p>`;
     })();
     paint(h); sideUI(false,false); return;
   }
@@ -637,32 +651,40 @@ function render(){
     const others=D.P.filter(p=>p.id!==s.host), readyN=others.filter(p=>p.ready).length;
     const allReady=D.P.length>=(s.mode==='coop'?1:2)&&readyN===others.length;
     h+=`<div class="card"><span class="lbl">玩家（${D.P.length}/${MAXP}）</span>${stageSVG(D.P.map(p=>({id:p.id,name:p.name,look:lookOf(p.id)})))}${itemBar('lobby')}<div class="plist">${D.P.map(p=>`<div class="prow"><span class="pn">${esc(p.name)}${p.id===me?'<span class="pill me">你</span>':''}</span><span class="pc">${p.id===s.host?'<span class="pill host">房主</span>':`<span class="pill ${p.ready?'ok':''}">${p.ready?'已準備':'未準備'}</span>`}</span></div>`).join('')}</div><button class="peek" id="lookBtn" type="button">換我的造型</button>
-    ${D.P.length<2?'<p class="rules">把邀請碼傳給朋友，在這個頁面輸入就能加入。</p>':''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
-    const coopM=s.mode==='coop';
-    h+=`<div class="card"><span class="lbl">遊戲設定${isHost()?'':'（由房主設定）'}</span>
-      <span class="opt">遊戲模式</span>
-      ${seg('data-gmode',[['battle','互相猜（對戰）'],['coop','合作打魔王']],s.mode||'battle',!isHost())}
-      ${coopM?`<p class="rules" style="margin-top:-6px">全隊對抗一個魔王：大家輪流猜魔王的題，其他人可以語音或在聊天室出主意，筆記全隊共用；魔王每回合也猜一次全隊的題。先猜中的一方獲勝。</p>
-      <span class="opt">每人猜題時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],s.turnSec===0?0:(s.turnSec||60),!isHost())}
-      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],s.diff==='hard'?'hard':'easy',!isHost())}
-      <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel" ${isHost()?'':'disabled'}><option value="random" ${(s.stage||'random')==='random'?'selected':''}>🎲 隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
-      <span class="opt">題目是幾位數字（不是人數）</span>
-      ${seg('data-len',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],s.len,!isHost())}
-      <span class="opt">題目裡的數字能不能重複</span>
-      ${seg('data-rep',[[0,'不可重複'],[1,'可重複，例如 1123']],s.rep?1:0,!isHost())}
-      ${coopM?'':`<span class="opt">用一次提示算幾次猜測</span>
-      ${seg('data-hcost',[[0,'不能用'],[1,'算 1 次'],[2,'算 2 次'],[3,'算 3 次']],s.hintCost==null?2:s.hintCost,!isHost())}`}
-      <span class="opt">小天使每局可以叫幾次${coopM?'（全隊共用）':'（每人）'}</span>
-      ${seg('data-ann',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],angelMax(),!isHost())}
-      ${coopM||!angelMax()?'':`<span class="opt">叫一次小天使算幾次猜測</span>
-      ${seg('data-acost',[[0,'不算'],[1,'算 1 次'],[2,'算 2 次']],s.angelCost==null?1:s.angelCost,!isHost())}`}
-      <p class="rules" style="margin-top:-6px">😇 小天使不會告訴你新數字，只會整理你自己猜出來的線索（確定有／沒有哪些數字、哪次猜了不可能的答案）。${coopM?'合作模式用全隊的線索，誰都可以叫，不算猜測次數。':'算猜測次數的話，排名時會加進去，跟提示一樣。'}</p>
-      ${coopM?'':`<span class="opt">怎麼決定勝負</span>
-      ${seg('data-fin',[[1,'全部猜完比次數'],[0,'先猜中就結束']],s.finish?1:0,!isHost())}`}
-      ${coopM?'</div>':''}${coopM?'':`<p class="rules">每人出一題，系統隨機分配，猜別人出的題目。${s.finish?'大家都猜中或放棄後，用次數少的排名。':'每人每回合只能猜一次，等大家都猜完才進下一回合；有人猜中就打完這一回合結束，同回合猜中算並列。'}用一次提示會揭曉一位數字，算幾次猜測照上面的設定。</p></div>`}`;
-    if(isHost()) h+=`<div class="card center"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
+    ${D.P.length<2?`<button class="btn" id="inviteBtn" type="button">邀請朋友</button><p class="rules" style="text-align:center">朋友點連結就能加入，也可以在首頁輸入邀請碼 ${esc(code)}</p>`:''}${watchersList().length?`<p class="rules">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}　他們看得到大家的答案，每局有 5 隻幽靈可以嚇人</p>`:''}</div>`;
+    const coopM=s.mode==='coop', hostM=isHost(), hcN=s.hintCost==null?2:s.hintCost, anN=angelMax(), acN=s.angelCost==null?1:s.angelCost, turnS=s.turnSec===0?0:(s.turnSec||60);
+    if(hostM) h+=`<div class="card center"><p class="hand">${others.length?`${readyN}/${others.length} 位玩家已準備`:coopM?'可以直接開始，也可以等朋友加入':'等玩家加入'}</p><button class="btn" id="start" ${allReady?'':'disabled'}>開始遊戲</button></div>`;
     else { const rd=s.seats[me].ready; h+=`<button class="btn ${rd?'ghost':''}" id="ready">${rd?'取消準備':'準備完成'}</button>${rd?`<p class="hand" style="text-align:center;align-self:center"><span class="dot"></span>等 ${esc(hostName)} 開始遊戲</p>`:''}`; }
-    h+=isHost()?`<div class="row"><button class="btn ghost" id="closeRoom">關閉房間</button></div><button class="peek" id="leave">離開房間（房主交給下一位）</button>`:`<button class="peek" id="leave">離開房間</button>`;
+    const toolTxt=[coopM?'':hcN?`提示算 ${hcN} 次`:'不能用提示',anN?`小天使${coopM?'全隊':'每人'} ${anN} 次${coopM||!acN?'':`（算 ${acN} 次）`}`:'不能叫小天使'].filter(Boolean).join(' · ');
+    const rulesP=coopM?'全隊對抗一個魔王：大家輪流猜魔王的題，其他人可以語音或在聊天室出主意，筆記全隊共用；魔王每回合也猜一次全隊的題。先猜中的一方獲勝。':`每人出一題，系統隨機分配，猜別人出的題目。${s.finish?'大家都猜中或放棄後，用次數少的排名。':'每人每回合只能猜一次，等大家都猜完才進下一回合；有人猜中就打完這一回合結束，同回合猜中算並列。'}用一次提示會揭曉一位數字，算幾次猜測由房主設定。`;
+    if(!hostM){
+      const sum=[coopM?'合作打魔王':'互相猜',`${s.len} 位數`,s.rep?'數字可重複':'數字不重複',coopM?(turnS?`每人 ${turnS} 秒`:'不限時'):s.finish?'全部猜完比次數':'先猜中就結束',coopM?`魔王${s.diff==='hard'?'困難':'簡單'}`:''].filter(Boolean).join(' · ');
+      h+=`<div class="card"><span class="lbl">這局的玩法（由房主設定）</span><p class="lastres">${esc(sum)}</p><p class="sub">${esc(toolTxt)}</p><p class="rules">${rulesP}</p></div>`;
+    } else {
+      h+=`<div class="card"><span class="lbl">遊戲設定</span>
+      <span class="opt">遊戲模式</span>
+      ${seg('data-gmode',[['battle','互相猜（對戰）'],['coop','合作打魔王']],s.mode||'battle',false)}
+      ${coopM?`<p class="rules" style="margin-top:-6px">${rulesP}</p>
+      <span class="opt">每人猜題時間</span>${seg('data-turn',[[30,'30 秒'],[60,'60 秒'],[90,'90 秒'],[0,'不限時']],turnS,false)}
+      <span class="opt">魔王有多聰明</span>${seg('data-gdiff',[['easy','簡單（像人一樣想）'],['hard','困難（電腦硬算）']],s.diff==='hard'?'hard':'easy',false)}
+      <span class="opt">魔王是誰</span><select id="roomStage" class="stagesel"><option value="random" ${(s.stage||'random')==='random'?'selected':''}>🎲 隨機</option>${STAGE_GROUPS.map(gp=>`<optgroup label="${gp}">${Object.entries(STAGES).filter(([k,v])=>v.group===gp).map(([k,v])=>`<option value="${k}" ${s.stage===k?'selected':''}>${v.label}的魔王</option>`).join('')}</optgroup>`).join('')}</select>`:''}
+      <span class="opt">題目是幾位數字（不是人數）</span>
+      ${seg('data-len',[[3,'3 位數'],[4,'4 位數'],[5,'5 位數']],s.len,false)}
+      <span class="opt">題目裡的數字能不能重複</span>
+      ${seg('data-rep',[[0,'不可重複'],[1,'可重複，例如 1123']],s.rep?1:0,false)}
+      ${coopM?'':`<span class="opt">怎麼決定勝負</span>
+      ${seg('data-fin',[[1,'全部猜完比次數'],[0,'先猜中就結束']],s.finish?1:0,false)}
+      <p class="rules" style="margin-top:-6px">${rulesP}</p>`}
+      <button class="peek more" id="advBtn" type="button" aria-expanded="${advOpen}">${advOpen?'收起提示和小天使設定':`提示和小天使：${esc(toolTxt)}（點開修改）`}</button>
+      ${advOpen?`${coopM?'':`<span class="opt">用一次提示算幾次猜測</span>
+      ${seg('data-hcost',[[0,'不能用'],[1,'算 1 次'],[2,'算 2 次'],[3,'算 3 次']],hcN,false)}`}
+      <span class="opt">小天使每局可以叫幾次${coopM?'（全隊共用）':'（每人）'}</span>
+      ${seg('data-ann',[[0,'不能用'],[1,'1 次'],[2,'2 次'],[3,'3 次']],anN,false)}
+      ${coopM||!anN?'':`<span class="opt">叫一次小天使算幾次猜測</span>
+      ${seg('data-acost',[[0,'不算'],[1,'算 1 次'],[2,'算 2 次']],acN,false)}`}
+      <p class="rules" style="margin-top:-6px">😇 小天使不會告訴你新數字，只會整理你自己猜出來的線索（確定有／沒有哪些數字、哪次猜了不可能的答案）。${coopM?'合作模式用全隊的線索，誰都可以叫，不算猜測次數。':'算猜測次數的話，排名時會加進去，跟提示一樣。'}</p>`:''}</div>`;
+    }
+    h+=isHost()?`<div class="row"><button class="btn ghost" id="closeRoom">關閉房間</button></div><button class="peek" id="leave">${leaveLbl()}</button>`:`<button class="peek" id="leave">離開房間</button>`;
   }
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
@@ -712,7 +734,7 @@ function render(){
   }
   if(D.status!=='lobby'){
     if(isHost()&&D.status!=='over') h+=`<button class="btn ghost" id="again">結束這局，回到大廳</button>`;
-    h+=isHost()?`<button class="btn ghost" id="closeRoom">關閉房間</button><button class="peek" id="leave">離開房間（房主交給下一位）</button>`:`<button class="peek" id="leave">離開房間</button>`;
+    h+=isHost()?`<button class="btn ghost" id="closeRoom">關閉房間</button><button class="peek" id="leave">${leaveLbl()}</button>`:`<button class="peek" id="leave">離開房間</button>`;
   }
   const CS=s.phase==='coop'?coopState():null;
   if((CS&&CS.over)||(!CS&&D.status==='over')){reviewHTML=h;overRound=s.round;}
@@ -727,7 +749,10 @@ function render(){
   if(!CS&&showN&&(notesKey!==code+'_'+s.round||notesLen!==s.len)) loadNotes(code+'_'+s.round,s.len);
 }
 let notesOpen=false, chatOpen=false, unread=0;
+function netUI(){const el=document.getElementById('offl');if(el)el.hidden=navigator.onLine!==false||!!solo;}
+addEventListener('online',netUI);addEventListener('offline',netUI);
 function sideUI(chatOn,notesOn){
+  netUI();
   if(!chatOn) chatOpen=false;
   if(!notesOn) notesOpen=false;
   const $$=id=>document.getElementById(id);
@@ -775,6 +800,7 @@ document.getElementById('muteBox').checked=ls.get('ab_mute')==='1';
 document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checked?'1':'0');if(e.target.checked){document.getElementById('stack').innerHTML='';popQ=[];popOn=0;}};
 /* 說明：圖文分頁，每次打開都從第 1 頁開始；圖用遊戲裡的像素角色現畫（第一個人就是自己的造型） */
 let helpP=0, helpC=null;
+document.getElementById('helpVer').textContent='版本 '+APP_VERSION;
 function helpStage(list,w){w=w||300;const feet=150,top=feet-132,out=list.map(c=>charSVG(c.x,feet,c.name||'',c.color||'#9aa3b5',{look:c.look,boss:c.boss,prop:c.prop,face:c.face,crown:c.crown,scale:c.s||1})).join('');
   return `<svg class="stage2" viewBox="0 ${top} ${w} 150" aria-hidden="true"><ellipse cx="${w/2}" cy="${feet+3}" rx="${w/2-14}" ry="5" fill="#000" opacity=".16"/>${out}</svg>`;}
 function helpIcon(c){return helpStage([c],60).replace('viewBox="0 18 60 150"','viewBox="-20 34 100 124"');}
@@ -869,7 +895,9 @@ function renderNotes(){
 document.getElementById('digits').onclick=e=>{const b=e.target.closest('[data-dg]');if(!b)return;const i=+b.dataset.dg;notes.d[i]=(notes.d[i]+1)%3;saveNotes();renderNotes();render();};
 document.getElementById('pos').onchange=e=>{const s=e.target.closest('[data-pos]');if(!s)return;notes.pos[+s.dataset.pos]=s.value;if(s.value!==''&&notes.d[+s.value]!==1)notes.d[+s.value]=1;saveNotes();renderNotes();render();};
 document.getElementById('memo').oninput=e=>{notes.memo=e.target.value;saveNotes();};
-document.getElementById('notesClear').onclick=()=>{notes={d:Array(10).fill(0),pos:Array(notesLen||4).fill(''),memo:''};document.getElementById('memo').value='';saveNotes();renderNotes();render();};
+document.getElementById('notesClear').onclick=e=>{const b=e.currentTarget,now=Date.now();
+  if(now-(b._arm||0)>4000){b._arm=now;b.textContent='再按一次清除';setTimeout(()=>{if(b._arm===now){b._arm=0;b.textContent='全部清除';}},4000);return;}
+  b._arm=0;b.textContent='全部清除';notes={d:Array(10).fill(0),pos:Array(notesLen||4).fill(''),memo:''};document.getElementById('memo').value='';saveNotes();renderNotes();render();};
 
 /* ---------- 聊天與提醒 ---------- */
 const QUICK=['快一點啦😂','你要猜多久…😴','等我一下⏳','好難喔🤯','哈哈哈🤣','可惡😤','讚👍','你完蛋了😈'];
@@ -896,15 +924,15 @@ function pumpPop(){
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{el.hidden=true;},3000);}
 async function sendChat(text){
   text=(text||'').trim().slice(0,60);
-  if(!text||!code||!(isSeated(me)||isWatcher(me))||!db)return;
+  if(!text||!code||!(isSeated(me)||isWatcher(me))||!db)return false;
   const wait=SEND_GAP-(Date.now()-lastSend);
-  if(wait>0){toast(`慢一點，${Math.ceil(wait/1000)} 秒後再傳`);return;}
+  if(wait>0){toast(`慢一點，${Math.ceil(wait/1000)} 秒後再傳`);return false;}
   lastSend=Date.now();
-  try{await db.collection(`rooms/${code}/chat`).add({pid:me,name:nameOf(me),text,at:Date.now()});}catch(e){toast('訊息沒送出去，請再試一次');}
+  try{await db.collection(`rooms/${code}/chat`).add({pid:me,name:nameOf(me),text,at:Date.now()});return true;}catch(e){lastSend=0;toast('訊息沒送出去，請再試一次');return false;}
 }
 document.getElementById('chips').innerHTML=QUICK.map((q,i)=>`<button type="button" data-q="${i}">${q}</button>`).join('');
 document.getElementById('chips').onclick=e=>{const b=e.target.closest('[data-q]');if(b)sendChat(QUICK[+b.dataset.q]);};
-document.getElementById('sendForm').onsubmit=e=>{e.preventDefault();const i=document.getElementById('chatIn');sendChat(i.value);i.value='';};
+document.getElementById('sendForm').onsubmit=async e=>{e.preventDefault();const i=document.getElementById('chatIn'),t=i.value;if(await sendChat(t)&&i.value===t)i.value='';};
 
 /* ---------- 房間 ---------- */
 async function act(fn){
@@ -932,7 +960,10 @@ async function joinRoom(c,watch){
   await act(async()=>{
     const sn=await roomRef(c).get();
     if(!sn.exists){if(ls.get('ab_room')===c)ls.del('ab_room');homeErr=`找不到房間 ${c}，請確認邀請碼`;return;}
-    if(sn.data().ver!==APP_VERSION){homeErr=`房間 ${c} 是舊版本建立的，請房主重新開房`;return;}
+    if(sn.data().ver!==APP_VERSION){
+      if(ls.get('ab_room')===c)ls.del('ab_room');
+      if(verNewer(sn.data().ver,APP_VERSION)){homeErr=`你的遊戲版本比房間舊，更新後再加入一次`;updShown=true;updTick();return;}
+      homeErr=`房間 ${c} 是舊版本建立的，請房主重新開房`;return;}
     const d=sn.data(), cnt=Object.values(d.seats||{}).filter(Boolean).length;
     if(watch&&!(d.seats||{})[me]){
       if(Object.values(d.watchers||{}).filter(Boolean).length>=20){homeErr='觀眾太多了，等一下再來';return;}
@@ -955,7 +986,7 @@ function enterRoom(c){
   unsubs.forEach(u=>{try{u();}catch(e){}}); unsubs=[];
   code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now();
   mySecret=null; input=''; err=''; view=null; scored.clear(); notesKey=null;
-  ls.set('ab_room',c);
+  ls.set('ab_room',c); ss.set('ab_live',c);
   unsubs.push(roomRef(c).onSnapshot(snap=>{
     if(!snap.exists){roomMissing=true;R=null;return render();}
     applyRoom(snap.data()); render(); renderChat(); autoScore();
@@ -1006,6 +1037,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollOnce(t
 window.addEventListener('online',()=>pollOnce(true));
 window.addEventListener('pageshow',()=>pollOnce(true));
 let updShown=false;
+const verNum=v=>String(v||'').split(/[.-]/).map(Number);
+function verNewer(a,b){const A=verNum(a),B=verNum(b);for(let i=0;i<Math.max(A.length,B.length);i++){const d=(A[i]||0)-(B[i]||0);if(d)return d>0;}return false;}
 async function checkUpdate(){
   if(updShown||location.protocol==='file:')return;
   try{const r=await fetch(location.pathname+'?_='+Date.now(),{cache:'no-store'});const t=await r.text();
@@ -1025,15 +1058,18 @@ setInterval(updTick,2000);
 setInterval(checkUpdate,60000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate();});
 setTimeout(checkUpdate,5000);
-function goHome(){homeStep='menu';homeEdit=false;if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){homeStep='menu';homeEdit=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook())}}}));
 }
 async function leaveRoom(){
   if(isWatcher(me)){ls.del('ab_watch');try{await roomRef().update({watchers:{[me]:null}});}catch(e){} goHome();return;}
+  if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
   const s=g(); const rest=players().filter(p=>p.id!==me);
-  const upd={seats:{[me]:null}}; if(s.host===me&&rest.length) upd.host=rest[0].id;
+  /* 最後一個人離開就把房間收掉，不留沒有房主的空房間 */
+  if(!rest.length){const c=code;try{await Promise.all(['chat','guesses','secrets','fx'].map(nm=>wipe(c,nm,()=>true)));await roomRef(c).delete();}catch(e){}goHome();return;}
+  const upd={seats:{[me]:null}}; if(s.host===me) upd.host=rest[0].id;
   try{await roomRef().update(upd);}catch(e){}
   goHome();
 }
@@ -1045,14 +1081,19 @@ function derange(ids){
   do{p=ids.slice();for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}}while(p.some((x,i)=>x===ids[i]));
   const m={};ids.forEach((id,i)=>m[id]=p[i]);return m;
 }
-let acking=0, starting=0, tickT=null;
+let acking=0, starting=0, tickT=null, reassigning=0;
 async function syncStep(D){
   const s=g(); if(!code||!R)return;
+  /* 還沒出題就離開的人，他的題目永遠等不到：房主重新分配，人不夠就回大廳 */
+  if(D.status==='secret'&&isHost()&&D.parts.some(id=>!s.seats[id]&&!hasSecret(id))&&Date.now()-reassigning>3000){
+    reassigning=Date.now();const keep=D.parts.filter(id=>s.seats[id]);
+    try{if(keep.length<2){await backToLobby(true);toast('人不夠了，先回到大廳');}else await roomRef().update({assign:JSON.stringify(derange(keep))});}catch(e){reassigning=0;}
+  }
   if(D.status==='loading'&&me in D.A&&secretOf(D.A[me])!=null&&((s.seats[me]||{}).ack!==s.round)&&Date.now()-acking>3000){
     acking=Date.now();
     try{await roomRef().update({seats:{[me]:{ack:s.round}}});}catch(e){acking=0;}
   }
-  if(D.status==='loading'&&!s.startAt&&D.parts.length&&D.acked.length===D.parts.length&&Date.now()-starting>3000){
+  if(D.status==='loading'&&!s.startAt&&D.parts.length&&D.parts.every(id=>D.acked.includes(id)||D.out[id])&&Date.now()-starting>3000){
     starting=Date.now();
     try{await roomRef().update({startAt:Date.now()+3000});}catch(e){starting=0;}
   }
@@ -1365,9 +1406,10 @@ function resultText(D){
   const nm=top.map(r=>nameOf(r.id)).join('、');
   return (top.length>1?`${nm} 並列第一`:`${nm} 獲勝`)+`（${top[0].c} 次猜中）`;
 }
-async function backToLobby(){
-  selfAgain=true;
+async function backToLobby(force){
   const D=derive(), s0=g(), CO=s0.phase==='coop'?coopState():null, over=CO?CO.over:D.status==='over'; if(!isHost()&&!over)return;
+  if(!over&&!force&&!confirmTap('again','確定結束這局？再按一次'))return;
+  selfAgain=true;
   const s=g(), reset={}; players().forEach(p=>reset[p.id]={ready:p.id===s.host,gaveUp:0});
   const nr=(s.round||1)+1, upd={round:nr,phase:'lobby',startAt:0,chatSince:Date.now(),assign:'{}',seats:reset};
   upd.coop=null;
@@ -1504,16 +1546,16 @@ function bind(){
   app.querySelectorAll('[data-gmode]').forEach(b=>b.onclick=()=>setRule('mode',b.dataset.gmode));
   app.querySelectorAll('[data-turn]').forEach(b=>b.onclick=()=>setRule('turnSec',+b.dataset.turn));
   app.querySelectorAll('[data-gdiff]').forEach(b=>b.onclick=()=>setRule('diff',b.dataset.gdiff));
-  if($('roomStage')) $('roomStage').onchange=e=>setRule('stage',e.target.value);
+  if($('roomStage')) $('roomStage').onchange=e=>{e.target.blur();setRule('stage',e.target.value);};
   if($('surrender')) $('surrender').onclick=coopSurrender;
   if($('teamSetBtn')) $('teamSetBtn').onclick=()=>coopSetTeam(($('teamSet').value||'').trim());
   if($('backRoom')) $('backRoom').onclick=()=>joinRoom(ls.get('ab_room'));
   if($('notesBtn')) $('notesBtn').onclick=()=>setNotes(true);
   app.querySelectorAll('[data-slen]').forEach(b=>b.onclick=()=>{soloCfg.len=+b.dataset.slen;saveSoloCfg();render();});
   app.querySelectorAll('[data-srep]').forEach(b=>b.onclick=()=>{soloCfg.rep=b.dataset.srep==='1';saveSoloCfg();render();});
-  app.querySelectorAll('[data-smode]').forEach(b=>b.onclick=()=>{soloCfg.mode=b.dataset.smode;render();});
-  app.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{soloCfg.diff=b.dataset.diff;render();});
-  if($('stageSel')) $('stageSel').onchange=e=>{soloCfg.stage=e.target.value;saveSoloCfg();render();};
+  app.querySelectorAll('[data-smode]').forEach(b=>b.onclick=()=>{soloCfg.mode=b.dataset.smode;saveSoloCfg();render();});
+  app.querySelectorAll('[data-diff]').forEach(b=>b.onclick=()=>{soloCfg.diff=b.dataset.diff;saveSoloCfg();render();});
+  if($('stageSel')) $('stageSel').onchange=e=>{e.target.blur();soloCfg.stage=e.target.value;saveSoloCfg();render();};
   ['cvName','cvSays'].forEach(id=>{const el=$(id);if(el)el.oninput=()=>{soloCfg.custom=soloCfg.custom||{};soloCfg.custom[id==='cvName'?'n':'says']=el.value;saveSoloCfg();};});
   if($('soloStart')) $('soloStart').onclick=()=>soloNew(soloCfg.len,soloCfg.rep);
   if($('cvShare')) $('cvShare').onchange=e=>{soloCfg.share=e.target.checked;saveSoloCfg();};
@@ -1524,13 +1566,17 @@ function bind(){
   if($('soloQuick')) $('soloQuick').onclick=()=>soloNew(soloCfg.len,soloCfg.rep);
   if($('soloAgain')) $('soloAgain').onclick=()=>soloNew(solo.len,solo.rep);
   if($('soloQuit')) $('soloQuit').onclick=soloQuit;
+  if($('soloBack')) $('soloBack').onclick=soloResume;
+  if($('soloDrop')) $('soloDrop').onclick=()=>{if(!confirmTap('soloDrop','確定不要了？再按一次'))return;ls.del('ab_solo');render();};
   if($('hintBtn')) $('hintBtn').onclick=useHint;
   if($('giveUp')) $('giveUp').onclick=giveUp;
   if($('soloAngel')) $('soloAngel').onclick=()=>{const s=solo;if(!s||s.result||(s.angels||0)>=3)return;s.angels=(s.angels||0)+1;angelFx({target:me,name:'',text:angelTextFrom(s.hist,s.len,s.rep),solo:true});render();};
   if($('ready')) $('ready').onclick=toggleReady;
   if($('start')) $('start').onclick=startGame;
-  if($('again')) $('again').onclick=backToLobby;
+  if($('again')) $('again').onclick=()=>backToLobby();
   if($('copyCode')) $('copyCode').onclick=copyCode;
+  if($('inviteBtn')) $('inviteBtn').onclick=copyCode;
+  if($('advBtn')) $('advBtn').onclick=()=>{advOpen=!advOpen;render();};
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
   if($('explainBtn')) $('explainBtn').onclick=()=>{explainOpen=!explainOpen;render();};
   app.querySelectorAll('[data-rtab]').forEach(b=>b.onclick=()=>{resTab=b.dataset.rtab;render();});
@@ -1550,10 +1596,13 @@ function localPid(){
   const cl=window.__ab;
   const [d,u]=await Promise.all([cl?.use?cl.use('db'):null, cl?.use?cl.use('user'):null]);
   db=d; why=window.__fbErr||'-';
+  const live=ss.get('ab_live');
+  if(live==='solo'&&savedSolo()&&!solo) soloResume();
   if(!db) return render();
   baseMe=me=window.__uid||localPid();
   nick=ls.get('ab_nick')||'';
   if(!nick&&u){try{const m=await u.me();nick=m&&m.name||'';}catch(e){}}
+  if(live&&live!=='solo'&&ls.get('ab_room')===live) return joinRoom(live);
   render();
 })();
 /* ---------- 邊緣人模式（單機） ---------- */
@@ -1599,9 +1648,18 @@ function villainFor(stage){
   const key=stage==='random'||!STAGES[stage]?pick(Object.keys(STAGES)):stage;
   return Object.assign({stageKey:key},pick(STAGES[key].v));
 }
-ls.del('ab_solo_cfg');
-function saveSoloCfg(){}
-function saveSolo(){}
+try{const c=JSON.parse(ls.get('ab_solo_cfg')||'null');if(c&&typeof c==='object')Object.assign(soloCfg,c);}catch(e){}
+function saveSoloCfg(){ls.set('ab_solo_cfg',JSON.stringify(soloCfg));}
+/* 邊緣人模式打到一半存在手機裡：重新整理、切出去、按回首頁都不會不見，首頁可以按「繼續」 */
+function saveSolo(){const s=solo;if(!s||s.phase==='setup')return;
+  if(s.result){ls.del('ab_solo');ss.del('ab_live');return;}
+  ls.set('ab_solo',JSON.stringify(s));ss.set('ab_live','solo');}
+function savedSolo(){try{const d=JSON.parse(ls.get('ab_solo')||'null');if(d&&d.phase==='play'&&!d.result&&Array.isArray(d.hist)&&Array.isArray(d.chist)&&d.vil&&d.secret)return d;}catch(e){}return null;}
+function soloResume(){const d=savedSolo();if(!d){ls.del('ab_solo');return render();}
+  solo=d;d.cpuBusy=false;input='';err='';peek=false;notesOpen=false;notesKey=null;explainOpen=false;resTab='me';
+  render();window.scrollTo(0,0);if(d.mode==='duel'&&d.chist.length<d.hist.length)cpuTurn();}
+function soloBackCard(){const d=savedSolo();if(!d)return'';
+  return`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">邊緣人模式還沒打完</span><b style="display:block;font-size:16px;overflow-wrap:anywhere">${d.mode==='duel'?`對手：${esc(d.vil.n)}`:'練習模式'}　已猜 ${d.hist.length} 次</b><button class="peek" id="soloDrop" style="padding-inline:0">不要了</button></div><button class="btn" id="soloBack" style="width:auto;padding:12px 18px;flex:0 0 auto">繼續</button></div>`;}
 function fmtTime(ms){const s=Math.round(ms/1000),m=Math.floor(s/60);return m?`${m} 分 ${s%60} 秒`:`${s} 秒`;}
 function soloCard(){
   const duel=soloCfg.mode==='duel';
@@ -1901,20 +1959,20 @@ function coopView(s){
     setTimeout(render,(C.c.startAt-Date.now())%1000+30);
   } else {
     const mine=C.guesser===me;
-    h+=`<div class="card vil"><span class="vicon">${vilIcon(v)}</span><div style="flex:1 1 auto;min-width:0"><span class="lbl">全隊的對手：${esc(v.n)}</span><p>「${esc(v.says)}」</p></div></div>
-    <div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
-    h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
-      ${isHost()&&!C.T.length?`<div class="sendrow"><input type="text" id="teamSet" inputmode="numeric" maxlength="${s.len}" placeholder="房主可以改成自己出的題"><button class="btn" id="teamSetBtn" style="width:auto;padding:10px 14px">改題目</button></div>`:''}</div>`;
+    h+=`<div class="card vil"><span class="vicon">${vilIcon(v)}</span><div style="flex:1 1 auto;min-width:0"><span class="lbl">全隊的對手：${esc(v.n)}</span><p>「${esc(v.says)}」</p></div></div>`;
     if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}${mine?'':'，可以語音或在聊天室幫忙出主意'}</p></div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
       (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}<p class="err">${esc(err)}</p>${pad(true)}`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?'<button class="btn ghost small" id="hintBtn">提示</button>':''}${inTeam&&angelMax()?`<button class="btn ghost small" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>小天使 ×${coopAngelsLeft()}（全隊）</button>`:''}</div>`:'')+`</div>`;
+    h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
+    h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
+      ${isHost()&&!C.T.length?`<div class="sendrow"><input type="text" id="teamSet" inputmode="numeric" maxlength="${s.len}" placeholder="房主可以改成自己出的題"><button class="btn" id="teamSetBtn" style="width:auto;padding:10px 14px">改題目</button></div>`:''}</div>`;
     h+=`<div class="card"><span class="lbl">${esc(v.n)}猜全隊的題</span>${cpuHistHTML(C.B)}</div>`;
     h+=`<div class="card"><span class="lbl">輪流順序</span><div class="chips">${C.order.map(id=>`<span class="pill ${id===C.guesser&&!C.waitingBoss?'ok':''}">${esc(nameOf(id))}${id===me?'（你）':''}</span>`).join('')}</div>${!inTeam?'<p class="rules">這一局開始時你還沒加入，可以先觀戰。</p>':''}</div>`;
     if(isHost()) h+=`<button class="btn ghost" id="surrender">全隊投降</button>`;
   }
-  h+=isHost()?`<button class="btn ghost" id="closeRoom">關閉房間</button><button class="peek" id="leave">離開房間（房主交給下一位）</button>`:`<button class="peek" id="leave">離開房間</button>`;
+  h+=isHost()?`<button class="btn ghost" id="closeRoom">關閉房間</button><button class="peek" id="leave">${leaveLbl()}</button>`:`<button class="peek" id="leave">離開房間</button>`;
   return h;
 }
 /* ---------- 丟東西、敲魔王（純互動） ---------- */
@@ -1928,13 +1986,13 @@ const PX_ITEM={
  heart:[["..RRR...RRR..",".RWWRR.RRRRR.","RRWRRRRRRRRRr","RRRRRRRRRRRRr","RRRRRRRRRRRRr",".RRRRRRRRRRr.","..RRRRRRRRr..","...RRRRRRr...","....RRRRr....",".....RRr.....","......r......"],{R:'#ff5c8a',r:'#d63b6a',W:'#ffd0de'}]
 };
 const itemIcon=k=>{const a=PX_ITEM[k];return a?pxIcon(a[0],a[1]):'';};
-const ITEMS={hammer:'🪣',tomato:'🍅',egg:'🥚',slipper:'🩴',bomb:'💣',flower:'💐',heart:'💖'};
+const ITEMS={hammer:'🪣',tomato:'🍅',egg:'🥚',slipper:'🩴',bomb:'💣',flower:'💐',heart:'💖'}, ITEMN={hammer:'大鐵盆',tomato:'番茄',egg:'雞蛋',slipper:'拖鞋',bomb:'炸彈',flower:'花',heart:'愛心'};
 let soloHits=0, fxItem='hammer', fxLoaded=false, fxSeen=new Set(), fxStart=Date.now(), fxQueue={}, fxRes={}, fxTimer=null;
 function itemBar(where){
   if(code&&isWatcher(me)) return '';
   const keys=where!=='lobby'?['hammer','tomato','egg','slipper','bomb']:['tomato','egg','slipper','bomb','flower','heart'];
   if(!keys.includes(fxItem)) fxItem=keys[0];
-  return `<div class="items"><span class="lbl">${where==='podium'?'選道具，點站在上面的人':where==='solo'?'選道具，點魔王出氣':where==='coop'?'選道具，點魔王出氣（隊友也可以丟）':'選道具，點朋友丟過去'}</span><div class="ibar">${keys.map(k=>`<button type="button" data-item="${k}" aria-pressed="${fxItem===k}" aria-label="${k}">${itemIcon(k)}</button>`).join('')}</div></div>`;
+  return `<div class="items"><span class="lbl">${where==='podium'?'選道具，點站在上面的人':where==='solo'?'選道具，點魔王出氣':where==='coop'?'選道具，點魔王出氣（隊友也可以丟）':'選道具，點朋友丟過去'}</span><div class="ibar">${keys.map(k=>`<button type="button" data-item="${k}" aria-pressed="${fxItem===k}" aria-label="${ITEMN[k]}">${itemIcon(k)}</button>`).join('')}</div></div>`;
 }
 function tgtEl(t){return app.querySelector(`[data-who="${CSS.escape(t)}"]`)||app.querySelector(`[data-target="${CSS.escape(t)}"]`);}
 const BODYK=1.25, randHit=()=>{const h=Math.random()<.7;return{head:h,u:h?Math.random()*.45-.25:.25+Math.random()*.2,v:Math.random()*.6-.3};};
@@ -1983,7 +2041,8 @@ function knock(g,item,by){
     if(!st.rage)st.upAt=Math.min(Math.max(st.upAt,now+1500),st.since+(pod?12000:3800));
   }else{
     const svg=g.ownerSVGElement,r=g.getBoundingClientRect(),sr=svg?svg.getBoundingClientRect():r;
-    const d=(r.left+r.width/2)>(sr.left+sr.width/2)?1:-1;
+    let d=(r.left+r.width/2)>(sr.left+sr.width/2)?1:-1;
+    const land=r.left+r.width/2+d*r.height; if(land<6||land>innerWidth-6)d=-d;
     st=KST[who]={down:true,d,since:now,upAt:now+2200,by:{},cnt:0};
     g.style.setProperty('--d',d);g.classList.remove('ku','kj','love');g.classList.add('down','kf');
   }
@@ -2132,11 +2191,11 @@ async function sendFeedback(type,text,silent){
   if(!db){if(!silent){fbMsg='目前連不上伺服器，晚點再試';}return false;}
   if(!silent&&Date.now()-fbLast<20000){fbMsg='剛送出過，稍等一下再送';return false;}
   try{
-    await db.collection('feedback').add({type,text:String(text).slice(0,300),name:(nick||'').slice(0,8),ver:APP_VERSION,at:Date.now()});
+    await db.collection('feedback').add({type,text:String(text).slice(0,300),name:type==='villain'?'':(nick||'').slice(0,8),ver:APP_VERSION,at:Date.now()});
     if(!silent)fbLast=Date.now(); return true;
   }catch(e){if(!silent)fbMsg=`送出失敗（${(e&&(e.code||e.message))||'unknown'}）`;return false;}
 }
-function soloQuit(){solo=null;notesOpen=false;input='';err='';render();window.scrollTo(0,0);}
+function soloQuit(){solo=null;ss.del('ab_live');homeStep='menu';notesOpen=false;input='';err='';render();window.scrollTo(0,0);}
 const TAUNT=['還沒猜到喔？','我等你😴','慢慢來，反正沒人在等你','這題很簡單吧🤔','你是不是在亂猜😏'];
 /* 魔王的猜題邏輯：只用自己猜過的幾A幾B來推理 */
 const ALLC={};
@@ -2288,9 +2347,10 @@ function cpuHistHTML(L){
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">💭 ${esc(r.think)}</div>`:''}`).join('')+'</div>';
 }
 function renderSolo(){
+  saveSolo();
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil, stLabel=s.stage==='custom'?'自訂魔王':(STAGES[s.stage]||{label:''}).label;
-  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'} · ${esc(stLabel)}</p></div></header>`;
+  let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help>？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'}${duel?` · ${esc(stLabel)}`:''}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
       <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">🎲 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
@@ -2300,20 +2360,19 @@ function renderSolo(){
   if(notesKey!==nk||notesLen!==s.len) loadNotes(nk,s.len);
   autoMarkFrom(s.hist,s.len);
   if(!s.result){
-    if(duel) h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">${duel?'對手':'今天的魔王'}：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     const hl=s.len-1-used, waiting=duel&&(s.cpuBusy||s.chist.length<s.hist.length);
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
-    if(waiting) h+=`<div class="card center"><h2>${esc(vil.n)}思考中<span class="dots"></span></h2><p class="hand">${meDone?`你猜中了！看${esc(vil.n)}這回合能不能追平`:'輪到魔王猜你的題目'}</p></div>`;
-    h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · `:''}你猜${esc(vil.n)}的題</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}`+
-      (waiting?'':`${slots(false,knownOf(s.hist,s.len))}<p class="err">${esc(err)}</p>${pad(true)}
-      <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div>`)+`</div>`;
+    if(duel) h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>`;
+    h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
+      ${slots(false,knownOf(s.hist,s.len))}<p class="err ${waiting?'wait':''}">${waiting?`<span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}`:esc(err)}</p>${pad(true,waiting)}
+      <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||waiting?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
+    if(duel) h+=`<div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
     h+=`<button class="peek" id="soloQuit">回首頁</button>`;
   } else {
     const r=s.result, n=s.hist.length;
     const title=!duel?(r==='win'?`${n} 次猜中！`:'下次再來'):r==='win'?`你贏了！`:r==='tie'?'平手！':r==='lose'?`${esc(vil.n)}贏了…`:'下次再來';
-    const sub=r==='win'?`${n} 次猜中${duel?`，${esc(vil.n)}還沒猜到`:''}`:r==='tie'?`你們都在第 ${n} 回合猜中`:r==='lose'?`${esc(vil.n)}第 ${s.chist.length} 次就猜中你的題目`:`猜了 ${n} 次`;
+    const sub=r==='win'?(duel?`${n} 次猜中，${esc(vil.n)}還沒猜到`:'猜中了'):r==='tie'?`你們都在第 ${n} 回合猜中`:r==='lose'?`${esc(vil.n)}第 ${s.chist.length} 次就猜中你的題目`:`猜了 ${n} 次`;
     const pic=!duel?'':r==='win'?scene([{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],[{who:'p:boss',name:vil.n,color:vil.c,prop:vil.p}],vil.back,'你踩在'+vil.n+'身上',{ai:'p:boss|p:you'})
       :r==='tie'?scene([{name:'你',color:'#f2b544',look:myLook()},{name:vil.n,color:vil.c,boss:true,prop:vil.p}],[],'下一局分勝負','平手')
       :scene([{who:'p:boss',tg:true,name:vil.n,color:vil.c,boss:true,prop:vil.p}],[{who:'p:you',name:'你',color:'#f2b544',look:myLook()}],vil.says2,vil.n+'踩在你身上')+podBar();
@@ -2326,7 +2385,7 @@ function renderSolo(){
   }
   paint(h); sideUI(false,!s.result);
 }
-solo=null; ls.del('ab_solo');
+solo=null;
 
 setTimeout(()=>{if(!db)render();},11000);
 </script>
