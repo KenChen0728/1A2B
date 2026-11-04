@@ -4,7 +4,7 @@ const dump=async()=>(await (await fetch('http://localhost:8123/__dump')).json())
 (async()=>{await reset();const b=await chromium.launch();
  // ---- 單人：存檔、重新整理、回首頁繼續
  let c=await ctx(b,{vp:{width:390,height:664}});let p=await page(c);await name(p,'小明');await p.click('#goSolo');
- await p.click('[data-diff="hard"]');await p.click('[data-slen="5"]');await p.click('[data-srep="1"]');await p.click('#soloStart');
+ await p.click('[data-diff="hard"]');await p.click('#soloAdvBtn');await p.click('[data-slen="5"]');await p.click('[data-srep="1"]');await p.click('#soloStart');
  await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(150);
  ok(await p.evaluate(()=>{const r=document.querySelector('.pad [data-k=ok]').getBoundingClientRect();return r.bottom<=innerHeight+160;}),'單人：確定鍵接近第一畫面');
  await shot(p,'70-solo-new');
@@ -12,7 +12,7 @@ const dump=async()=>(await (await fetch('http://localhost:8123/__dump')).json())
  const H0=await p.evaluate(()=>document.documentElement.scrollHeight),Y0=await p.evaluate(()=>scrollY);
  await guess(p,'12345');await p.waitForTimeout(100);
  const H1=await p.evaluate(()=>document.documentElement.scrollHeight),Y1=await p.evaluate(()=>scrollY);
- ok(!!(await p.$('.pad')),'魔王思考時鍵盤還在');ok(Math.abs(Y1-Y0)<5,`捲動位置沒跳 ${Y0}→${Y1}`);
+ ok(!!(await p.$('.pad')),'魔王思考時鍵盤還在');ok(H1>=H0-4,`魔王思考時頁面高度不會縮 ${H0}→${H1}`);
  ok(await p.$eval('.pad [data-k=ok]',e=>e.disabled),'思考時確定鍵停用');
  await shot(p,'71-solo-wait');
  await p.waitForTimeout(2200);

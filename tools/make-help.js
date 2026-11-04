@@ -23,13 +23,13 @@ async function grab(p,n,sel,dy=0){ // 把 sel 捲到畫面上方，截一塊固�
  await p.click('#notesFab');await p.waitForTimeout(350);await p.screenshot({path:`${RAW}/stuck1.png`,clip:{x:390-W,y:0,width:W,height:H}});await p.click('#notesClose');await p.waitForTimeout(100);
  await guess(p,'5278');await p.waitForTimeout(300);await p.evaluate(()=>window.scrollTo(0,0));await p.waitForTimeout(3300);await grab(p,'rule3','h1',10);await p.click('#soloQuit');
  // 對魔王
- await p.click('#goSolo');await p.click('[data-smode="duel"]');await p.selectOption('#stageSel','office');await p.click('#soloStart');await p.waitForTimeout(100);await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(120);
- await guess(p,'1234');await p.waitForTimeout(2000);await grab(p,'solo2','.card.vil',8);
- await p.click('#giveUp');await p.click('#giveUp');await p.waitForTimeout(300);await p.click('#explainBtn');await p.waitForTimeout(120);await grab(p,'solo3','#explainBtn',60);
+ await p.click('#goSolo');await p.click('[data-smode="duel"]');await p.click('[data-stage="office"]');await p.click('#soloStart');await p.waitForTimeout(100);await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(1700);
+ await guess(p,'1234');await p.waitForTimeout(400);await grab(p,'solo2','.card.vil',8);
+ await p.click('#giveUp');await p.click('#giveUp');await p.waitForTimeout(300);await p.click('#rpBtn');await p.waitForTimeout(150);await p.click('[data-rp="n"]');await p.waitForTimeout(150);await grab(p,'solo3','.rpbox',4);await p.click('[data-rp="x"]');
  await c.close();
  // 多人
  await reset();const r=await room(b,3,opt);const [h,a,x]=r.ps;for(const q of r.ps)await q.evaluate(l=>localStorage.setItem('ab_look',l),LOOK);await h.waitForTimeout(300);
- await grab(a,'friends3','#ready',150);
+ await grab(a,'friends3','#ready',140);
  await grab(h,'fun1','.ibar',190);
  await h.click('[data-fin="0"]');await h.waitForTimeout(250);await grab(h,'modes2','[data-fin="1"]',60);await h.click('[data-fin="1"]');await h.waitForTimeout(150);
  await a.click('#ready');await x.click('#ready');await h.waitForTimeout(250);await h.click('#start');await a.waitForSelector('.pad');await a.waitForTimeout(150);await grab(a,'friends4','#randSecret',96);

@@ -10,7 +10,7 @@ let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
  await c.setOffline(true);await c.route('https://www.gstatic.com/firebasejs/**',r=>r.abort());await p.reload().catch(e=>console.log('reload',e.message.slice(0,80)));await p.waitForTimeout(800);
  ok((await p.textContent('h1').catch(()=>''))?.includes('幾A幾B'),'沒有網路也打得開');
  ok(!!(await p.$('#soloStart')),'離線可以開始邊緣人模式');
- await p.click('#soloStart');await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(100);await guess(p,'1234');await p.waitForTimeout(1900);ok(await p.evaluate(()=>solo.chist.length===1),'離線能跟魔王對打');
+ await p.click('#soloStart');await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(100);for(const v of ['1234','5678','9012'])await guess(p,v);await p.waitForTimeout(200);ok(await p.evaluate(()=>solo.hist.length===3&&solo.chist.length===0),'簡單魔王先讓 3 回合');await guess(p,'3456');await p.waitForTimeout(2000);ok(await p.evaluate(()=>solo.chist.length===1),'離線能跟魔王對打，第 4 回合魔王開始猜');
  ok(await p.evaluate(()=>document.fonts.check('12px Cubic11')||true),'字型檢查');
  await shot(p,'99-offline');await c.setOffline(false);await c.close();
  // 離線提示

@@ -14,5 +14,4 @@
 ## 第三方授權
 
 - 像素字型「俐方體11號」Cubic 11（ACh-K），SIL Open Font License，見 `Cubic_11-LICENSE.txt`。
-- Google Fonts：Huninn、Azeret Mono，SIL Open Font License。
 - Firebase JavaScript SDK，Apache License 2.0。

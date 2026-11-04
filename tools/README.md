@@ -11,4 +11,6 @@ node tools/test-sizes.js      # 各種裝置尺寸有沒有超出畫面
 node tools/test-stress.js     # 8 個人、超長名字、猜很多次
 ```
 
+畫面改版後要重新產生說明截圖：先跑 `node tools/make-help.js`，再跑 `python3 tools/help-webp.py`。
+
 需要 Node 和 Playwright。截圖放在 `tools/shots/`，不用上傳（已列在 `.gitignore`）。
