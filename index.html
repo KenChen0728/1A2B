@@ -160,7 +160,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .sendrow input{flex:1;min-width:0}
 .sendrow .btn{width:auto;padding:10px 16px;font-size:15px}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--card);padding:14px 24px;border-radius:16px;font-size:18px;font-weight:700;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:66;overflow-wrap:anywhere;pointer-events:none}
-@media (min-width:900px){.toast{top:calc(14px + var(--st));bottom:auto}}
+.toast{top:calc(14px + var(--st));bottom:auto}
 @media (prefers-reduced-motion:reduce){.dot{animation:none}*{transition:none!important}}
 .tabs{flex-wrap:wrap}
 .tabs button{flex:1 1 auto}
@@ -173,17 +173,17 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .place{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--card);font-family:var(--f-num);font-size:14px}
 .secret{font-family:var(--f-num);font-size:20px;letter-spacing:.15em;color:var(--ink)}
 
-.stack{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.stack{position:fixed;left:0;right:0;top:calc(64px + var(--st));z-index:30;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .bub{max-width:min(420px,100%);background:var(--card);color:var(--ink);border:2px solid var(--a);border-radius:16px;padding:8px 16px 10px;box-shadow:0 10px 30px rgba(0,0,0,.28);text-align:center;overflow-wrap:anywhere;animation:bubIn .5s cubic-bezier(.2,1.6,.4,1) both,wig .5s .5s ease 2}
 .bub small{display:block;font-size:12px;color:var(--muted)}
-.bub b{font-family:var(--f-disp);font-weight:400;font-size:24px;line-height:1.25}
+.bub b{font-family:var(--f-disp);font-weight:400;font-size:20px;line-height:1.3;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 .bub.out{animation:bubOut .35s ease forwards}
 @keyframes bubIn{from{transform:translateY(40px) scale(.6);opacity:0}to{transform:none;opacity:1}}
 @keyframes wig{25%{transform:rotate(-3deg)}75%{transform:rotate(3deg)}}
 @keyframes bubOut{to{transform:translateY(20px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bub,.bub.out{animation:none}}
 .roomhead{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
-.roomhead>div:first-child{flex:1 1 200px}
+.roomhead>div:first-child{flex:1 1 150px}
 .codebox{display:flex;flex-direction:column;align-items:center;gap:0;border:2px dashed var(--ink);border-radius:12px;padding:6px 14px}
 .codebox b{font-family:var(--f-num);font-size:26px;letter-spacing:.2em;color:var(--ink);line-height:1.2}
 .pill.host{color:var(--b);border-color:var(--b)}
@@ -434,9 +434,12 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .err.abkey{color:var(--muted);font-size:14px}.abkey .A{color:var(--a)}.abkey .B{color:var(--b)}
 .pad .ok:disabled{opacity:.4}
 #closeRoom,#surrender,#giveUp,#notesClear{color:var(--a)}
-@media (max-height:700px){.pad{gap:6px}.pad button{padding:7px 0}.slot{height:50px;font-size:30px}.card{gap:10px}}
-/* 手機橫放：鍵盤排成兩列，不用捲動 */
-@media (max-height:480px){.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:5px 0;font-size:22px}.pad .ok{font-size:16px}.slot{height:40px;font-size:26px}.wrap{padding-block:8px 16px}}
+/* 輸入區（數字格＋提示列＋鍵盤）固定貼在畫面下緣，紀錄從後面滑過：不用捲動就按得到「確定」 */
+.padbox{position:sticky;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;flex-direction:column;gap:14px;background:var(--card);margin-inline:-8px;padding:6px 8px 4px;border-radius:12px;box-shadow:0 -8px 12px -10px rgba(0,0,0,.28)}
+@media (max-height:760px){.wrap{padding-block:12px 20px;gap:12px}.card{gap:10px;padding:12px}.padbox{gap:8px}.pad{gap:6px}.pad button{padding:7px 0}.slot{height:46px;font-size:30px}.target{flex-direction:row;justify-content:center;align-items:baseline;gap:8px;padding-block:6px}.target h2{font-size:18px}.card>h2{font-size:18px}h1{font-size:24px}.roomhead .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.codebox{padding:2px 10px}.codebox b{font-size:20px}}
+@media (max-height:600px){.slot{height:38px;font-size:26px}.pad button{padding:4px 0;font-size:23px}.padbox{gap:4px}}
+/* 手機橫放：鍵盤排成兩列，上方再壓縮 */
+@media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.roomhead{align-items:center}.roomhead .sub{display:none}.codebox{flex-direction:row;gap:8px}.codebox .lbl{display:none}.peekrow .peek{padding-block:2px}}
 .stk{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:6;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .card.stk{padding-block:10px;gap:8px}
 .btn.ghost.stk{background:var(--card)}
@@ -666,12 +669,12 @@ const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
 const leaveLbl=()=>isHost()&&players().length>1?'離開房間（房主交給下一位）':'離開房間';
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
-const WIDE=740; let wasWide=innerWidth>=WIDE;
-function twoCol(){if(innerWidth<WIDE||!app.querySelector(':scope>.card svg.stage'))return;
+const wideNow=()=>innerWidth>=740||(innerWidth>=620&&innerHeight<480); let wasWide=wideNow();
+function twoCol(){if(!wideNow()||!app.querySelector(':scope>.card svg.stage'))return;
   const L=document.createElement('div'),R=document.createElement('div');L.className='colL';R.className='colR';
   [...app.children].forEach(c=>{if(c.tagName==='HEADER')return;(c.matches('.vil,.target,.lcol')||c.querySelector('svg.stage')?L:R).appendChild(c);});
   app.append(L,R);}
-window.addEventListener('resize',()=>{const w=innerWidth>=WIDE;if(w!==wasWide){wasWide=w;lastHTML='';render();}});
+window.addEventListener('resize',()=>{const w=wideNow();if(w!==wasWide){wasWide=w;lastHTML='';render();}});
 function paint(html){
   const ae=document.activeElement;
   // 下拉選單或輸入框正在使用中：先不要重畫，等使用者選完再更新
@@ -767,7 +770,7 @@ function render(){
   else if(D.status==='secret'){
     const doneN=D.parts.filter(hasSecret).length;
     if(inGame&&!hasSecret(me)){
-      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>`;
+      h+=`<div class="card"><h2>出一題給別人猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。題目會隨機分給一位玩家。</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
     } else if(inGame){
       h+=`<div class="card center"><h2>你的題目已送出</h2><p class="hand"><span class="dot"></span>等大家出題（${doneN}/${D.parts.length}），全部到齊就自動分配開始</p></div>`;
     } else h+=`<div class="card center"><p class="hand">這一局已經開始，下一局就會一起玩。</p></div>`;
@@ -793,7 +796,7 @@ function render(){
       else if(D.waiting(me)) h+=`<div class="card center"><h2>第 ${D.by[me].length} 次已送出</h2><p class="hand"><span class="dot"></span>等其他人猜完這一回合（${D.parts.filter(id=>!D.out[id]&&!D.solved[id]&&D.by[id].length>=D.by[me].length).length}/${D.parts.filter(id=>!D.out[id]&&!D.solved[id]).length}）</p></div>`;
       if(D.can(me)){
         const hl=g().len-1-D.hints[me];
-        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}
+        h+=`<div class="card"><h2>${s.finish?'':`第 ${D.by[me].length+1} 回合 · `}第 ${D.by[me].length+1} 次</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}<div class="padbox">${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}</div>
         <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||!secretOf(tgt)||!D.hc?'disabled':''}>${D.hc?`提示 ×${Math.max(0,hl)}（算 ${D.hc} 次）`:'這局不能用提示'}</button>${D.aN?`<button class="btn ghost small" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>小天使 ×${Math.max(0,D.aN-D.angels[me])}${D.ac?`（算 ${D.ac} 次）`:''}</button>`:''}<button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
@@ -843,8 +846,13 @@ function sideUI(chatOn,notesOn){
   $$('notesBack').hidden=!notesOpen&&!chatOpen;
   const nl=document.querySelector('#notesWrap .dhead .lbl'); if(nl) nl.textContent=sharedNotes?'全隊共享筆記（大家都能看、都能改）':'我的筆記（只有你看得到）';
   if(notesOpen) renderMine();
-  const mh=document.getElementById('mineH'); if(mh) mh.scrollTop=mh.scrollHeight;
+  fitHist();
 }
+/* 猜題紀錄的高度跟著畫面算：最新一筆要看得到，不能被下方的鍵盤蓋住 */
+function fitHist(){const m=document.getElementById('mineH');if(!m)return;const b=document.querySelector('.padbox');
+  if(b){const top=m.getBoundingClientRect().top+scrollY;m.style.maxHeight=Math.max(72,Math.min(190,Math.floor(innerHeight-top-b.offsetHeight-24)))+'px';}
+  m.scrollTop=m.scrollHeight;}
+addEventListener('resize',()=>fitHist());
 function renderMine(){
   const el=document.getElementById('dmine'); if(!el||(!R&&!solo))return;
   const L=solo?solo.hist:(R&&g().phase==='coop')?coopState().T:(derive().by[me]||[]);
@@ -2189,7 +2197,7 @@ function coopView(s){
     if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}${mine?'':'，可以語音或在聊天室幫忙出主意'}</p></div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
-      (mine&&!C.waitingBoss?`${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}`:'')+
+      (mine&&!C.waitingBoss?`<div class="padbox">${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}</div>`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?'<button class="btn ghost small" id="hintBtn">提示</button>':''}${inTeam&&angelMax()?`<button class="btn ghost small" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>小天使 ×${coopAngelsLeft()}（全隊）</button>`:''}</div>`:'')+`</div>`;
     h+=`<div class="card">${stageSVG(C.order.map(id=>({id,name:nameOf(id),look:lookOf(id)})).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}${itemBar('coop')}</div>`;
     h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
@@ -2580,7 +2588,7 @@ function renderSolo(){
   let h=`<header class="roomhead"><div style="min-width:0"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button></div><p class="sub">${duel?`挑戰 · ${(s.diff==='hard'?'困難':'簡單')}`:'練習'} · ${s.len} 位數 · ${s.rep?'可重複':'不重複'}${duel?` · ${esc(stLabel)}`:''}</p></div></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
-      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p>${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div>
+      <div class="card"><h2>出一題給${esc(vil.n)}猜</h2><p class="sub">${s.len} 位數，${s.rep?'數字可以重複':'數字不能重複'}。${esc(vil.n)}也已經出好一題給你了。</p><div class="padbox">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>
       <button class="peek" id="soloQuit">回首頁</button>`;
     paint(h); sideUI(false,false); return;
   }
@@ -2591,7 +2599,7 @@ function renderSolo(){
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
     if(duel) h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>`;
     h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
-      ${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}
+      <div class="padbox">${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}</div>
       <div class="tools"><button class="btn ghost small" id="hintBtn" ${hl<=0||waiting?'disabled':''}>提示 ×${Math.max(0,hl)}</button><button class="btn ghost small" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small" id="giveUp">放棄</button></div></div>`;
     if(duel) h+=`<div class="card">${stageSVG([{id:'you',name:'你',self:true,color:'#f2b544',look:myLook()},{id:'boss',name:vil.n,boss:true,prop:vil.p,color:vil.c}])}${itemBar('solo')}</div>`;
     if(duel) h+=`<div class="card lcol"><span class="lbl">${esc(vil.n)}猜你的題（你的題目：<b class="secret" style="font-size:16px">${esc(s.mine)}</b>）</span>${cpuHistHTML(s.chist)}</div>`;
