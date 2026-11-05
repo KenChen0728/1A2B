@@ -29,7 +29,7 @@ const vs=p=>p.evaluate(()=>{const e=document.getElementById('vsM');return{on:!e.
  // 合作：兩人，小美卡住，房主延後，最多兩次
  await reset();r=await room(b,2,{vp:{width:402,height:810}});[h,a]=r.ps;await h.click('[data-gmode="coop"]');await a.waitForTimeout(200);await a.click('#ready');await h.waitForTimeout(250);
  await a.evaluate(()=>{window.__cs=coopStep;coopStep=()=>{};});await h.click('#start');await h.waitForTimeout(1200);
- v=await vs(h);ok(v.on&&/全隊 2 人/.test(v.sub),`合作：也有對決畫面（${v.sub}）`);ok(!(await vs(a)).on===false,'合作：隊友也看得到');
+ v=await vs(h);ok(v.on&&/全隊 2 人/.test(v.sub),`合作：也有對決畫面（${v.sub}）`);ok(!(await vs(a)).on===false,'合作：隊友也看得到');ok(v.ros===2&&v.gray===1,'合作：兩人也列出隊友，沒連上的是灰色');
  const s0=await h.evaluate(()=>g().coop.startAt);await h.waitForTimeout(3000);const s1=await h.evaluate(()=>g().coop.startAt);ok(s1>s0,'合作：有人沒連上，房主延後開始');
  await h.waitForFunction(()=>!coopState().countdown,null,{timeout:12000});ok(await h.evaluate(()=>num(g().coop.ext)<=2),'合作：最多延兩次，不會卡死');
  await a.evaluate(()=>{coopStep=window.__cs;render();});await h.waitForTimeout(400);ok(!(await vs(h)).on,'合作：開始後畫面收掉');

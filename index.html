@@ -639,7 +639,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-10';
+const APP_VERSION='2026.11.05-11';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1705,7 +1705,7 @@ function vsTick(){const S=vsS,el=document.getElementById('vsM');if(!S||!el)retur
   if(S.room&&S.until&&now>S.until+1500)vsOff();}
 function vsShow(o){const el=document.getElementById('vsM');
   if(!vsS||vsS.key!==o.key){clearInterval(vsT);vsS={};el.innerHTML=`<div class="vsl"></div><b class="vsx">VS</b><div class="vsr"></div><p class="vssub"></p><div class="vsros"></div><div class="vsload"><div class="vsbar"><i></i></div><p class="vspct"></p></div>`;el.hidden=false;vsT=setInterval(vsTick,70);}
-  const pa=vsPic(o.a), pb=vsPic(o.b), ro=o.ros&&o.ros.length>2?roster(o.ros):'';
+  const pa=vsPic(o.a), pb=vsPic(o.b), ro=o.ros?roster(o.ros):'';
   if(vsS.pa!==pa)el.querySelector('.vsl').innerHTML=pa;
   if(vsS.pb!==pb)el.querySelector('.vsr').innerHTML=pb;
   if(vsS.ro!==ro)el.querySelector('.vsros').innerHTML=ro;
@@ -1728,7 +1728,7 @@ function vsRoom(s,D,C,inGame){
     a:{name:'你',look:lookOf(me),face:'A',off:!ok(me)},
     b:C?{name:v.n,prop:v.p,boss:true,color:v.c}:{name:nameOf(tg),look:lookOf(tg),off:!ok(tg)},
     sub:C?`全隊 ${ids.length} 人 VS ${v.n}`:`你要猜 ${nameOf(tg)}`,
-    ros:ids.map(id=>({name:nameOf(id),look:lookOf(id),ok:ok(id),txt:ok(id)?'好了':unseen(id)?'離線':'載入中'}))});
+    ros:ids.length>(C?1:2)?ids.map(id=>({name:nameOf(id),look:lookOf(id),ok:ok(id),txt:ok(id)?'好了':unseen(id)?'離線':'載入中'})):null});
 }
 const angelIc=()=>`<span class="uii">${angelSVG()}</span>`;
 function ghostSVG(){return pxIcon(PX_GHOST,{W:'#f4f6fb',w:'#c9d1e2',K:'#1e1b2e',C:'#ffb3c1'});}
