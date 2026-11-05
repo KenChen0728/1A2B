@@ -662,7 +662,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.05-12';
+const APP_VERSION='2026.11.06-1';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2869,7 +2869,7 @@ function rpE(g,C){const m={};for(const c of C){const r=score(c,g),k=r.A*10+r.B;m
 const rpEven=(a,n)=>{if(a.length<=n)return a;const o=[],k=a.length/n;for(let i=0;i<n;i++)o.push(a[Math.floor(i*k)]);return o;};
 const rpSim=(a,g)=>[...a].reduce((t,d,i)=>t+(g[i]===d?2:0)+(g.includes(d)?1:0),0);
 /* 建議一定是還可能的答案，這樣才對得起前面的線索；差不多好時選最接近玩家想法的。固定算法，每次打開結果都一樣 */
-function rpRate(g,before){const C=rpEven(before,500),k=before.length/C.length,E=t=>rpE(t,C),mine=E(g),T=rpEven(before,60).map(t=>[t,E(t)]),be=Math.min(...T.map(x=>x[1]));
+function rpRate(g,before){const C=rpEven(before,3000),k=before.length/C.length,E=t=>rpE(t,C),mine=E(g),T=rpEven(before,60).map(t=>[t,E(t)]),be=Math.min(...T.map(x=>x[1]));
   const best=T.filter(x=>x[1]<=be*1.05).sort((a,b)=>rpSim(b[0],g)-rpSim(a[0],g)||(a[0]<b[0]?-1:1))[0][0];
   return{tag:mine<=be*1.3?'good':mine<=be*2.2?'ok':'bad',mine:Math.max(1,Math.round(mine*k)),best,bestE:Math.max(1,Math.round(E(best)*k)),eOf:t=>Math.max(1,Math.round(E(t)*k))};}
 /* 建議的數字怎麼來：照各組要幾個，說出它選了哪些 */
@@ -2877,14 +2877,17 @@ function exPick(b,G){return G.filter(g=>g.n>0).map(g=>`${g.ds.join('、')} 要 $
 /* 目前知道什麼：這一張的結論就是下一手建議的根據 */
 function exKnow(left,G,K){if(left.length<=4)return left.length===1?`答案只剩 ${left[0]}`:`只剩 ${left.length} 種：${left.join('、')}`;
   const t=[exGroupTxt(G)];K.pos.forEach((d,i)=>{if(d)t.push(`第 ${i+1} 位是 ${d}`);});if(K.yes.length)t.push(`確定有 ${K.yes.join('、')}`);if(K.no.length)t.push(`確定沒有 ${K.no.join('、')}`);return t.filter(Boolean).join('；');}
-function rpAdvice(x,before,seen,len,rep,ans,r,legal){const b=r.best,G=rep?[]:exGroups(seen,len),same=!rep&&!legal?before.filter(c=>[...c].sort().join('')===[...x.g].sort().join('')):[];
+function rpAdvice(x,before,after,seen,len,rep,ans,r,legal){const b=r.best,G=rep?[]:exGroups(seen,len),same=!rep&&!legal?before.filter(c=>[...c].sort().join('')===[...x.g].sort().join('')):[];
   const chk=seen.map(q=>q.hint?`第 ${+q.pos+1} 位是 ${q.g}`:`${q.g} ${q.A}A${q.B}B`);
-  if(legal&&b===x.g)return{title:'這手就是最好的選擇',txt:`符合前面所有線索，平均只剩 ${r.mine} 種。`,chk};
+  if(legal&&b===x.g)return{title:'這手就是最好的選擇',txt:`符合當時所有線索，平均只剩 ${r.mine} 種。`,chk};
   const fix=same.sort((a,c)=>(c===ans)-(a===ans)).slice(0,3), fe=fix.length?r.eOf(fix[0]):0;
   const pick=exPick(b,G), cmp=fix.length?`比 ${fix[0]} 的 ${fe} 種少`:`你這手是 ${r.mine} 種`;
-  let txt=`${pick?pick+'，':''}符合前面所有線索。不管結果如何，猜完平均只剩 ${r.bestE} 種，${cmp}。`;
+  let txt=`${pick?pick+'，':''}符合當時所有線索。不管結果如何，猜完平均只剩 ${r.bestE} 種，${cmp}。`;
   if(fix.length&&fix.includes(ans)&&ans!==b)txt+=`事後看答案是 ${ans}，但當時還有 ${before.length} 種可能，猜之前不知道。`;
-  return{title:`這時候可以猜 ${b}`,txt,chk,fix};}
+  /* 建議是猜這手之前的判斷，不能用這手的結果來看。結果出來後它可能已經不對，要明講，不然看起來像下一手要猜它 */
+  if(!after.includes(b)){const no=rpKnow(after,len).no,gone=[...new Set(b)].filter(d=>no.includes(d));
+    txt+=gone.length?`猜完 ${x.g} 才知道沒有 ${gone.join('、')}，所以現在不能再猜 ${b}，當時還不知道。`:`猜完 ${x.g} 才知道 ${b} 不對，當時還不知道。`;}
+  return{title:`猜這手之前，可以猜 ${b}`,txt,chk,fix};}
 function rpKnow(c,len){const yes=[],no=[],pos=Array(len).fill('');if(!c.length)return{yes,no,pos};
   for(let d=0;d<10;d++){const D=String(d),k=c.filter(x=>x.includes(D)).length;if(k===c.length)yes.push(D);else if(!k)no.push(D);}
   for(let i=0;i<len;i++){const D=c[0][i];if(c.every(x=>x[i]===D))pos[i]=D;}return{yes,no,pos};}
@@ -2897,7 +2900,7 @@ function rpMine(L,len,rep,ans){const all=allCands(len,rep);let left=all;const se
     if(win){tag=before.length===1?'good':'luck';tip=before.length===1?'前面已經推到只剩這一種，漂亮！':`當時還有 ${before.length} 種可能，這次猜中有運氣成分。`;}
     else if(after.length===before.length){tag='bad';tip='這一手沒有排除任何可能。';}
     else if(i===0){tag='good';tip='第一手猜什麼都一樣，重點是後面怎麼用線索。';}
-    else{const r=rpRate(x.g,before);tag=r.tag;adv=rpAdvice(x,before,seen,len,rep,ans,r,legal);
+    else{const r=rpRate(x.g,before);tag=r.tag;adv=rpAdvice(x,before,after,seen,len,rep,ans,r,legal);
       const lucky=tag!=='good'&&after.length*3<=r.mine;if(lucky)tag='luck';
       if(legal)tip=`${x.g} 符合前面的線索，平均會剩 ${r.mine} 種。`;
       else{tip=`${x.g} 已經不可能是答案：${exConflict(x.g,seen,len)}。`;
@@ -2905,8 +2908,8 @@ function rpMine(L,len,rep,ans){const all=allCands(len,rep);let left=all;const se
         else if(tag==='good'||tag==='ok')tip+='不過它幫你篩了數字，也算有用。';}
       if(lucky)tip+=`當時平均會剩 ${r.mine} 種，這次一下剩 ${after.length} 種，運氣不錯。`;}
     left=after;seen.push(Object.assign({i},x));
-    const G=rep?[]:exGroups(seen,len),know=rpKnow(after,len);
-    steps.push({i,x,tag,before:before.length,after:after.length,know,say:exPlain(x,len)+(win?'':ex0A(x)),tip,adv,more:win?'':`現在知道：${exKnow(after,G,know)}`});});
+    const G=rep?[]:exGroups(seen,len),know=rpKnow(after,len),hit=x.A+x.B,kt=exKnow(after,G,know)||(rep?`${x.g} 裡有 ${hit} 個對`:`${[...x.g].join('、')} 裡有 ${hit} 個，其他 ${10-len} 個數字裡有 ${len-hit} 個`);
+    steps.push({i,x,tag,before:before.length,after:after.length,know,say:exPlain(x,len)+(win?'':ex0A(x)),tip,adv,more:win?'':`猜完現在知道：${kt}`});});
   return{steps,total:all.length};}
 function rpBoss(L,len,rep,diff,name){const all=allCands(len,rep),hard=diff==='hard',st={diff},P=PROBES[len]||[];let left=all;const seen=[],steps=[];
   L.forEach((x,i)=>{const before=left,after=before.filter(c=>mindFits(st,c,[x])),win=x.A===len,probe=!hard&&P[i]===x.g,G=rep?[]:exGroups(seen,len);
@@ -2935,7 +2938,7 @@ function openReplay(tabs,t0){let el=document.getElementById('rpM');if(!el){el=do
       `<div class="rphead">${st.hint?`<b>用了提示</b>`:`<span class="htile">${rpTiles(st.x.g,T.ans)}</span><span class="score">${ab(st.x)}</span>`}</div>
       <div class="rpdrop"><span>${st.before} 種</span>${rpBar(st.before,T.total)}<span>→ 剩 <b>${st.after}</b> 種</span>${rpBar(st.after,T.total)}</div>
       ${dStrip(st.know)}
-      <p class="exp">${st.say}</p>${st.tip?`<p class="exw">${st.tip}</p>`:''}${st.adv?`<div class="rpadv"><b>${esc(st.adv.title)}</b><p>${esc(st.adv.txt)}</p>${st.adv.chk.length?`<div class="rpchk">${st.adv.chk.map(c=>`<span>${esc(c)} ✓</span>`).join('')}</div>`:''}</div>`:''}${st.more?`<p class="exw">${esc(st.more)}</p>`:''}`;
+      <p class="exp">${st.say}</p>${st.tip?`<p class="exw">${st.tip}</p>`:''}${st.adv?`<div class="rpadv"><b>${esc(st.adv.title)}</b><p>${esc(st.adv.txt)}</p>${st.adv.chk.length?`<div class="rpchk"><span style="color:var(--muted)">當時的線索</span>${st.adv.chk.map(c=>`<span>${esc(c)} ✓</span>`).join('')}</div>`:''}</div>`:''}${st.more?`<p class="exw">${esc(st.more)}</p>`:''}`;
     const nav=`<div class="hnav"><button class="btn ghost" type="button" data-rp="p" ${i<0?'hidden':''}>上一手</button><div class="hdots">${i<0?'':`${i+1} / ${n}`}</div><button class="btn" type="button" data-rp="n" ${i>=n-1?'hidden':''}>${i<0?'一手一手看':'下一手'}</button></div>`;
     el.innerHTML=`<div class="card rpbox">${hd}${body}${nav}</div>`;};
   el.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===el)close();return;}

@@ -8,6 +8,11 @@ const {chromium,ctx,page,name,reset}=require('./lib');
   const R=()=>{const d='0123456789'.split('').sort(()=>Math.random()-.5);return d.slice(0,4).join('');};
   for(let t=0;t<120;t++){const a=R(),L=[];for(let i=0;i<7;i++)L.push(R());L.push(a);const H2=mk(a,[...new Set(L)]),St=rpMine(H2,4,false,a).steps;
    St.forEach((st,k)=>{if(!st.adv)return;const m=/猜 (\d{4})/.exec(st.adv.title);if(!m)return;if(!fits(m[1],H2.slice(0,k)))bad.push(`建議 ${m[1]} 和前面矛盾`);if(/undefined|NaN/.test(st.adv.txt+st.tip+st.more))bad.push(st.tip);});}
+  /* 建議是猜這手之前的判斷：結果讓它不成立時要講清楚，第一手也要有「現在知道」 */
+  const U=rpMine(mk('5617',['1234','5678']),4,false,'5617').steps;out.u=U[1].adv;out.first=U[0].more;
+  if(!/猜這手之前/.test(U[1].adv.title)||!/才知道/.test(U[1].adv.txt)||!/當時/.test(U[1].adv.txt))bad.push('沒講清楚建議是猜之前的');
+  if(!/裡有 1 個/.test(U[0].more))bad.push('第一手現在知道是空的');
   out.bad=bad.slice(0,5);return out;});
+ console.log(JSON.stringify(res.u),res.first);
  console.log(JSON.stringify(res.five.adv),'\n',res.five.tip,'\n',res.five.more,res.tags.join());
  const f=res.bad.length||!res.same||!/7941/.test(res.five.tip+res.five.adv.txt)||res.five.tag==='bad';console.log(res.bad,f?'失敗':'全部通過');await b.close();process.exit(f?1:0);})().catch(e=>{console.error(e);process.exit(1)});
