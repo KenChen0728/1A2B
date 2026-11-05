@@ -18,7 +18,7 @@ async function typeNum(p,s){for(const d of s){await p.click(`.pad [data-k="${d}"
 const reset=()=>fetch('http://localhost:8123/__reset');
 // 版面檢查：有沒有超出畫面、被切掉
 const layout=p=>p.evaluate(()=>{const W=innerWidth,bad=[];const de=document.documentElement;if(de.scrollWidth>W+1)bad.push('pageW '+de.scrollWidth+'>'+W);
-  document.querySelectorAll('#app *, .upd:not([hidden]) *').forEach(e=>{if(e.closest('svg'))return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;const cs=getComputedStyle(e);if(cs.position==='fixed')return;if(r.right>W+1||r.left<-1)bad.push((e.id||e.className||e.tagName)+' x['+Math.round(r.left)+','+Math.round(r.right)+']');});
+  document.querySelectorAll('#app *, .upd:not([hidden]) *').forEach(e=>{if(e.closest('svg'))return;if(e.closest('#arena:not(.open):not(.peek)'))return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;const cs=getComputedStyle(e);if(cs.position==='fixed')return;if(r.right>W+1||r.left<-1)bad.push((e.id||e.className||e.tagName)+' x['+Math.round(r.left)+','+Math.round(r.right)+']');});
   return [...new Set(bad)].slice(0,8);});
 module.exports={chromium,BASE,ctx,page,shot,name,typeNum,reset,layout,SHOTS};
 async function room(b,n,opt={}){const cs=[],ps=[];for(let i=0;i<n;i++){cs.push(await ctx(b,opt));}

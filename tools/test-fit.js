@@ -4,7 +4,7 @@ const PROFILES=[
  ['pwa430',430,868,0,34],['pwa402',402,810,0,34],['pwa393',393,793,0,34],['pwa390',390,797,0,34],['pwa375',375,762,0,34],
  ['se',375,647,0,0],['safari390',390,664,0,0],['safari430',430,746,0,0],['line390',390,700,0,0],['and360',360,640,0,0],['and412',412,783,0,0]];
 const only=process.argv[2];
-const MUST=new Set(['home','join','soloCfg','soloSetup','soloResult','lobbyHost','lobbyGuest','lobbyGuestReady','lobbyHost8','lobbyGuest8','coopLobby','secret','secretWait','overBtn']);
+const MUST=new Set(['home','join','soloCfg','soloSetup','soloResult','lobbyHost','lobbyGuest','lobbyGuestReady','lobbyHost8','lobbyGuest8','coopLobby','secret','secretWait','overBtn','soloPlay0','soloPlay1','soloPlay3','play0','play1','play3','coopPlay0']);
 const css=(t,b)=>`:root{--safe-top:${t}px!important;--safe-bot:${b}px!important}`;
 const measure=(p)=>p.evaluate(()=>{const de=document.documentElement;return{over:Math.max(0,de.scrollHeight-innerHeight),h:de.scrollHeight};});
 (async()=>{const b=await chromium.launch();let fail=0;const rows={};
@@ -13,7 +13,7 @@ const measure=(p)=>p.evaluate(()=>{const de=document.documentElement;return{over
   const opt={vp:{width:w,height:h},touch:true,mobile:false};
   const inj=async c=>c.addInitScript(([s])=>{addEventListener('DOMContentLoaded',()=>{const e=document.createElement('style');e.textContent=s;document.head.appendChild(e);});try{localStorage.setItem('ab_help_seen','1');}catch(e){}},[css(st,sb)]);
   const R={};const rec=async(p,k)=>{await p.waitForTimeout(280);R[k]=(await measure(p)).over;if(process.env.SHOT)await p.screenshot({path:`${process.env.SHOT}/${nm}-${k}.png`,fullPage:!!process.env.FULL});};
-  const c=await ctx(b,opt);await inj(c);const p=await c.newPage();await p.goto(BASE);await p.waitForTimeout(300);await name(p,'小明');
+  const c=await ctx(b,opt);await inj(c);const p=await c.newPage();p.on('pageerror',e=>console.log('頁面錯誤',e.message));p.on('crash',()=>console.log('分頁當掉'));await p.goto(BASE);await p.waitForTimeout(300);await name(p,'小明');
   await rec(p,'home');
   await p.click('#goJoin');await rec(p,'join');await p.click('#homeBack');
   await p.click('#goSolo');await rec(p,'soloCfg');
