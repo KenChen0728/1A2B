@@ -396,6 +396,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .exk .htile i{width:32px;height:32px;font-size:18px}
 .looktabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0}
 .looktabs.two{grid-template-columns:repeat(2,1fr)}
+.looktabs.rpt{grid-template-columns:repeat(auto-fit,minmax(72px,1fr))}.looktabs.rpt button{padding-inline:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .looktabs button{font:inherit;font-size:16px;font-weight:700;padding:9px 0;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer}
 .looktabs button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .lookpane{height:236px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
@@ -702,7 +703,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.06-2';
+const APP_VERSION='2026.11.06-3';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -828,8 +829,8 @@ function histHTML(list){
 }
 function board(D,def){
   const v=(view&&view in D.A)?view:def;
-  return`<div class="card"><span class="lbl">猜題紀錄</span><div class="tabs">${D.parts.map(id=>`<button data-view="${esc(id)}" aria-pressed="${v===id}">${esc(nameOf(id))}${id===me?'（你）':''}</button>`).join('')}</div>
-  <p class="sub">${esc(nameOf(v))} 猜 ${esc(nameOf(D.A[v]))} 的題目</p>${histHTML(D.by[v])}${D.status==='over'?`<button class="btn ghost" id="rpBtn" data-rpw="${esc(v)}">看${esc(nameOf(v))}的復盤</button>`:''}</div>`;
+  return`<div class="card" data-board><span class="lbl">猜題紀錄</span><div class="tabs">${D.parts.map(id=>`<button data-view="${esc(id)}" aria-pressed="${v===id}">${esc(nameOf(id))}${id===me?'（你）':''}</button>`).join('')}</div>
+  <p class="sub">${esc(nameOf(v))} 猜 ${esc(nameOf(D.A[v]))} 的題目</p>${histHTML(D.by[v])}${D.status==='over'?`<button class="btn ghost" id="rpBtn" data-rpw="${esc(v)}">看${esc(nameOf(v))}的復盤</button>`:''}</div><!--/board-->`;
 }
 function progress(D){
   return`<div class="card"><span class="lbl">大家的進度${watchersList().length?`　·　${watchersList().length} 位觀眾在看`:''}</span>
@@ -984,10 +985,13 @@ function render(){
     h+=board(D, inGame?me:D.parts[0]);
   }
   const CS=s.phase==='coop'?coopState():null;
-  if(!CS&&D.status==='over'){const sec={},names={};D.parts.forEach(id=>{sec[id]=secretOf(id);names[id]=nameOf(id);});overSnap={len:s.len,rep:s.rep,by:D.by,A:D.A,sec,names};}
+  if(!CS&&D.status==='over'){const sec={},names={};D.parts.forEach(id=>{sec[id]=secretOf(id);names[id]=nameOf(id);});overSnap={len:s.len,rep:s.rep,by:D.by,A:D.A,sec,names,parts:D.parts.slice()};}
   if((CS&&CS.over)||(!CS&&D.status==='over')){reviewHTML=h;overRound=s.round;}
   if(reviewing&&reviewHTML){
-    paint(`<div class="card center review"><p class="hand">大家已經回到大廳了，你可以慢慢看完再回去</p><button class="btn" id="endReview">回到大廳</button></div>`+reviewHTML.replace(/<button class="btn[^"]*" id="again">[^<]*<\/button>/g,''));
+    /* 快照裡的「猜題紀錄」照當時的資料重畫，點分頁才切得過去 */
+    let rh=reviewHTML;const S=overSnap;
+    if(S&&!S.coop&&S.parts){const rd={parts:S.parts,A:S.A,by:S.by,status:'over'};rh=rh.replace(/<div class="card" data-board>[\s\S]*?<!--\/board-->/,board(rd,view&&view in S.A?view:(me in S.A?me:S.parts[0])));}
+    paint(`<div class="card center review"><p class="hand">大家已經回到大廳了，你可以慢慢看完再回去</p><button class="btn" id="endReview">回到大廳</button></div>`+rh.replace(/<button class="btn[^"]*" id="again">[^<]*<\/button>/g,''));
     sideUI(true,false); return;
   }
   paint(h); vsRoom(s,D,CS,inGame);
@@ -2764,13 +2768,18 @@ function playFx(x,mine){
   if(arenaHidden()){
     if(!toMe)return;
     const k=Math.min(x.n||1,3);for(let i=0;i<k;i++)setTimeout(()=>screenHit(x.item),i*180);
-    if(!mine&&x.name)toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}你${(x.n||1)>1?` ×${x.n}`:''}`);
+    if(!mine&&x.name)hitToast(x);
     arenaHits+=x.n||1;sideUI(!!(code&&R),!document.getElementById('notesFab').hidden||notesOpen);const f=document.getElementById('arenaFab');f.classList.remove('hit');void f.offsetWidth;f.classList.add('hit');return;}
+  /* 目標不在這個畫面上（例如對方已經回大廳，頒獎台不見了）：改丟他在這個畫面上的角色；
+     兩種都找不到就不飛（不然會飛向螢幕正中間），只留螢幕特效和提示 */
+  if(!tgtEl(x.target)){const t=String(x.target),alt=t.startsWith('p:')?t.slice(2):'p:'+t;
+    if(tgtEl(alt))x=Object.assign({},x,{target:alt,res:alt.startsWith('p:')?x.res:undefined});
+    else{if(toMe){const k=Math.min(x.n||1,3);for(let i=0;i<k;i++)setTimeout(()=>screenHit(x.item),i*180);if(!mine&&x.name)hitToast(x);}return;}}
   const layer=document.getElementById('fxl'), el=tgtEl(x.target), emo=itemIcon(x.item)||'🍅', basin=x.item==='hammer';
   const r=el?el.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight/2-20,width:40,height:40};
   const tx0=r.left+r.width/2, ty0=r.top+r.height*.28;
   const aim=(u,v)=>{const g2=tgtEl(x.target),h=g2&&g2.querySelector&&g2.querySelector('.hd');if(h){const b=h.getBoundingClientRect(),st=KST[x.target],th=st&&st.down?(st.d||1)*90*Math.PI/180:0,S=Math.max(b.width,b.height),a=(u||0)*S*BODYK,c=(v||0)*S;return [b.left+b.width/2-Math.sin(th)*a+Math.cos(th)*c,b.top+b.height/2+Math.cos(th)*a+Math.sin(th)*c];}if(g2){const b=g2.getBoundingClientRect();return [b.left+b.width/2,b.top+b.height*.28];}return [tx0,ty0];};
-  const isPod=String(x.target).startsWith('p:'), src=x.from||x.pid, fe=src?(isPod&&!String(src).startsWith('p:')&&tgtEl('p:'+src))||tgtEl(src):null, fr=fe?fe.getBoundingClientRect():null;
+  const isPod=String(x.target).startsWith('p:'), src=x.from||x.pid, fe=src?(isPod&&!String(src).startsWith('p:')&&tgtEl('p:'+src))||tgtEl(src)||(!isPod&&tgtEl(String(src).replace(/^p:/,''))):null, fr=fe?fe.getBoundingClientRect():null;
   const slow=!!fr, dur=slow?520:420;
   const times=Math.min(x.n||1,5);
   for(let i=0;i<times;i++) setTimeout(()=>{
@@ -2807,8 +2816,9 @@ function playFx(x,mine){
       knock(e2,x.item,isPod?null:src||(mine?myStageId():null));
     },dur);
   },i*(slow?170:120));
-  if(!mine&&x.name&&String(x.target).replace(/^p:/,'')===me) toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}你${(x.n||1)>1?` ×${x.n}`:''}`);
+  if(!mine&&x.name&&String(x.target).replace(/^p:/,'')===me) hitToast(x);
 }
+const hitToast=x=>toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}你${(x.n||1)>1?` ×${x.n}`:''}`);
 function throwAt(t){
   if(isWatcher(me)){const ok=t!=='boss'&&!String(t).startsWith('p:');if(ghostArmed&&ok)sendGhost(t);else if(angelArmed&&ok)sendAngel(t);else if(ghostArmed||angelArmed)toast('只能選玩家');return;}
   if(isLocked(t)){if(Date.now()-(throwAt._l||0)>1500){throwAt._l=Date.now();toast(t==='boss'?'他爬起來了，正在反擊！先躲好':'他剛爬起來，先讓他喘口氣');}return;}
@@ -3034,10 +3044,10 @@ function openReplay(tabs,t0){let el=document.getElementById('rpM');if(!el){el=do
   const onKey=e=>{if(e.key==='Escape')close();else if(e.key==='ArrowRight')go(1);else if(e.key==='ArrowLeft')go(-1);};
   const close=()=>{el.hidden=true;el.innerHTML='';document.removeEventListener('keydown',onKey);};
   const go=d=>{const t=i+d;if(t<-1||t>=tabs[tab].steps.length)return;i=t;draw();};
-  const draw=()=>{const T=tabs[tab],S=T.steps,n=S.length,st=S[i];
+  const draw=()=>{if(tabs[tab].make)tabs[tab]=Object.assign(tabs[tab].make(),{label:tabs[tab].label});const T=tabs[tab],S=T.steps,n=S.length,st=S[i];
     const cnt=t=>S.filter(x=>x.tag===t).length, sum=['good','ok','bad','luck'].filter(cnt).map(t=>`${RPTAG[t]} ${cnt(t)}`).join('、'), worst=S.find(x=>x.tag==='bad');
     const hd=`<div class="dhead"><h2 style="flex:1 1 auto;margin:0">${i<0?'復盤':`第 ${i+1} 手`}</h2>${i<0?'':`${rpChip(st.tag)}`}<button type="button" class="dclose" data-rp="x" aria-label="關閉復盤">✕</button></div>
-      ${tabs.length>1?`<div class="looktabs two">${tabs.map((t,k)=>`<button type="button" data-rt="${k}" aria-pressed="${k===tab}">${esc(t.label)}</button>`).join('')}</div>`:''}`;
+      ${tabs.length>1?`<div class="looktabs ${tabs.length===2?'two':'rpt'}">${tabs.map((t,k)=>`<button type="button" data-rt="${k}" aria-pressed="${k===tab}">${esc(t.label)}</button>`).join('')}</div>`:''}`;
     const body=i<0?`${T.intro?`<p class="rules" style="margin:0">${T.intro}</p>`:`<p class="rpsum">${n} 手${sum?`：${sum}`:''}${worst?`。最可惜是第 ${worst.i+1} 手`:''}</p>`}
       <div class="rplist">${S.length?S.map((x,k)=>`<button type="button" class="rprow" data-rg="${k}"><span class="hn">${k+1}</span><b>${x.hint?`第 ${+x.x.pos+1} 位是 ${esc(x.x.g)}`:esc(x.x.g)}</b>${x.hint?'':`<span class="score">${ab(x.x)}</span>`}${rpBar(x.after,T.total)}<span class="rpn">${x.after}</span>${rpChip(x.tag)}</button>`).join(''):'<div class="empty-h">這局沒有猜題紀錄</div>'}</div>
       <p class="rules" style="margin:0">長條是還可能的答案有幾種，越短代表越接近答案。點一手看細節。</p>`:
@@ -3057,7 +3067,9 @@ function replayNow(id){
     return openReplay(tabs);}
   const S=overSnap;if(!S)return;
   if(S.coop){const t=rpMine(S.T,S.len,S.rep,S.boss);t.ans=S.boss;t.label='全隊的猜測';const b=rpBoss(S.B,S.len,S.rep,S.diff,S.name);b.ans=S.team;b.label=`${S.name}的猜測`;return openReplay([t,b]);}
-  const t=rpMine(S.by[id]||[],S.len,S.rep,S.sec[S.A[id]]);t.ans=S.sec[S.A[id]];t.label=S.names[id]||'玩家';openReplay([t]);}
+  /* 每個人一個分頁，可以直接換看別人的和自己的；點到才算 */
+  const ids=(S.parts||Object.keys(S.names)).filter(p=>S.by[p]);if(!ids.includes(id))ids.push(id);
+  openReplay(ids.map(p=>({label:p===me?'你':(S.names[p]||'玩家'),make:()=>{const t=rpMine(S.by[p]||[],S.len,S.rep,S.sec[S.A[p]]);t.ans=S.sec[S.A[p]];return t;}})),ids.indexOf(id));}
 function cpuHistHTML(L){
   if(!L.length)return'<div class="empty-h">魔王還沒猜</div>';
   return'<div class="hist">'+L.map((r,i)=>`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}</span><span class="score">${ab(r)}</span></div>${r.think?`<div class="think">${esc(r.think)}</div>`:''}`).join('')+'</div>';
