@@ -710,7 +710,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.06-4';
+const APP_VERSION='2026.11.06-5';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -846,7 +846,7 @@ function progress(D){
 }
 function seg(attr,opts,cur,col,cls){return`<div class="pks ${cls||''}">${opts.map(([v,l,c])=>`<button type="button" class="pk ${c||col||''}" ${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join('')}</div>`;}
 
-let benchSeen=[], arenaOpen=false, peekUntil=0, peekNext=0, peekT=0, arenaHits=0, arenaN=0, arenaSeenN=0;
+let arenaWhy='', lastThrowAt=0, benchSeen=[], arenaOpen=false, peekUntil=0, peekNext=0, peekT=0, arenaHits=0, arenaN=0, arenaSeenN=0;
 let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false;
 let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
@@ -1021,7 +1021,8 @@ function setArena(o){arenaOpen=o;clearTimeout(peekT);peekUntil=0;document.body.c
 function arenaHidden(){const a=document.getElementById('arena');return !!a&&!a.classList.contains('open')&&!a.classList.contains('peek');}
 function sideUI(chatOn,notesOn){
   netUI();
-  const hasA=!!document.getElementById('arena'); if(!hasA){arenaOpen=false;arenaHits=0;}
+  /* 遊戲中畫面重畫的一瞬間沒有戰況（例如有人斷線重連、狀態短暫變成載入中）不算關掉，回來時照樣是打開的；這局真的結束才收起來 */
+  const hasA=!!document.getElementById('arena'); if(!hasA){arenaHits=0;if(arenaOpen&&!gameBusy()){arenaOpen=false;arenaWhy='這局結束';}}
   if(!notesOn)clearAngel(); else coopAngelSync();
   if(!chatOn) chatOpen=false;
   if(!notesOn) notesOpen=false;
@@ -1036,7 +1037,7 @@ function sideUI(chatOn,notesOn){
   $$('chatBadge').hidden=!unread; $$('chatBadge').textContent=unread>9?'9+':unread;
   $$('notesFab').hidden=!notesOn||notesOpen||chatOpen;
   $$('notesWrap').hidden=!notesOpen;
-  $$('notesBack').hidden=!notesOpen&&!chatOpen&&!arenaOpen;
+  $$('notesBack').hidden=!notesOpen&&!chatOpen&&!(arenaOpen&&hasA);
   const nl=document.querySelector('#notesWrap .dhead .lbl'); if(nl) nl.textContent=sharedNotes?'全隊共享筆記（大家都能看、都能改）':'我的筆記（只有你看得到）';
   if(notesOpen) renderMine();
   if(histOpen) drawHistM();
@@ -1055,8 +1056,8 @@ function renderMine(){
   const L=solo?solo.hist:(R&&g().phase==='coop')?coopState().T:(derive().by[me]||[]);
   el.innerHTML=L.length?histHTML(L):'<div class="empty-h">還沒猜過</div>'; el.scrollTop=el.scrollHeight;
 }
-function setNotes(o){notesOpen=o;if(o){chatOpen=false;arenaOpen=false;}render();}
-function setChat(o){chatOpen=o;if(o){notesOpen=false;arenaOpen=false;unread=0;}render();if(o){renderChat();}}
+function setNotes(o){notesOpen=o;if(o){chatOpen=false;if(arenaOpen)arenaWhy='打開筆記';arenaOpen=false;}render();}
+function setChat(o){chatOpen=o;if(o){notesOpen=false;if(arenaOpen)arenaWhy='打開聊天';arenaOpen=false;unread=0;}render();if(o){renderChat();}}
 document.getElementById('chatFab').onclick=()=>{if(fabGuard())return;setChat(true);};
 document.getElementById('chatClose').onclick=()=>setChat(false);
 document.getElementById('notesFab').onclick=()=>{if(fabGuard())return;setNotes(true);};
@@ -1086,7 +1087,7 @@ document.getElementById('muteBox').onchange=e=>{ls.set('ab_mute',e.target.checke
 const cssPx=v=>{const e=document.createElement('div');e.style.cssText=`position:fixed;top:0;left:0;width:1px;height:var(${v},0px);visibility:hidden`;document.body.appendChild(e);const h=Math.round(e.getBoundingClientRect().height);e.remove();return h;};
 function showDiag(){let el=document.getElementById('diagM');if(!el){el=document.createElement('div');el.id='diagM';el.className='upd';document.body.appendChild(el);}
   const pr=document.createElement('div');pr.style.cssText='position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:0;width:1px;visibility:hidden';document.body.appendChild(pr);const rc=pr.getBoundingClientRect();pr.style.height='100dvh';pr.style.bottom='auto';const dvh=pr.getBoundingClientRect().height;pr.remove();
-  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`留白 --safe-top ${cssPx('--safe-top')}　--app-h ${cssPx('--app-h')}　--vgap ${cssPx('--vgap')}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}　多人連線：${db?'正常':why||'連線中'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,navigator.userAgent].join('\n');
+  const t=[`版本 ${APP_VERSION}`,`主畫面 App：${isStandalone()?'是':'否'}　內建瀏覽器：${INAPP?'是':'否'}`,`畫面 ${innerWidth}×${innerHeight}　100dvh ${Math.round(dvh)}`,`安全區域 上 ${Math.round(rc.top)}　下 ${Math.round(innerHeight-rc.bottom)}`,`留白 --safe-top ${cssPx('--safe-top')}　--app-h ${cssPx('--app-h')}　--vgap ${cssPx('--vgap')}`,`像素比 ${devicePixelRatio}　網路：${navigator.onLine?'有':'沒有'}　多人連線：${db?'正常':why||'連線中'}`,`Service Worker：${navigator.serviceWorker&&navigator.serviceWorker.controller?'運作中':'沒有'}`,`戰況上次關閉：${arenaWhy||'（還沒有）'}`,navigator.userAgent].join('\n');
   el.innerHTML=`<div class="card" style="max-width:400px;width:100%"><h2>裝置資訊</h2><pre class="diag">${esc(t)}</pre><button class="btn" type="button">關閉</button></div>`;el.hidden=false;el.querySelector('button').onclick=()=>{el.hidden=true;};el.onclick=e=>{if(e.target===el)el.hidden=true;};}
 let helpP=0, helpC=null, helpToc=false;
 document.getElementById('helpVer').textContent='版本 '+APP_VERSION;
@@ -1145,8 +1146,7 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
      <div><span class="hi">${angelSVG()}</span><p><b>天使 3 位</b>送上線索</p></div>
      <div style="grid-column:1/3"><span class="hi">${uiIcon('note')}</span><p><b>看得到</b>大家的題目和猜測</p></div></div></div>
      <p class="hline">想下場時，在大廳按<b>我也要玩</b></p>`},
-   ...installPages()
-  ];}
+   ...installPages()];}
 /* 加到主畫面：把使用者自己的裝置排在第一頁 */
 function installPages(){const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1), and=/Android/.test(ua), mac=/Macintosh/.test(ua)&&!ios;
   const icon=`<div class="hpic"><img class="hicon" src="icon-180.png" alt="幾A幾B 圖示" width="96" height="96"><b class="hlabel">幾A幾B</b></div>`;
@@ -1205,9 +1205,12 @@ function autoMarkFrom(L,len){
   if(msg.length&&autoTold!==notesKey&&!L.some(x=>!x.hint&&x.A===len)){autoTold=notesKey;setTimeout(()=>toast('筆記已自動'+msg.join('，')),50);}
 }
 document.getElementById('notesClose').onclick=()=>setNotes(false);
-document.getElementById('notesBack').onclick=()=>{notesOpen=false;chatOpen=false;arenaOpen=false;render();};
+document.getElementById('notesBack').onclick=()=>{
+  /* 連點丟東西時手指偏到抽屜外面，不要把戰況關掉；停一下再點旁邊才關 */
+  if(arenaOpen&&!notesOpen&&!chatOpen&&Date.now()-lastThrowAt<1200)return;
+  if(arenaOpen)arenaWhy='點到旁邊';notesOpen=false;chatOpen=false;arenaOpen=false;render();};
 document.getElementById('arenaFab').onclick=()=>{if(fabGuard())return;setArena(true);};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&arenaOpen)setArena(false);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&arenaOpen){arenaWhy='Esc';setArena(false);}});
 document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(notesOpen)setNotes(false);else if(chatOpen)setChat(false);});
 
 /* ---------- 筆記（只存在自己手機） ---------- */
@@ -1395,7 +1398,7 @@ function applyRoom(d){
     if(prev&&R.phase!=='lobby'){bn.filter(id=>!benchSeen.includes(id)&&id!==me).forEach(id=>toast(`${nameOf(id)} 先到場邊`));benchSeen.filter(id=>!bn.includes(id)&&id!==me&&isSeated(id)).forEach(id=>toast(`${nameOf(id)} 回來了`));}
     benchSeen=bn; }
   seatGuard();
-  if(prev&&R.round!==prev){ if(overRound===prev&&!selfAgain&&reviewHTML) reviewing=true; selfAgain=false; overRound=0;input='';err='';view=null;scored.clear();mySecret=null;}
+  if(prev&&R.round!==prev){ arenaOpen=false; if(overRound===prev&&!selfAgain&&reviewHTML) reviewing=true; selfAgain=false; overRound=0;input='';err='';view=null;scored.clear();mySecret=null;}
   loadSecret();
 }
 /* 備援：即時連線慢時，主動抓最新資料 */
@@ -1545,7 +1548,7 @@ function goneBar(ids){
   return`<div class="card gonebar"><span class="lbl">有人斷線了</span><div class="plist">${ids.map((id,i)=>`<div class="prow"><span class="pn">${esc(nameOf(id))}<span class="pill off">離線</span></span>${host?`<button class="btn ghost small" type="button" id="skip${i}" data-skip="${esc(id)}">不等他</button>`:''}</div>`).join('')}</div>${host?'':'<p class="rules" style="margin:0">等他回來，或由房主決定不等他。</p>'}</div>`;
 }
 const takeBar=s=>!isHost()&&isSeated(me)&&isSeated(s.host)&&noBeat(s.host)&&stalled()?`<div class="card gonebar"><p class="rules" style="margin:0">房主一直沒有動作，可能已經離開了。</p><button class="btn ghost" type="button" id="takeHost">我來當房主</button></div>`:'';
-function goHome(){vsOff();rulesOpen=false;homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
+function goHome(){vsOff();rulesOpen=false;arenaOpen=false;homeStep='menu';homeEdit=false;leaving=false;ss.del('ab_live');if(baseMe)me=baseMe;reviewing=false;reviewHTML='';clearInterval(pollT);unsubs.forEach(u=>{try{u();}catch(e){}});unsubs=[];code=null;R=null;roomMissing=false;ls.del('ab_room');render();}
 async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
@@ -2182,7 +2185,7 @@ function bind(){
   if($('backIn')) $('backIn').onclick=comeBack;
   if($('skipWait')) $('skipWait').onclick=skipWait;
   if($('forceStart')) $('forceStart').onclick=forceStart;
-  if($('arenaClose')) $('arenaClose').onclick=()=>setArena(false);
+  if($('arenaClose')) $('arenaClose').onclick=()=>{arenaWhy='按 ✕';setArena(false);};
   if($('peekOff')) $('peekOff').onchange=e=>ls.set('ab_peek_off',e.target.checked?'1':'0');
   if($('arena')) $('arena').addEventListener('click',e=>{if(e.currentTarget.classList.contains('peek'))setArena(true);});
   if($('rulesBtn')) $('rulesBtn').onclick=()=>{rulesOpen=true;render();};
@@ -2701,7 +2704,7 @@ function knock(g,item,by){
   }else{
     const svg=g.ownerSVGElement,r=g.getBoundingClientRect(),sr=svg?svg.getBoundingClientRect():r;
     let d=(r.left+r.width/2)>(sr.left+sr.width/2)?1:-1;
-    const land=r.left+r.width/2+d*r.height; if(land<6||land>innerWidth-6)d=-d;
+    const land=r.left+r.width/2+d*r.height; if(land<sr.left+6||land>sr.right-6)d=-d;
     st=KST[who]={down:true,d,since:now,upAt:now+2200,by:{},cnt:0};
     g.style.setProperty('--d',d);g.classList.remove('ku','kj','love');g.classList.add('down','kf');
   }
@@ -2850,6 +2853,7 @@ function playFx(x,mine){
 }
 const hitToast=x=>toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}你${(x.n||1)>1?` ×${x.n}`:''}`);
 function throwAt(t){
+  lastThrowAt=Date.now();
   if(isWatcher(me)){const ok=t!=='boss'&&!String(t).startsWith('p:');if(ghostArmed&&ok)sendGhost(t);else if(angelArmed&&ok)sendAngel(t);else if(ghostArmed||angelArmed)toast('只能選玩家');return;}
   if(isLocked(t)){if(Date.now()-(throwAt._l||0)>1500){throwAt._l=Date.now();toast(t==='boss'?'他爬起來了，正在反擊！先躲好':'他剛爬起來，先讓他喘口氣');}return;}
   if(isDown(myStageId())){if(Date.now()-(throwAt._w||0)>1500){throwAt._w=Date.now();toast('你被打倒了，爬起來才能丟');}return;}
