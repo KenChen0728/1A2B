@@ -35,13 +35,14 @@ const both=async(p,id)=>{await p.click(id);await p.waitForTimeout(80);await p.cl
  const hit=(p,it)=>p.evaluate(it=>playFx({target:me,from:derive().A[me],item:it||'tomato',n:1,name:'小美'}),it);
  const hsN=(p,sel)=>p.evaluate(sel=>document.querySelectorAll((sel||'').split(',').map(x=>'#hitl .hs'+x).join(',')).length,sel);
  await hit(a);await a.waitForTimeout(250);ok(await hsN(a,'.drip.tomato')===1,'被番茄丟：螢幕上有番茄');ok(!(await vis(a)),'被丟不會打開戰況');
- ok(await a.evaluate(()=>getComputedStyle(document.getElementById('hitl')).pointerEvents==='none'&&+getComputedStyle(document.querySelector('#hitl .hs')).opacity<0.8),'特效半透明、不擋手指');
+ ok(await a.evaluate(()=>getComputedStyle(document.getElementById('hitl')).pointerEvents==='none'&&+getComputedStyle(document.querySelector('#hitl .hs')).opacity<0.9),'特效半透明、不擋手指');
  await a.click('.pad [data-k="1"]');ok(await a.evaluate(()=>input==='1'),'特效在的時候還能打字');await a.click('.pad [data-k="del"]').catch(()=>{});
  ok(await a.evaluate(()=>+getComputedStyle(document.getElementById('hitl')).zIndex<+getComputedStyle(document.getElementById('arenaFab')).zIndex),'特效在側邊按鈕下面，不擋丟東西');
  await a.waitForTimeout(3100);ok(await hsN(a)===0,'幾秒後自己消失');
- for(const [it,sel,m] of [['egg','.drip.egg','雞蛋'],['bomb','.soot','炸彈：灰灰的'],['slipper','.sole','拖鞋：鞋印'],['hammer','.orbit','大鐵盆：眼冒金星']]){await hit(a,it);await a.waitForTimeout(150);ok(await hsN(a,sel)>0,m);}
+ for(const [it,sel,m] of [['egg','.drip.egg','雞蛋'],['bomb','.soot','炸彈：灰灰的'],['slipper','.loom','拖鞋：飛向臉'],['hammer','.loom','大鐵盆：飛向臉']]){await hit(a,it);await a.waitForTimeout(150);ok(await hsN(a,sel)>0,m);}
+ await a.waitForTimeout(450);ok(await hsN(a,'.orbit')>0,'拖鞋、鐵盆撞到後眼冒金星');
  await a.evaluate(()=>playFx({target:me,from:derive().A[me],item:'flower',n:1,name:'小美'}));await a.waitForTimeout(150);ok(await hsN(a,'.fall')>=10,'花：飄花瓣');
- await a.evaluate(()=>{for(let i=0;i<6;i++)screenHit('tomato');});ok(await hsN(a,'.drip,.soot,.sole')<=8,'一直被丟最多同時 8 塊');
+ await a.evaluate(()=>{for(let i=0;i<6;i++)screenHit('tomato');});ok(await hsN(a,'.drip,.soot')<=8,'一直被丟最多同時 8 塊');
  {const bd=await a.textContent('#arenaBadge');ok(bd==='6','被丟幾次就累積幾個數字 '+bd);}
  await a.evaluate(()=>document.querySelectorAll('#hitl .hs').forEach(e=>e.remove()));
  await a.evaluate(()=>playFx({target:me,from:'boss',item:'egg',n:1},true));await a.waitForTimeout(150);ok(await hsN(a,'.drip.egg')===1,'魔王反擊打到自己也有特效');

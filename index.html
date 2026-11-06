@@ -427,12 +427,14 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 /* 被丟中：整個螢幕疊一層半透明特效，手指照樣按得到下面的鍵盤；在側邊按鈕和抽屜下面，不擋丟東西 */
 .hitl{position:fixed;inset:0;pointer-events:none;z-index:29;overflow:hidden}
 .hs{position:absolute;pointer-events:none;line-height:0}.hs svg{display:block;width:100%;height:100%}
-.hs.drip{opacity:.62;animation:hsIn .12s steps(2,end),hsDrip 1.1s steps(6,end) 1.8s forwards}
-.hs.drip.egg{opacity:.55}
-.hs.soot{opacity:.5;animation:hsShake .3s steps(4,end),hsFade 1s steps(5,end) 2s forwards}
+.hs.drip{opacity:.82;animation:hsIn .12s steps(2,end),hsDrip 1.1s steps(6,end) 1.8s forwards}
+.hs.drip.egg{opacity:.75}
+.hs.soot{opacity:.72;animation:hsShake .3s steps(4,end),hsFade 1s steps(5,end) 2s forwards}
 .hs.boomx{animation:hsBoom .45s steps(4,end) forwards}
 .hs.puff{opacity:.55;animation:hsPuff 1.2s steps(6,end) forwards}
 .hs.sole{opacity:.5;animation:hsStamp .12s steps(2,end),hsFade .8s steps(4,end) 1.6s forwards}
+.hs.loom{animation:hsLoom .36s steps(6,end) forwards}
+@keyframes hsLoom{0%{transform:scale(.12) rotate(-30deg);opacity:.6}80%{opacity:1}100%{transform:scale(1) rotate(12deg);opacity:1}}
 .hs.twk{animation:hsTwk .9s steps(3,end) forwards}
 .hs.vig{inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 42%,rgba(8,8,18,.6) 100%);animation:hsVig 1s ease-out forwards}
 .hs.orbit{animation:hsFade .5s steps(3,end) 1.4s forwards}
@@ -451,7 +453,8 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes hsOrb{0%,100%{translate:var(--rx) 0}12.5%{translate:calc(var(--rx)*.71) calc(var(--ry)*.71)}25%{translate:0 var(--ry)}37.5%{translate:calc(var(--rx)*-.71) calc(var(--ry)*.71)}50%{translate:calc(var(--rx)*-1) 0}62.5%{translate:calc(var(--rx)*-.71) calc(var(--ry)*-.71)}75%{translate:0 calc(var(--ry)*-1)}87.5%{translate:calc(var(--rx)*.71) calc(var(--ry)*-.71)}}
 @keyframes hsFall{0%{transform:translate(0,0)}25%{transform:translate(var(--sx),calc(var(--fh)*.25))}50%{transform:translate(0,calc(var(--fh)*.5))}75%{transform:translate(var(--sx),calc(var(--fh)*.75))}100%{transform:translate(0,var(--fh))}}
 @keyframes hsSpin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.hs,.hs.drip,.hs.soot,.hs.sole,.hs.fall,.hs.orbit{animation:hsFade .6s steps(3,end) 1.4s forwards}.hs.orbit>i,.hs.fall>i{animation:none}.hs.fall{top:var(--ry0,30%)}.hs.boomx,.hs.puff{display:none}}
+.hs.loom svg{width:100%;height:100%}
+@media (prefers-reduced-motion:reduce){.hs.loom{display:none}.hs,.hs.drip,.hs.soot,.hs.sole,.hs.fall,.hs.orbit{animation:hsFade .6s steps(3,end) 1.4s forwards}.hs.orbit>i,.hs.fall>i{animation:none}.hs.fall{top:var(--ry0,30%)}.hs.boomx,.hs.puff{display:none}}
 
 .fly{position:fixed;font-size:46px;line-height:1;width:1em;height:1em;margin:-.5em 0 0 -.5em;display:grid;place-items:center;z-index:1;will-change:transform;pointer-events:none}
 .fly svg{display:block;width:100%;height:100%}
@@ -710,7 +713,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.07-1';
+const APP_VERSION='2026.11.07-2';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1830,7 +1833,7 @@ const PX_FX={
  clang:[[".....W.....",".....W.....","..W..W..W..","...W.Y.W...","....YYY....","WWWYYYYYWWW","....YYY....","...W.Y.W...","..W..W..W..",".....W.....",".....W....."],{W:'#ffffff',Y:'#ffe066'}],
  stom:[["......R.....R...","..R..RRR........","....RRRRRRR..R..",".R.RRRRRRRRRR...","..RRRRYRRRRRRR..","..RRRRRRRRRYRRr.","RRRRRYRRRRRRRRr.","..RRRRRRRRRRRRr.","..RRRRRRRRYRRrr.",".R.RRRRRRRRRrr..","....RRrRRRRrr.R.","....RR.RrR.r....","....R..Rr.......",".......r........"],{R:'#e53935',r:'#b3261e',Y:'#ffe08a'}],
  segg:[[".....www....w...","..wwwWWWww......",".wWWWWWWWWww....","wWWWWYYYYWWWw.w.","wWWWYYYYYYWWWw..",".wWWYYYYYyWWWw..","wWWWYYYYyyWWWw..",".wWWWYyyyWWWWw..","..wWWWWWWWWWw...","...wwWWWWWww....","..w..wWwww......","......w.........","......w........."],{W:'#fffdf2',w:'#d4bd82',Y:'#ffc22e',y:'#e0a000'}],
- smud:[["....KK..K.....","..KKKKKKK..K..",".KKKGKKKKKK...","KKKKKKKGKKKK..",".KKGKKKKKKKKK.","..KKKKKKGKKK..","KKKKKKKKKKK...",".KKKGKKKKK..K.","..KK.KKKKK....","...K..KK......",".......K......"],{K:'#5d5d68',G:'#9a9aa6'}],
+ smud:[["....KK..K.....","..KKKKKKK..K..",".KKKGKKKKKK...","KKKKKKKGKKKK..",".KKGKKKKKKKKK.","..KKKKKKGKKK..","KKKKKKKKKKK...",".KKKGKKKKK..K.","..KK.KKKKK....","...K..KK......",".......K......"],{K:'#3a3a42',G:'#6e6e7a'}],
  sole:[["..SSSSS..",".SSTSTSS.","SSSSSSSSS","STSSTSSTS","SSSSSSSSS","SSTSSSTSS","SSSSSSSSS",".SSSTSSS.",".SSSSSSS.","..SSSSS..","..STSTS..","..SSSSS..","..SSSSS..","..STSTS..","..SSSSS..","...SSS..."],{S:'#3aa79f',T:'#8fe8e0'}],
  petal:[[".PP..","PPPP.","PPPPp",".Ppp."],{P:'#ffc2d4',p:'#ff8fb0'}],
  hrt:[[".RR.RR.","RWRRRRR","RRRRRRR",".RRRRR.","..RRR..","...R..."],{R:'#ff5c8a',W:'#ffd0de'}],
@@ -2783,16 +2786,15 @@ function screenHit(item){
   if(item==='tomato'||item==='egg'){const z=Math.round(rn(.36,.5)*S),[x,y]=spot();put('drip '+item,pxSvg(item==='tomato'?'stom':'segg',z),x,y,z,z,3000);}
   else if(item==='bomb'){const [x,y]=spot(),b=Math.round(S*.42);put('boomx',pxSvg('boom',b),x,y,b,b,500);
     /* 炸過的地方灰灰的：爆炸中心一塊，再隨機兩塊，各冒幾縷煙 */
-    [[x,y],spot(),spot()].forEach(([sx,sy],i)=>{const z=Math.round(rn(.26,.38)*S);put('soot',pxSvg('smud',z),sx,sy,z,z*.8,3100);
+    [[x,y],spot(),spot()].forEach(([sx,sy],i)=>{const z=Math.round((i?rn(.42,.56):rn(.6,.75))*S);put('soot',pxSvg('smud',z),sx,sy,z,z*.8,3100);
       for(let k=0;k<2;k++)put('puff',pxSvg('puff',22),sx+rn(-z*.3,z*.3),sy-z*.2,22,22,1300,`animation-delay:${(i*.12+k*.25).toFixed(2)}s`);});}
-  else if(item==='slipper'){const h=Math.round(rn(.4,.5)*S),w=h*9/16,[x,y]=spot();put('sole',pxSvg('sole',h),x,y,w,h,2500,Math.random()<.5?'scale:-1 1':'');
-    put('twk',pxSvg('star',22),x+w*.7,y-h*.35,22,22,1000);put('twk',pxSvg('star',16),x-w*.7,y-h*.1,16,16,1000,'animation-delay:.15s');
-    popWord(Math.min(W-50,x+w*.4),y-h*.45,'啪！','#7fe0d8');}
-  else if(item==='hammer'){/* 敲暈：眼前一黑、眼冒金星 */
-    put('vig','',0,0,0,0,1100,'left:0;top:0;width:auto;height:auto;right:0;bottom:0');
-    const rx=Math.round(Math.min(W*.36,160)),ry=Math.round(rx*.32),o=put('orbit','',W/2,H*.3,0,0,1950,`--rx:${rx}px;--ry:${ry}px`);
-    for(let i=0;i<5;i++){const t=document.createElement('i');t.innerHTML=pxSvg('star',26);t.style.animationDelay=`${(-i*.192).toFixed(3)}s`;o.appendChild(t);}
-    popWord(W/2,H*.3-ry-28,'噹！','#ffe066');}
+  else if(item==='slipper'||item==='hammer'){/* 第一人稱：拖鞋／鐵盆從遠處越飛越大撞上臉，撞到就眼前一黑、眼冒金星 */
+    const rm=matchMedia('(prefers-reduced-motion:reduce)').matches,[x,y]=[rn(.3,.7)*W,rn(.3,.55)*H],z=Math.round(S*.75);
+    if(!rm)put('loom',itemIcon(item),x,y,z,z,380);
+    setTimeout(()=>{put('vig','',0,0,0,0,1100,'left:0;top:0;width:auto;height:auto;right:0;bottom:0');
+      const rx=Math.round(Math.min(W*.36,160)),ry=Math.round(rx*.32),o=put('orbit','',W/2,H*.3,0,0,1950,`--rx:${rx}px;--ry:${ry}px`);
+      for(let i=0;i<5;i++){const t=document.createElement('i');t.innerHTML=pxSvg('star',26);t.style.animationDelay=`${(-i*.192).toFixed(3)}s`;o.appendChild(t);}
+      popWord(W/2,H*.3-ry-28,item==='hammer'?'噹！':'啪！',item==='hammer'?'#ffe066':'#7fe0d8');},rm?0:340);}
   else if(item==='flower'||item==='heart'){/* 獎勵：飄花瓣、飄愛心 */
     const k=item==='flower'?'petal':'hrt',n=item==='flower'?16:12,old=L.querySelectorAll('.hs.fall');if(old.length>30)[...old].slice(0,old.length-30).forEach(e=>e.remove());
     for(let i=0;i<n;i++){const z=Math.round(item==='flower'?rn(16,26):rn(20,30)),t=rn(2.6,3.8),dl=rn(0,.9);
