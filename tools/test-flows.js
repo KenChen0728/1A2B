@@ -1,6 +1,6 @@
 const {chromium,BASE,ctx,page,shot,name,typeNum,reset,layout,room,guess}=require('./lib');
 let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
-const dump=async()=>(await (await fetch('http://localhost:8123/__dump')).json());
+const dump=async()=>(await (await fetch(new URL('/__dump',BASE))).json());
 (async()=>{await reset();const b=await chromium.launch();
  // ---- 單人：存檔、重新整理、回首頁繼續
  let c=await ctx(b,{vp:{width:390,height:664}});let p=await page(c);await name(p,'小明');await p.click('#goSolo');

@@ -563,6 +563,13 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .rulebtn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .rulebtn .pwrap{flex:1 1 auto;min-width:0}
 .rulego{flex:0 0 auto;font-size:15px;color:var(--ink);text-decoration:underline}
+.chead h2.ht{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.allbtn{box-sizing:border-box;font-family:var(--f-disp);font-size:14px;line-height:1;display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;margin:-6px 0;padding:6px 9px 5px 7px;min-height:30px;border-radius:8px;border:2px solid var(--line);background:var(--tile);color:var(--ink);box-shadow:0 2px 0 var(--line);white-space:nowrap;cursor:pointer;position:relative}
+.allbtn::after{content:'';position:absolute;inset:-7px -4px}.allbtn:active{transform:translateY(2px);box-shadow:none}.allbtn .uii{width:15px;height:15px;vertical-align:0}
+.histbox{max-width:440px;width:100%;box-sizing:border-box;gap:8px;max-height:calc(100dvh - 32px - var(--safe-top) - env(safe-area-inset-bottom,0px))}
+.histbox .histall{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--paper);border-radius:10px;padding:2px 10px}
+.histbox .hrow{padding:6px 2px}
+@media (min-width:700px){.histbox{max-width:680px}.histbox .hist{display:block;columns:2;column-gap:24px}.histbox .hrow{break-inside:avoid}}
 .rulego.ro{font-size:13px;line-height:1.3;color:var(--muted);text-decoration:none;text-align:right}
 .pks.mode .pk{flex-direction:row;gap:6px;font-size:17px;min-height:46px}
 .pks.mode .pk svg{width:26px;height:26px}
@@ -703,7 +710,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.06-3';
+const APP_VERSION='2026.11.06-4';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -968,7 +975,7 @@ function render(){
       else if(D.waiting(me)) h+=`<div class="card center"><h2>第 ${D.by[me].length} 次已送出</h2><p class="hand"><span class="dot"></span>等其他人猜完這一回合（${D.parts.filter(id=>!D.out[id]&&!D.solved[id]&&D.by[id].length>=D.by[me].length).length}/${D.parts.filter(id=>!D.out[id]&&!D.solved[id]).length}）</p>${waitBtn('不等他們')}</div>`;
       if(D.can(me)){
         const hl=g().len-1-D.hints[me];
-        h+=`<div class="card"><h2>第 ${D.by[me].length+1} 次 · 猜${esc(nameOf(tgt))}的題</h2>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}<div class="padbox">${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}</div>
+        h+=`<div class="card"><div class="chead"><h2 class="ht">第 ${D.by[me].length+1} 次 · 猜${esc(nameOf(tgt))}的題</h2>${allBtn(D.by[me].length)}</div>${D.by[me].length?`<div class="mine-h" id="mineH">${histHTML(D.by[me])}</div>`:''}<div class="padbox">${slots(false,knownOf(D.by[me],s.len))}${errKey()}${pad(true)}</div>
         <div class="tools">${D.hc?`<button class="btn ghost small tool" id="hintBtn" ${hl<=0||!secretOf(tgt)?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button>`:''}${D.aN?`<button class="btn ghost small tool" id="mpAngel" ${D.angels[me]>=D.aN?'disabled':''}>${angelIc()}小天使 ×${Math.max(0,D.aN-D.angels[me])}</button>`:''}<button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
       }
     } else h+=`<div class="card center"><p class="hand">這一局開始時你還沒加入，可以先觀戰，下一局就會一起玩。</p></div>`;
@@ -1032,6 +1039,7 @@ function sideUI(chatOn,notesOn){
   $$('notesBack').hidden=!notesOpen&&!chatOpen&&!arenaOpen;
   const nl=document.querySelector('#notesWrap .dhead .lbl'); if(nl) nl.textContent=sharedNotes?'全隊共享筆記（大家都能看、都能改）':'我的筆記（只有你看得到）';
   if(notesOpen) renderMine();
+  if(histOpen) drawHistM();
   fitHist();
 }
 /* 猜題紀錄的高度跟著畫面算：最新一筆要看得到，不能被下方的鍵盤蓋住 */
@@ -1433,9 +1441,15 @@ function gameBusy(){try{
   if(solo)return !solo.result&&solo.hist.length>0;
   if(code&&R){if(R.phase==='coop'){const C=coopState();return !C.over;}const st=derive().status;return st!=='lobby'&&st!=='over';}
 }catch(e){}return false;}
-let updWarned=false;
+/* 結算和留下來看的時候大家常在連點丟東西，更新視窗跳出來會被點到「重新載入」：
+   這些時候不跳，回到大廳、手指停了 2.5 秒才跳；跳出後按鈕 0.9 秒內按了沒作用 */
+let updWarned=false, lastTap=0;
+addEventListener('pointerdown',()=>{lastTap=Date.now();},{capture:true,passive:true});
+function updBusy(){if(gameBusy()||Date.now()-lastTap<2500)return true;
+  try{if(solo)return !!solo.result;if(code&&R){if(reviewing)return true;if(R.phase==='coop')return !!coopState().over;return derive().status==='over';}}catch(e){}return false;}
 function updTick(){if(!updShown)return;const el=document.getElementById('upd');if(!el.hidden)return;
-  if(gameBusy()){if(!updWarned){updWarned=true;toast('有新版本了，這場結束後會更新');}return;}
+  if(updBusy()){if(!updWarned&&(gameBusy()||reviewing)){updWarned=true;toast('有新版本了，回到大廳後會更新');}return;}
+  const b=el.querySelector('button');if(b){b.disabled=true;setTimeout(()=>{b.disabled=false;},900);}
   el.hidden=false;}
 setInterval(updTick,2000);
 /* 正在玩的時候螢幕不要自己暗掉（瀏覽器支援才有作用） */
@@ -2172,6 +2186,7 @@ function bind(){
   if($('peekOff')) $('peekOff').onchange=e=>ls.set('ab_peek_off',e.target.checked?'1':'0');
   if($('arena')) $('arena').addEventListener('click',e=>{if(e.currentTarget.classList.contains('peek'))setArena(true);});
   if($('rulesBtn')) $('rulesBtn').onclick=()=>{rulesOpen=true;render();};
+  if($('histAll')) $('histAll').onclick=()=>setHist(true);
   if($('rulesInfo')) $('rulesInfo').onclick=()=>toast(`遊戲設定只有房主 ${$('rulesInfo').dataset.host} 能改，想換可以在聊天跟他說`);
   ['rulesX','rulesOk'].forEach(id=>{if($(id))$(id).onclick=()=>{rulesOpen=false;render();};});
   if($('rulesM')) $('rulesM').onclick=e=>{if(e.target.id==='rulesM'){rulesOpen=false;render();}};
@@ -2401,6 +2416,21 @@ async function bossMove(C){
   const {g:gg}=cpuPick(st), r=score(team,gg);
   try{await db.collection(`rooms/${code}/guesses`).doc(`c${s.round}_b${C.T.length}`).set({round:s.round,kind:'boss',n:C.T.length,g:gg,A:r.A,B:r.B,think:cpuThink(st,{g:gg,A:r.A,B:r.B}),at:Date.now()});}catch(e){bossBusy='';}
 }
+/* 看全部：紀錄框要上下滑才看得完，按「看全部」跳出大視窗一次列出來；有新的一手會跟著更新，這局結束就自己關掉 */
+const allBtn=n=>n>=2?`<button class="allbtn" id="histAll" type="button">${uiIcon('note')}看全部</button>`:'';
+let histOpen=false;
+function histData(){try{
+  if(solo){if(solo.phase==='play'&&!solo.result&&solo.hist.length)return{t:solo.mode==='duel'?`你猜${solo.vil.n}的題`:'你猜過的',html:histHTML(solo.hist),n:solo.hist.length};return null;}
+  if(code&&R){const s=g();if(s.phase==='coop'){const C=coopState();if(!C.over&&!C.countdown&&C.T.length)return{t:`全隊猜${(C.c.vil||{}).n||'魔王'}的題`,html:teamHistHTML(C.T),n:C.T.length};return null;}
+    const D=derive(),L=D.by[me]||[];if(D.status==='playing'&&L.length)return{t:`你猜${nameOf(D.A[me])}的題`,html:histHTML(L),n:L.length};}
+}catch(e){}return null;}
+function drawHistM(){let el=document.getElementById('histM');const d=histOpen&&histData();
+  if(!d){histOpen=false;if(el){el.hidden=true;el.innerHTML='';}return;}
+  if(!el){el=document.createElement('div');el.id='histM';el.className='upd';document.body.appendChild(el);el.onclick=e=>{if(e.target===el||e.target.closest('[data-hx]'))setHist(false);};}
+  el.innerHTML=`<div class="card histbox"><div class="dhead"><h2 style="flex:1 1 auto;margin:0">${esc(d.t)}</h2><button type="button" class="dclose" data-hx aria-label="關閉">✕</button></div><p class="sub" style="margin:0">共 ${d.n} 次，由上往下是第 1 次到最新的一次</p><div class="histall">${d.html}</div></div>`;
+  el.hidden=false;const L=el.querySelector('.histall');L.scrollTop=L.scrollHeight;}
+function setHist(o){histOpen=o;drawHistM();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&histOpen)setHist(false);});
 function teamHistHTML(L){
   if(!L.length)return'<div class="empty-h">還沒猜過</div>';
   return'<div class="hist">'+L.map((r,i)=>r.hint?`<div class="hrow hintrow"><span class="hn">${i+1}</span><span class="hg">第 ${(+r.pos)+1} 位是 ${esc(r.g)}</span><span class="score"><span class="pill">${esc(nameOf(r.pid))}・提示</span></span></div>`:`<div class="hrow"><span class="hn">${i+1}</span><span class="hg">${esc(r.g)}<small class="who2">${esc(nameOf(r.pid))}</small></span><span class="score">${ab(r)}</span></div>`).join('')+'</div>';
@@ -2602,7 +2632,7 @@ function coopView(s){
     const vl=`<div class="vline${sayFx()}"><span class="vicon">${vilIcon(v)}</span><p>${esc(v.n)}：「${esc(coopSay&&coopSay.r===s.round?coopSay.t:v.says)}」</p></div>`;
     if(C.waitingBoss) h+=`<div class="card center">${vl}<h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
     else h+=`<div class="card center turn ${mine?'me':''}">${vl}<span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}</p>${C.left==null&&!mine?waitBtn('不等他'):''}</div>`;
-    h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
+    h+=`<div class="card"><div class="chead"><span class="lbl">全隊猜${esc(v.n)}的題</span>${allBtn(C.T.length)}</div>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
       (mine&&!C.waitingBoss?`<div class="padbox">${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}</div>`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?`<button class="btn ghost small tool" id="hintBtn">${uiIcon('bulb')}提示</button>`:''}${inTeam&&angelMax()?`<button class="btn ghost small tool" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>${angelIc()}小天使 ×${coopAngelsLeft()}</button>`:''}</div>`:'')+`</div>`;
     const h0=h;h='';
@@ -3090,7 +3120,7 @@ function renderSolo(){
     const hl=s.len-1-used, waiting=duel&&(s.cpuBusy||s.chist.length<bossDue(s));
     const meDone=s.hist.some(x=>!x.hint&&x.A===s.len);
     if(duel) h+=`<div class="card vil mini${sayFx()}"><span class="vicon">${vilIcon(vil)}</span><div><p>${esc(vil.n)}：「${esc(vil.says)}」</p></div></div>`;
-    h+=`<div class="card"><h2>${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
+    h+=`<div class="card"><div class="chead"><h2 class="ht">${duel?`第 ${s.hist.length+(waiting?0:1)} 回合 · 你猜${esc(vil.n)}的題`:`第 ${s.hist.length+1} 次`}</h2>${allBtn(s.hist.length)}</div>${s.hist.length?`<div class="mine-h" id="mineH">${histHTML(s.hist)}</div>`:''}
       <div class="padbox">${slots(false,knownOf(s.hist,s.len))}${waiting?`<p class="err wait"><span class="dot"></span>${meDone?`你猜中了！看${esc(vil.n)}能不能追平`:`${esc(vil.n)}思考中…`}</p>`:errKey()}${pad(true,waiting)}</div>
       <div class="tools"><button class="btn ghost small tool" id="hintBtn" ${hl<=0||waiting?'disabled':''}>${uiIcon('bulb')}提示 ×${Math.max(0,hl)}</button><button class="btn ghost small tool" id="soloAngel" ${(s.angels||0)>=3?'disabled':''}>${angelIc()}小天使 ×${3-(s.angels||0)}</button><button class="btn ghost small tool" id="giveUp">${uiIcon('flag')}放棄</button></div></div>`;
     const h0=h;h='';
