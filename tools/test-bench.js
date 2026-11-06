@@ -1,4 +1,4 @@
-// 不等他：先到場邊、看不到答案、可以回來；戰況抽屜：平常收著、被丟跳出、有冷卻
+// 不等他：先到場邊、看不到答案、可以回來；戰況抽屜：平常收著；被丟中整個螢幕有特效、不擋鍵盤、會自己消失
 const {chromium,ctx,page,name,reset,room,guess}=require('./lib');
 let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
 const opt={vp:{width:402,height:810}};
@@ -32,11 +32,24 @@ const both=async(p,id)=>{await p.click(id);await p.waitForTimeout(80);await p.cl
  await reset();r=await room(b,2,opt);[h,a]=r.ps;await a.click('#ready');await h.waitForTimeout(250);await h.click('#start');await a.waitForSelector('.pad');for(const q of [h,a]){await q.click('#randSecret');await q.click('.pad [data-k="ok"]');}await a.waitForFunction(()=>derive().status==='playing',null,{timeout:9000});await a.waitForSelector('.pad');
  const vis=p=>p.evaluate(()=>{const e=document.querySelector('#arena svg.stage'),r=e.getBoundingClientRect();return getComputedStyle(document.getElementById('arena')).visibility==='visible'&&r.left>=0&&r.right<=innerWidth+1&&r.top<innerHeight;});
  ok(!(await vis(a)),'平常戰況收著');ok(await a.evaluate(()=>document.documentElement.scrollHeight<=innerHeight),'遊戲中不用滑');
- const hit=p=>p.evaluate(()=>playFx({target:me,from:derive().A[me],item:'tomato',n:1,name:'小美'}));await hit(a);await a.waitForTimeout(350);ok(await vis(a),'被丟跳出來');ok(await a.evaluate(()=>document.querySelector('.pad [data-k=ok]').getBoundingClientRect().top>document.getElementById('arena').getBoundingClientRect().bottom),'跳出來不擋鍵盤');
- await a.click('.pad [data-k="1"]');ok(await a.evaluate(()=>input==='1'),'跳出來時還能打字');await a.click('.pad [data-k="del"]').catch(()=>{});
- await a.waitForTimeout(2600);ok(!(await vis(a)),'幾秒後收回');await hit(a);await hit(a);await a.waitForTimeout(400);ok(!(await vis(a)),'連續丟不會一直跳');ok((await a.textContent('#arenaBadge'))==='2','連續丟只累積數字');
+ const hit=(p,it)=>p.evaluate(it=>playFx({target:me,from:derive().A[me],item:it||'tomato',n:1,name:'小美'}),it);
+ const hsN=(p,sel)=>p.evaluate(sel=>document.querySelectorAll((sel||'').split(',').map(x=>'#hitl .hs'+x).join(',')).length,sel);
+ await hit(a);await a.waitForTimeout(250);ok(await hsN(a,'.drip.tomato')===1,'被番茄丟：螢幕上有番茄');ok(!(await vis(a)),'被丟不會打開戰況');
+ ok(await a.evaluate(()=>getComputedStyle(document.getElementById('hitl')).pointerEvents==='none'&&+getComputedStyle(document.querySelector('#hitl .hs')).opacity<0.8),'特效半透明、不擋手指');
+ await a.click('.pad [data-k="1"]');ok(await a.evaluate(()=>input==='1'),'特效在的時候還能打字');await a.click('.pad [data-k="del"]').catch(()=>{});
+ ok(await a.evaluate(()=>+getComputedStyle(document.getElementById('hitl')).zIndex<+getComputedStyle(document.getElementById('arenaFab')).zIndex),'特效在側邊按鈕下面，不擋丟東西');
+ await a.waitForTimeout(3100);ok(await hsN(a)===0,'幾秒後自己消失');
+ for(const [it,sel,m] of [['egg','.drip.egg','雞蛋'],['bomb','.soot','炸彈：灰灰的'],['slipper','.sole','拖鞋：鞋印'],['hammer','.orbit','大鐵盆：眼冒金星']]){await hit(a,it);await a.waitForTimeout(150);ok(await hsN(a,sel)>0,m);}
+ await a.evaluate(()=>playFx({target:me,from:derive().A[me],item:'flower',n:1,name:'小美'}));await a.waitForTimeout(150);ok(await hsN(a,'.fall')>=10,'花：飄花瓣');
+ await a.evaluate(()=>{for(let i=0;i<6;i++)screenHit('tomato');});ok(await hsN(a,'.drip,.soot,.sole')<=8,'一直被丟最多同時 8 塊');
+ {const bd=await a.textContent('#arenaBadge');ok(bd==='6','被丟幾次就累積幾個數字 '+bd);}
+ await a.evaluate(()=>document.querySelectorAll('#hitl .hs').forEach(e=>e.remove()));
+ await a.evaluate(()=>playFx({target:me,from:'boss',item:'egg',n:1},true));await a.waitForTimeout(150);ok(await hsN(a,'.drip.egg')===1,'魔王反擊打到自己也有特效');
+ await a.evaluate(()=>playFx({target:me,from:me,item:'egg',n:1},true));await a.waitForTimeout(150);ok(await hsN(a,'.drip.egg')===1,'自己丟的不算');
+ await a.evaluate(()=>document.querySelectorAll('#hitl .hs').forEach(e=>e.remove()));
  await a.click('#arenaFab');await a.waitForTimeout(300);ok(await vis(a),'點開看得到');ok(await a.evaluate(()=>!!document.querySelector('#arena .ibar')&&!!document.querySelector('#arena .ptable')),'互砸和別人的進度都在裡面');ok((await a.$eval('#arenaBadge',e=>e.hidden)),'打開後數字清掉');
- await a.click('#arenaClose');await a.waitForTimeout(300);await a.evaluate(()=>{peekNext=0;ls.set('ab_peek_off','1');});await hit(a);await a.waitForTimeout(400);ok(!(await vis(a)),'勾不跳出就不跳');
+ await hit(a);await a.waitForTimeout(700);ok(await hsN(a,'.drip.tomato')===1,'戰況打開時被丟中，螢幕一樣有特效');
+ await a.click('#arenaClose');await a.waitForTimeout(300);await a.evaluate(()=>{document.querySelectorAll('#hitl .hs').forEach(e=>e.remove());ls.set('ab_peek_off','1');});await hit(a);await a.waitForTimeout(300);ok(await hsN(a)===0,'勾「被丟不要特效」就沒有');
  await a.click('#notesFab').catch(()=>{});await a.evaluate(()=>{setNotes(false);ls.set('ab_peek_off','0');});await a.click('#mpAngel');await a.waitForSelector('.angelcard');await a.click('.angelcard .aclose');await a.waitForTimeout(100);
  ok(await a.evaluate(()=>document.querySelector('.angelcard').hidden&&!document.querySelector('.angeltab').hidden),'小天使收起變側邊標籤');await a.click('.angeltab');ok(await a.evaluate(()=>!document.querySelector('.angelcard').hidden),'小天使可以再打開');await a.click('.angelcard .aclose');await guess(a,'1357');await a.waitForTimeout(200);ok(!(await a.$('.angeltab')),'下一次猜題才消失');
  ok(a.__errs===undefined||a.__errs.length===0,'沒有錯誤');

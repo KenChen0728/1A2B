@@ -33,7 +33,7 @@ html{touch-action:manipulation;overscroll-behavior:none}
 body{margin:0;box-sizing:border-box;min-height:100vh;min-height:100dvh;padding-top:var(--safe-top);padding-bottom:var(--safe-bot);overscroll-behavior:none;font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei UI","Microsoft JhengHei",system-ui,sans-serif;-webkit-text-size-adjust:100%}
 @media (display-mode:standalone){
   :root{--safe-top:calc(env(safe-area-inset-top,0px) + min(40px,calc(env(safe-area-inset-top,0px)*99)));color-scheme:dark}
-  html{background:var(--brand)}
+  /* 不給 html 底色：格子背景會鋪滿整個螢幕，內容比螢幕矮時，下方色帶上面才不會露出一段深藍 */
   body{color-scheme:var(--cs,light)}
   .statusband{height:max(6px,var(--safe-top))}
   .statusband::after,.footband::before{content:"";position:absolute;left:0;right:0;height:4px;background:var(--edge)}
@@ -48,7 +48,7 @@ body{margin:0;box-sizing:border-box;min-height:100vh;min-height:100dvh;padding-t
   @media (display-mode:standalone){
     :root{--app-h:min(100lvh,calc(100dvh + env(safe-area-inset-top,0px)*99));--vgap:calc(var(--app-h) - 100dvh)}
     html,body{min-height:var(--app-h)}
-    .drawer,.nback,.upd,.fxl,.ghostov{bottom:calc(0px - var(--vgap))!important}
+    .drawer,.nback,.upd,.fxl,.hitl,.ghostov{bottom:calc(0px - var(--vgap))!important}
   }
 }
 img{max-width:100%}
@@ -224,6 +224,12 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .subrow .sub{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
 /* 小連結：看起來小，手指按得到的範圍還是 44 */
 .hlink{font:inherit;font-size:14px;line-height:1.3;background:none;border:0;color:var(--ink);text-decoration:underline;white-space:nowrap;cursor:pointer;padding:12px 6px;margin:-12px -6px}
+/* 離開／回首頁：小按鈕加門的圖，比底線連結明顯；按得到的範圍 44 */
+.exitbtn{box-sizing:border-box;font-family:var(--f-disp);font-size:15px;line-height:1;display:inline-flex;align-items:center;gap:5px;margin:-6px 0 -6px auto;padding:7px 10px 6px 8px;min-height:34px;border-radius:8px;border:2px solid var(--line);background:var(--tile);color:var(--ink);box-shadow:0 3px 0 var(--line);white-space:nowrap;cursor:pointer;position:relative;flex:0 0 auto}
+.exitbtn+.exitbtn{margin-left:0}
+.exitbtn::after{content:'';position:absolute;inset:-6px -4px}
+.exitbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.exitbtn .uii{width:16px;height:18px;vertical-align:0}
 .chead{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .chead .sub{font-size:14px;white-space:nowrap}
 .chead h2{min-width:0}
@@ -276,7 +282,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .vil{flex-direction:row;align-items:center;gap:12px;padding-block:12px}
 .vil .vicon{font-size:34px;line-height:1}
 .vil p{margin:2px 0 0;font-size:16px;color:var(--fg)}
-.vil.say p{animation:saypop .3s steps(3,end)}
+.vline.say p,.vil.say p{animation:saypop .3s steps(3,end)}
 @keyframes saypop{from{transform:translateY(6px);opacity:.2}}
 .card.back{flex-direction:row;align-items:center;gap:12px;border-color:var(--ink)}
 .think{font-size:13px;color:var(--muted);padding:0 2px 6px 38px;border-bottom:1px dashed var(--line);margin-top:-4px}
@@ -290,6 +296,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @keyframes hin{from{transform:translateX(var(--hd,40px));opacity:0}to{transform:none;opacity:1}}
 .hpic{height:186px;flex:0 0 auto;border-radius:14px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;position:relative}
 .hpic svg{display:block}
+.hpic.hsplat{flex-direction:row;flex-wrap:wrap;gap:4px 10px;align-content:center}.hpic.hsplat>span{display:flex;align-items:center;gap:6px}
 .hpic .stage2{width:100%;height:100%}
 .hline{font-size:16px;line-height:1.55;margin:0;text-align:center;text-wrap:balance}
 .hsub{font-size:15px;line-height:1.5;margin:0;color:var(--muted);text-align:center;text-wrap:balance}
@@ -408,13 +415,43 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .helpc .A{color:var(--a)}.helpc .B{color:var(--b)}
 .turn.me{border-color:var(--a);border-width:2px}
 .card.turn{flex-direction:row;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:2px 8px;padding-block:6px}.turn h2{font-size:18px}.turn .hand{font-size:14px;max-width:none}.turn .btn{flex:1 0 100%}
-.who2{display:block;font-size:11px;letter-spacing:0;color:var(--muted);font-family:var(--f-body);margin-top:-2px}
+/* 合作紀錄：誰猜的放在數字同一行，一筆只佔一行，框裡看得到比較多筆 */
+.who2{display:inline-block;max-width:6.5em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;margin-left:10px;font-size:13px;letter-spacing:0;color:var(--muted);font-family:var(--f-body)}
 .items{display:flex;flex-direction:column;gap:6px}
 .ibar{display:flex;gap:6px;flex-wrap:wrap}
 .ibar button svg{display:block;width:30px;height:30px;margin:auto}
 .ibar button{font-size:22px;padding:0;width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--paper);cursor:pointer}
 .ibar button[aria-pressed=true]{border:2px solid var(--a);background:var(--key)}
 .fxl{position:fixed;inset:0;pointer-events:none;z-index:45;overflow:hidden}
+/* 被丟中：整個螢幕疊一層半透明特效，手指照樣按得到下面的鍵盤；在側邊按鈕和抽屜下面，不擋丟東西 */
+.hitl{position:fixed;inset:0;pointer-events:none;z-index:29;overflow:hidden}
+.hs{position:absolute;pointer-events:none;line-height:0}.hs svg{display:block;width:100%;height:100%}
+.hs.drip{opacity:.62;animation:hsIn .12s steps(2,end),hsDrip 1.1s steps(6,end) 1.8s forwards}
+.hs.drip.egg{opacity:.55}
+.hs.soot{opacity:.5;animation:hsShake .3s steps(4,end),hsFade 1s steps(5,end) 2s forwards}
+.hs.boomx{animation:hsBoom .45s steps(4,end) forwards}
+.hs.puff{opacity:.55;animation:hsPuff 1.2s steps(6,end) forwards}
+.hs.sole{opacity:.5;animation:hsStamp .12s steps(2,end),hsFade .8s steps(4,end) 1.6s forwards}
+.hs.twk{animation:hsTwk .9s steps(3,end) forwards}
+.hs.vig{inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 42%,rgba(8,8,18,.6) 100%);animation:hsVig 1s ease-out forwards}
+.hs.orbit{animation:hsFade .5s steps(3,end) 1.4s forwards}
+.hs.orbit>i{position:absolute;left:-13px;top:-13px;width:26px;height:26px;animation:hsOrb .96s steps(1,end) infinite}
+.hs.fall{opacity:.9;top:-34px;animation:hsFall var(--t,3s) linear var(--dl,0s) forwards}
+.hs.fall>i{display:block;width:100%;height:100%;animation:hsSpin .8s steps(4,end) infinite}
+@keyframes hsIn{from{transform:scale(.55)}}
+@keyframes hsDrip{to{transform:translateY(30px);opacity:0}}
+@keyframes hsFade{to{opacity:0}}
+@keyframes hsShake{25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+@keyframes hsBoom{0%{transform:scale(.4)}50%{transform:scale(1);opacity:.9}100%{transform:scale(1.2);opacity:0}}
+@keyframes hsPuff{to{transform:translateY(-56px) scale(1.4);opacity:0}}
+@keyframes hsStamp{from{transform:scale(1.35)}}
+@keyframes hsTwk{0%,100%{opacity:0}30%,70%{opacity:1}}
+@keyframes hsVig{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes hsOrb{0%,100%{translate:var(--rx) 0}12.5%{translate:calc(var(--rx)*.71) calc(var(--ry)*.71)}25%{translate:0 var(--ry)}37.5%{translate:calc(var(--rx)*-.71) calc(var(--ry)*.71)}50%{translate:calc(var(--rx)*-1) 0}62.5%{translate:calc(var(--rx)*-.71) calc(var(--ry)*-.71)}75%{translate:0 calc(var(--ry)*-1)}87.5%{translate:calc(var(--rx)*.71) calc(var(--ry)*-.71)}}
+@keyframes hsFall{0%{transform:translate(0,0)}25%{transform:translate(var(--sx),calc(var(--fh)*.25))}50%{transform:translate(0,calc(var(--fh)*.5))}75%{transform:translate(var(--sx),calc(var(--fh)*.75))}100%{transform:translate(0,var(--fh))}}
+@keyframes hsSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.hs,.hs.drip,.hs.soot,.hs.sole,.hs.fall,.hs.orbit{animation:hsFade .6s steps(3,end) 1.4s forwards}.hs.orbit>i,.hs.fall>i{animation:none}.hs.fall{top:var(--ry0,30%)}.hs.boomx,.hs.puff{display:none}}
+
 .fly{position:fixed;font-size:46px;line-height:1;width:1em;height:1em;margin:-.5em 0 0 -.5em;display:grid;place-items:center;z-index:1;will-change:transform;pointer-events:none}
 .fly svg{display:block;width:100%;height:100%}
 .fly.ham{font-size:76px}
@@ -525,6 +562,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .rulebtn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .rulebtn .pwrap{flex:1 1 auto;min-width:0}
 .rulego{flex:0 0 auto;font-size:15px;color:var(--ink);text-decoration:underline}
+.rulego.ro{font-size:13px;line-height:1.3;color:var(--muted);text-decoration:none;text-align:right}
 .pks.mode .pk{flex-direction:row;gap:6px;font-size:17px;min-height:46px}
 .pks.mode .pk svg{width:26px;height:26px}
 .rulesbox{max-width:440px;width:100%;box-sizing:border-box;max-height:calc(100dvh - 40px - var(--safe-top) - env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -553,7 +591,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 @media (max-height:480px){.wrap{padding-block:6px 12px;gap:8px}.pad{grid-template-columns:repeat(6,1fr)}.pad button{padding:4px 0;font-size:21px}.pad .ok{font-size:16px}.slot{height:36px;font-size:24px}.slots{gap:6px}.err.abkey{display:none}.err:empty{min-height:0;display:none}.padbox{gap:4px;padding-top:2px}.subrow{flex:0 0 auto}.subrow .sub{display:none}.peekrow .peek{padding-block:2px}}
 .padbox>.err:empty{display:none}
 .wrap:has(.padbox:not(.setp)){padding-block-end:8px}
-@media (max-height:680px){.vil.mini{display:none}}
+@media (max-height:680px){.vil.mini,.vline{display:none}}
 .rpadv{border-left:4px solid var(--amb);background:var(--tile);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:4px}
 .rpadv b{font-family:var(--f-disp);font-weight:400;font-size:17px;color:var(--ink)}
 .rpadv p{margin:0;font-size:15px;line-height:1.5}
@@ -569,6 +607,7 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .arena.peek .stage{max-height:150px}
 .swap>.arena,.swap>.upd{animation:none}
 body.peeking .stack,body.peeking #toast{top:calc(176px + var(--safe-top))}
+.vline{flex:1 0 100%;align-self:stretch;display:flex;align-items:center;gap:8px;text-align:left;padding-bottom:6px;margin-bottom:2px;border-bottom:1px dashed var(--line)}.vline .vicon{font-size:26px;line-height:1;transform:scale(.8)}.vline p{margin:0;flex:1 1 auto;min-width:0;font-size:15px;color:var(--fg)}
 .vil.mini{padding-block:6px;gap:8px}.vil.mini .vicon{font-size:26px;transform:scale(.8)}.vil.mini p{margin:0;font-size:15px}
 .padbox:not(.setp) .slot{height:44px;font-size:32px}
 .row.stk .btn{font-size:18px;padding-inline:4px}
@@ -614,6 +653,7 @@ body.peeking .stack,body.peeking #toast{top:calc(176px + var(--safe-top))}
 <p class="ver" id="helpVer"></p>
 </div></div>
 <div id="vsM" hidden></div>
+<div class="hitl" id="hitl" aria-hidden="true"></div>
 <div class="fxl" id="fxl" aria-hidden="true"></div>
 <div class="stack" id="stack" aria-live="polite"></div>
 
@@ -662,7 +702,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.06-1';
+const APP_VERSION='2026.11.06-2';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -696,7 +736,7 @@ function cleanSeat(v){if(!isMap(v)||!txt(v.name,16))return null;const o={...v,na
 const cleanSeats=m=>{const o={};if(isMap(m))for(const id in m)o[id]=cleanSeat(m[id]);return o;};
 function cleanVil(v){if(!isMap(v))return undefined;return{...v,n:txt(v.n,12),p:v.p==='dino'||own(PX_VIL,v.p)?v.p:'',c:/^#[0-9a-f]{6}$/i.test(v.c)?v.c:'#9aa3b5',all:Array.isArray(v.all)?v.all.map(x=>txt(x,60)):undefined,says:txt(v.says,60),back:txt(v.back,60),says2:txt(v.says2,60),stage:txt(v.stage,24)};}
 function cleanCoop(c){if(!isMap(c))return null;const o={...c,order:Array.isArray(c.order)?c.order.map(x=>txt(x,64)):[],startAt:num(c.startAt),bossC:txt(c.bossC,40),team:txt(c.team,8).replace(/\D/g,''),surrender:!!c.surrender,vil:cleanVil(c.vil)};
-  if(c.turnSec!=null)o.turnSec=num(c.turnSec);if(c.an!=null)o.an=usage(c.an);
+  if(c.turnSec!=null)o.turnSec=num(c.turnSec);if(c.an!=null){o.an=usage(c.an);if(o.an&&isMap(c.an)&&c.an.by!=null){o.an.by=txt(c.an.by,64);o.an.k=num(c.an.k,-1);}}
   const n=c.notes;o.notes=isMap(n)?{d:Array.isArray(n.d)?n.d.map(x=>x===1||x===2?x:0):undefined,pos:Array.isArray(n.pos)?n.pos.map(x=>/^\d$/.test(String(x??''))?String(x):''):[],memo:txt(n.memo),auto:Array.isArray(n.auto)?n.auto.filter(x=>typeof x==='number'):[]}:null;
   return o;}
 function cleanRoom(d){d=isMap(d)?d:{};const L=num(d.len),o={...d};
@@ -867,7 +907,7 @@ function render(){
   const nk=code+'_'+s.round; if(s.phase!=='coop'&&inGame&&D.status!=='lobby'&&(notesKey!==nk||notesLen!==s.len)) loadNotes(nk,s.len);
   if(inGame&&(D.status==='playing'||D.status==='over')) autoMarkFrom(D.by[me]||[],s.len);
   const CH=s.phase==='coop'?coopState():null;
-  const links=`${isHost()&&!CH&&D.status!=='lobby'&&D.status!=='over'?'<button class="hlink" id="again" type="button">結束這局</button>':''}${isHost()&&CH&&!CH.over?'<button class="hlink" id="surrender" type="button">全隊投降</button>':''}<button class="hlink" id="leave" type="button">離開房間</button>`;
+  const links=`${isHost()&&!CH&&D.status!=='lobby'&&D.status!=='over'?'<button class="hlink" id="again" type="button">結束這局</button>':''}${isHost()&&CH&&!CH.over?'<button class="hlink" id="surrender" type="button">全隊投降</button>':''}${s.phase==='lobby'?`<button class="exitbtn" id="toWatch" type="button">${uiIcon('eye')}改觀戰</button>`:''}<button class="exitbtn" id="leave" type="button">${uiIcon('door')}離開房間</button>`;
   h=roomHead(D.status==='lobby'?'friends':s.phase==='coop'?'modes':D.status==='over'?'fun':'stuck',`第 ${s.round} 局${s.rep?' · 可重複':''}${s.mode==='coop'?' · 合作':s.finish?'':' · 先猜中'}`,links)+h;
 
   const lost=s.phase==='coop'?(coopState().over?[]:coopState().order.filter(unseen)):D.status==='lobby'||D.status==='over'?[]:D.parts.filter(id=>unseen(id)&&!D.out[id]&&!D.solved[id]);
@@ -883,7 +923,7 @@ function render(){
       ${watchersList().length?`<p class="lastres">觀眾（${watchersList().length}）：${watchersList().map(w=>esc(w.name)).join('、')}</p>`:''}</div>`;
     const chip=(t,c)=>`<span class="pchip ${c}">${esc(t)}</span>`;
     const chips=`${hostM?'':chip(coopM?'合作打魔王':'互相猜','fill red')}${coopM?chip(STAGE_SHORT[s.stage]||'隨機職場','fill pur')+chip(s.diff==='hard'?'魔王困難':'魔王簡單','fill pur'):''}${chip(`${s.len} 位數`,'fill tea')}${chip(s.rep?'可重複':'不重複','fill amb')}${chip(coopM?(turnS?`每人 ${turnS} 秒`:'不限時'):s.finish?'全部猜完':'先猜中','fill blu')}${coopM?'':chip(hcN?`提示算 ${hcN} 次`:'沒有提示','')}${chip(anN?`小天使 ${anN} 次`:'沒有小天使','')}`;
-    h+=hostM?`<div class="card">${seg('data-gmode',[['battle',`${uiIcon('versus')}互相猜`,'red'],['coop',`${bossIc('office')}合作打魔王`,'pur']],s.mode||'battle','','mode')}<button class="rulebtn" id="rulesBtn" type="button"><span class="pwrap">${chips}</span><span class="rulego">修改</span></button></div>`:`<div class="card"><div class="pwrap">${chips}</div></div>`;
+    h+=hostM?`<div class="card">${seg('data-gmode',[['battle',`${uiIcon('versus')}互相猜`,'red'],['coop',`${bossIc('office')}合作打魔王`,'pur']],s.mode||'battle','','mode')}<button class="rulebtn" id="rulesBtn" type="button"><span class="pwrap">${chips}</span><span class="rulego">修改</span></button></div>`:`<div class="card"><button class="rulebtn" id="rulesInfo" type="button" data-host="${esc(hostName)}"><span class="pwrap">${chips}</span><span class="rulego ro">只有房主<br>能改</span></button></div>`;
     if(hostM){const inv=D.P.length<2, force=!inv&&!allReady&&readyN+1>=(coopM?1:2), st=`<button class="btn ${inv||force?'':'stk'}" id="start" ${allReady?'':'disabled'}>${allReady?'開始遊戲':others.length?`等大家準備 ${readyN}/${others.length}`:'等朋友加入'}</button>`;
       h+=inv?`<div class="row stk nosh"><button class="btn blue" id="inviteBtn" type="button">邀請朋友</button>${st}</div>`:force?`<div class="row stk nosh">${st}<button class="btn ghost" id="forceStart" type="button">不等了，開始</button></div>`:st;}
     else { const rd=s.seats[me].ready; h+=`<button class="btn stk ${rd?'ghost':''}" id="ready">${rd?'取消準備':'準備完成'}</button>${rd?`<p class="hand" style="text-align:center;align-self:center"><span class="dot"></span>等 ${esc(hostName)} 開始遊戲</p>`:''}`; }
@@ -965,17 +1005,13 @@ function arena(inner,n){
   if(wideNow()||(code&&isWatcher(me)))return inner;
   arenaN=n||0;if(arenaN<arenaSeenN||arenaOpen)arenaSeenN=arenaN;
   let off=false;try{off=ls.get('ab_peek_off')==='1';}catch(e){}
-  return`<aside class="drawer arena ${arenaOpen?'open':Date.now()<peekUntil?'peek':''}" id="arena" aria-label="戰況"><div class="dhead"><span class="lbl">戰況</span><label class="share"><input type="checkbox" id="peekOff" ${off?'checked':''}> 被丟不跳出</label><button type="button" class="dclose" id="arenaClose" aria-label="關閉戰況">✕</button></div>${inner}</aside>`;}
+  return`<aside class="drawer arena ${arenaOpen?'open':Date.now()<peekUntil?'peek':''}" id="arena" aria-label="戰況"><div class="dhead"><span class="lbl">戰況</span><label class="share"><input type="checkbox" id="peekOff" ${off?'checked':''}> 被丟不要特效</label><button type="button" class="dclose" id="arenaClose" aria-label="關閉戰況">✕</button></div>${inner}</aside>`;}
 function setArena(o){arenaOpen=o;clearTimeout(peekT);peekUntil=0;document.body.classList.remove('peeking');if(o){notesOpen=false;chatOpen=false;arenaHits=0;arenaSeenN=arenaN;}render();}
 function arenaHidden(){const a=document.getElementById('arena');return !!a&&!a.classList.contains('open')&&!a.classList.contains('peek');}
-/* 被丟時跳出來：只蓋上方、不擋鍵盤，一次 2.6 秒，20 秒內不再跳，其間只累積數字 */
-function arenaPeek(){const a=document.getElementById('arena');if(!a||notesOpen||chatOpen||ls.get('ab_peek_off')==='1'||Date.now()<peekNext)return false;
-  peekNext=Date.now()+PEEK_GAP;peekUntil=Date.now()+PEEK_MS;a.classList.add('peek');document.body.classList.add('peeking');clearTimeout(peekT);
-  peekT=setTimeout(()=>{peekUntil=0;document.body.classList.remove('peeking');const x=document.getElementById('arena');if(x)x.classList.remove('peek');},PEEK_MS);return true;}
 function sideUI(chatOn,notesOn){
   netUI();
   const hasA=!!document.getElementById('arena'); if(!hasA){arenaOpen=false;arenaHits=0;}
-  if(!notesOn)clearAngel();
+  if(!notesOn)clearAngel(); else coopAngelSync();
   if(!chatOn) chatOpen=false;
   if(!notesOn) notesOpen=false;
   const $$=id=>document.getElementById(id);
@@ -996,7 +1032,10 @@ function sideUI(chatOn,notesOn){
 }
 /* 猜題紀錄的高度跟著畫面算：最新一筆要看得到，不能被下方的鍵盤蓋住 */
 function fitHist(){const m=document.getElementById('mineH');if(!m)return;const b=document.querySelector('.padbox');
-  if(b){const top=m.getBoundingClientRect().top+scrollY,t=document.querySelector('.tools'),sb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;const h=Math.max(44,Math.floor(innerHeight-top-b.offsetHeight-(t?t.offsetHeight+12:0)-sb-30));m.style.maxHeight=h+'px';const ov=document.documentElement.scrollHeight-innerHeight;if(ov>0)m.style.maxHeight=Math.max(44,h-ov)+'px';}
+  /* 輪到別人猜（沒有鍵盤）時，紀錄框撐滿剩下的空間，不要固定 190 */
+  if(!b){const H=Math.max(innerHeight,parseFloat(getComputedStyle(document.body).minHeight)||0),t=document.querySelector('.tools'),sb=parseFloat(getComputedStyle(document.body).paddingBottom)||0,top=m.getBoundingClientRect().top+scrollY;m.style.maxHeight=Math.max(190,Math.floor(H-top-(t?t.offsetHeight+12:0)-sb-40))+'px';}
+  /* 主畫面 App 的頁面高度是 --app-h（比 innerHeight 高，色帶才貼底），用它算，紀錄下方才不會空一段 */
+  if(b){const H=Math.max(innerHeight,document.body.offsetHeight&&parseFloat(getComputedStyle(document.body).minHeight)||0),top=m.getBoundingClientRect().top+scrollY,t=document.querySelector('.tools'),sb=parseFloat(getComputedStyle(document.body).paddingBottom)||0;const h=Math.max(40,Math.floor(H-top-b.offsetHeight-(t?t.offsetHeight+12:0)-sb-30));m.style.maxHeight=h+'px';const ov=document.documentElement.scrollHeight-H;if(ov>0){const cs=getComputedStyle(m),pad=cs.boxSizing==='border-box'?0:(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0)+(parseFloat(cs.borderTopWidth)||0)+(parseFloat(cs.borderBottomWidth)||0);m.style.maxHeight=Math.max(40,Math.min(h,m.offsetHeight-pad)-ov)+'px';}}
   m.scrollTop=m.scrollHeight;}
 addEventListener('resize',()=>fitHist());
 function renderMine(){
@@ -1080,12 +1119,14 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
      <p class="hline">筆記、聊天在畫面<b>側邊</b>，可以拖到別的位置</p>`},
    pic('',G5,'筆記','stuck1','點數字標記<b>有</b>或<b>沒有</b>','標成沒有的數字，鍵盤上會劃掉'),
    pic('',G5,'提示','stuck2','選一位，直接看答案','多人時算幾次由房主設定'),
-   pic('',G5,'小天使','stuck3','幫你標筆記、算還剩幾種可能','打好數字再叫，會檢查這組有沒有可能'),
+   pic('',G5,'小天使','stuck3','幫你標出哪些數字有、哪些沒有，算還剩幾種可能','位置要自己排；打好數字再叫，會檢查這組有沒有可能。合作時全隊一起看'),
    {k:'fun',g:G6,t:'輸了也別生氣',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',face:'angry'},{x:216,look:a,name:'贏家',crown:true,face:'C'}])}<span class="hfly" style="left:44%;top:30%">${itemIcon('tomato')}</span><span class="hfly" style="left:57%;top:16%">${itemIcon('egg')}</span></div>
      <p class="hline">點別人<b>丟東西</b>出氣</p>`},
    pic('',G6,'選道具','fun1','先選道具，再點朋友或魔王','被丟太多次會倒地，倒地時不能丟'),
    pic('',G6,'結算也能丟','fun2','輸的人可以丟贏家','贏家會閃；魔王被丟太多次會反擊'),
-   pic('watch',G7,'怎麼觀戰','watch0','輸入邀請碼，按<b>進去觀戰</b>'),
+   {k:'',g:G6,t:'被丟中了',h:`<div class="hpic hsplat"><span style="opacity:.7">${pxSvg('stom',92)}</span><span style="opacity:.65">${pxSvg('segg',84)}</span><span style="opacity:.6">${pxSvg('smud',76)}</span><span>${pxSvg('petal',22)}${pxSvg('hrt',26)}</span></div>
+     <p class="hline">被丟中時，<b>整個螢幕</b>會被弄髒</p><p class="hsub">幾秒後自己消失，照樣能打字；花和愛心會飄下來。不想要可以在戰況裡勾「被丟不要特效」</p>`},
+   pic('watch',G7,'怎麼觀戰','watch0','輸入邀請碼，按<b>進去觀戰</b>','已經在房間裡：大廳右上按<b>改觀戰</b>，想玩再按<b>我也要玩</b>'),
    pic('',G7,'幽靈和天使','watch1','幽靈嚇玩家，天使幫玩家整理線索'),
    {k:'',g:G7,t:'上帝視角',h:`<div class="hpic"><div class="hgrid">
      <div><span class="hi">${ghostSVG()}</span><p><b>幽靈 5 隻</b>擋畫面 3 秒</p></div>
@@ -1491,6 +1532,17 @@ async function becomePlayer(){
   const s=g(); if(players().length>=MAXP){toast('玩家已滿 8 人');return;}
   ls.del('ab_watch'); await act(()=>roomRef().update({watchers:{[me]:null},seats:{[me]:{name:nameOf(me),ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}}));
 }
+/* 大廳裡從玩家改成觀眾：不用離開再進來；房主改觀戰就把房主交給下一位 */
+async function becomeWatcher(){
+  const s=g(); if(!isSeated(me)||s.phase!=='lobby')return;
+  if(Object.values(s.watchers||{}).filter(Boolean).length>=20){toast('觀眾已滿 20 人');return;}
+  const rest=players().filter(p=>p.id!==me&&!isGone(p.id));
+  if(s.host===me&&!rest.length){toast('房間只有你一個人，先邀請朋友再改觀戰');return;}
+  const v=s.seats[me]||{}, upd={seats:{[me]:null},watchers:{[me]:{name:v.name||nameOf(me),look:v.look||lookStr(myLook()),joinedAt:Date.now()}}};
+  if(s.host===me) upd.host=rest[0].id;
+  await hbStop(); ls.set('ab_watch',code);
+  try{await act(()=>roomRef().update(upd));}finally{leaving=false;}
+}
 async function leaveRoom(){
   if(isWatcher(me)){ls.del('ab_watch');try{await roomRef().update({watchers:{[me]:null}});}catch(e){} goHome();return;}
   if(gameBusy()&&!confirmTap('leave','確定離開這局？再按一次'))return;
@@ -1736,6 +1788,8 @@ const PX_UI={
  chat:[[".BBBBBBBB.","BBBBBBBBBB","BBWWBWWBWW","BBWWBWWBWW","BBBBBBBBBB",".BBBBBBBB.","..BB......",".BB......."],{B:'#6aa8ff',W:'#ffffff'}],
  pen:[["........KK","......KKYK",".....KYYK.","....KYYK..","...KYYK...","..KYYK....",".KPYK.....",".KKK......"],{K:'#3a2a06',Y:'#ffd34d',P:'#ff9a8a'}],
  versus:[["RRR.......BB","RRRR.....BBB",".RRRR...BBB.","..RRRR.BBB..","...RRRBBB...","....RRBB....","...BBBRRR...","..BBB..RRRR.",".BBB....RRRR","BBB......RRR"],{R:'#ffd34d',B:'#ffffff'}],
+ eye:[["...WWWW...",".WWWWWWWW.","WWWBBBBWWW","WWBBKKBBWW","WWBBKKBBWW","WWWBBBBWWW",".WWWWWWWW.","...WWWW..."],{W:'#eef1f6',B:'#3fa0ff',K:'#1e1b2e'}],
+ door:[["DDDDDDD...","DWWWWWD...","DWWWWWD.A.","DWWWWWDAA.","DWWWYWAAAA","DWWWWWDAA.","DWWWWWD.A.","DWWWWWD...","DDDDDDD..."],{D:'#8a5a34',W:'#c98a52',Y:'#ffd34d',A:'#ffd34d'}],
  flag:[["NWWWWWWW..","NWWWWWWWW.","NWWWWWWWWW","NWWWWWWW..","N.........","N.........","N.........","N........."],{N:'#8a6a45',W:'#ffffff'}]
 };
 /* 打中時的像素效果：黏在身上的污漬、腫包、星星、爆炸 */
@@ -1753,6 +1807,12 @@ const PX_FX={
  begg:[["..W.....W...",".....W......",".W..YYY...W.","...YYYYY....","W..YYYYY..W.","...YYYYY....",".W..YYY...W.","......W.....","..W.....W..."],{W:'#fffbea',Y:'#ffc22e'}],
  boom:[["....OO...OO..",".O..OYYYYO..O","..OOYYYYYYOO.","..OYYWWWWYYO.",".OYYWWWWWWYYO",".OYYWWWWWWYYO","..OYYWWWWYYO.","..OOYYYYYYOO.",".O..OYYYYO..O","....OO...OO.."],{O:'#ff8a3c',Y:'#ffd34d',W:'#fff4c2'}],
  clang:[[".....W.....",".....W.....","..W..W..W..","...W.Y.W...","....YYY....","WWWYYYYYWWW","....YYY....","...W.Y.W...","..W..W..W..",".....W.....",".....W....."],{W:'#ffffff',Y:'#ffe066'}],
+ stom:[["......R.....R...","..R..RRR........","....RRRRRRR..R..",".R.RRRRRRRRRR...","..RRRRYRRRRRRR..","..RRRRRRRRRYRRr.","RRRRRYRRRRRRRRr.","..RRRRRRRRRRRRr.","..RRRRRRRRYRRrr.",".R.RRRRRRRRRrr..","....RRrRRRRrr.R.","....RR.RrR.r....","....R..Rr.......",".......r........"],{R:'#e53935',r:'#b3261e',Y:'#ffe08a'}],
+ segg:[[".....www....w...","..wwwWWWww......",".wWWWWWWWWww....","wWWWWYYYYWWWw.w.","wWWWYYYYYYWWWw..",".wWWYYYYYyWWWw..","wWWWYYYYyyWWWw..",".wWWWYyyyWWWWw..","..wWWWWWWWWWw...","...wwWWWWWww....","..w..wWwww......","......w.........","......w........."],{W:'#fffdf2',w:'#d4bd82',Y:'#ffc22e',y:'#e0a000'}],
+ smud:[["....KK..K.....","..KKKKKKK..K..",".KKKGKKKKKK...","KKKKKKKGKKKK..",".KKGKKKKKKKKK.","..KKKKKKGKKK..","KKKKKKKKKKK...",".KKKGKKKKK..K.","..KK.KKKKK....","...K..KK......",".......K......"],{K:'#5d5d68',G:'#9a9aa6'}],
+ sole:[["..SSSSS..",".SSTSTSS.","SSSSSSSSS","STSSTSSTS","SSSSSSSSS","SSTSSSTSS","SSSSSSSSS",".SSSTSSS.",".SSSSSSS.","..SSSSS..","..STSTS..","..SSSSS..","..SSSSS..","..STSTS..","..SSSSS..","...SSS..."],{S:'#3aa79f',T:'#8fe8e0'}],
+ petal:[[".PP..","PPPP.","PPPPp",".Ppp."],{P:'#ffc2d4',p:'#ff8fb0'}],
+ hrt:[[".RR.RR.","RWRRRRR","RRRRRRR",".RRRRR.","..RRR..","...R..."],{R:'#ff5c8a',W:'#ffd0de'}],
  blove:[["..P.....P..",".PPP...PPP.","..P..Y..P..",".....Y.....","Y...YYY...Y",".....Y.....","..P..Y..P..",".PPP...PPP.","..P.....P.."],{P:'#ff8fb0',Y:'#ffd34d'}]
 };
 /* 把一張像素圖放在 (x,y) 中心，class 放裡層，才不會蓋掉定位用的 transform */
@@ -2052,6 +2112,7 @@ function bind(){
   if($('joinBtn')) $('joinBtn').onclick=()=>{ls.del('ab_watch');joinRoom($('codeIn').value);};
   if($('watchBtn')) $('watchBtn').onclick=()=>{const c=($('codeIn').value||'').trim().toUpperCase();ls.set('ab_watch',c);joinRoom(c,true);};
   if($('becomePlayer')) $('becomePlayer').onclick=becomePlayer;
+  if($('toWatch')) $('toWatch').onclick=becomeWatcher;
   if($('ghostBtn')) $('ghostBtn').onclick=()=>{ghostArmed=!ghostArmed;angelArmed=false;render();};
   if($('angelBtn')) $('angelBtn').onclick=()=>{angelArmed=!angelArmed;ghostArmed=false;render();};
   app.querySelectorAll('[data-angel]').forEach(b=>b.onclick=()=>sendAngel(b.dataset.angel));
@@ -2107,6 +2168,7 @@ function bind(){
   if($('peekOff')) $('peekOff').onchange=e=>ls.set('ab_peek_off',e.target.checked?'1':'0');
   if($('arena')) $('arena').addEventListener('click',e=>{if(e.currentTarget.classList.contains('peek'))setArena(true);});
   if($('rulesBtn')) $('rulesBtn').onclick=()=>{rulesOpen=true;render();};
+  if($('rulesInfo')) $('rulesInfo').onclick=()=>toast(`遊戲設定只有房主 ${$('rulesInfo').dataset.host} 能改，想換可以在聊天跟他說`);
   ['rulesX','rulesOk'].forEach(id=>{if($(id))$(id).onclick=()=>{rulesOpen=false;render();};});
   if($('rulesM')) $('rulesM').onclick=e=>{if(e.target.id==='rulesM'){rulesOpen=false;render();}};
   if($('peek')) $('peek').onclick=()=>{peek=!peek;render();};
@@ -2356,9 +2418,18 @@ function coopAngelsLeft(){const s=g(),a=(s.coop||{}).an,u=a&&a.r===s.round?a.n||
 async function coopAngel(){
   const s=g(), C=coopState(); if(angelBusy||C.over||C.countdown||!C.order.includes(me)||coopAngelsLeft()<=0)return;
   angelBusy=true; const n=angelMax()-coopAngelsLeft()+1, html=angelHelp(C.T,s.len,s.rep);
-  try{await roomRef().update({coop:{an:{r:s.round,n}}});angelFx({target:me,html,solo:true});}
+  try{await roomRef().update({coop:{an:{r:s.round,n,by:me,k:C.T.length}}});coopAngelSeen=s.round+':'+n;angelFx({target:me,html,solo:true,k:C.T.length});}
   catch(e){toast('小天使沒飛過來，再試一次');}
   angelBusy=false;  render();
+}
+/* 合作是全隊一起猜，小天使的整理也全隊共用：隊友叫的，你這邊也跳出同一張卡片；有人再猜一次就一起消失 */
+let coopAngelSeen='';
+function coopAngelSync(){
+  if(!R||!code||g().phase!=='coop')return; const s=g(), C=coopState(), a=(s.coop||{}).an;
+  const card=document.querySelector('.angelcard[data-k]'); if(card&&(+card.dataset.k!==C.T.length||C.over)) clearAngel();
+  if(!a||a.r!==s.round||!a.by||a.k!==C.T.length||C.over||!C.order.includes(me))return;
+  const key=s.round+':'+a.n; if(coopAngelSeen===key)return; coopAngelSeen=key; if(a.by===me)return;
+  angelFx({target:me,html:angelHelp(C.T,s.len,s.rep),solo:true,by:nameOf(a.by),k:C.T.length});
 }
 const GHOSTS=5;
 function angelsLeft(){const w=(g().watchers||{})[me]||{},u=w.an&&w.an.r===g().round?w.an.n:0;return Math.max(0,ANGELS-u);}
@@ -2374,9 +2445,10 @@ function angelFx(x){
   if(el&&!x.solo){const r=el.getBoundingClientRect(),d=document.createElement('div');d.className='minighost';d.innerHTML=angelSVG();d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height*.35)+'px';layer.appendChild(d);setTimeout(()=>d.remove(),1600);}
   if(x.target!==me){toast(`${x.name||'觀眾'} 派天使去幫 ${nameOf(x.target)}`);return;}
   clearAngel();
-  const c=document.createElement('div');c.className='angelcard';c.innerHTML=`<div class="aimg">${angelSVG()}</div><div class="atx"><span class="lbl">${x.solo?'小天使幫你整理':`觀眾 ${esc(x.name||'')} 派來的天使`}</span>${x.html||`<p>${esc(x.text||'加油！')}</p>`}</div><button type="button" class="aclose" aria-label="收起">✕</button>`;
+  const c=document.createElement('div');c.className='angelcard';c.innerHTML=`<div class="aimg">${angelSVG()}</div><div class="atx"><span class="lbl">${x.by?`${esc(x.by)} 叫的小天使，全隊一起看`:x.solo?'小天使幫你整理':`觀眾 ${esc(x.name||'')} 派來的天使`}</span>${x.html||`<p>${esc(x.text||'加油！')}</p>`}</div><button type="button" class="aclose" aria-label="收起">✕</button>`;
   /* 收起來變成側邊的小標籤，點一下再打開，下一次猜題才消失 */
   const t=document.createElement('button');t.type='button';t.className='nfab gfab angeltab';t.innerHTML='天<br>使';t.setAttribute('aria-label','打開小天使的提示');t.hidden=true;
+  if(x.k!=null)c.dataset.k=x.k;
   const fold=f=>{c.hidden=f;t.hidden=!f;};
   c.querySelector('.aclose').onclick=()=>fold(true);t.onclick=()=>fold(false);document.body.append(c,t);
   if(!x.solo)setTimeout(()=>{if(c.isConnected)fold(true);},14000);
@@ -2384,11 +2456,12 @@ function angelFx(x){
 const clearAngel=()=>document.querySelectorAll('.angelcard,.angeltab').forEach(n=>n.remove());
 /* 小天使：把確定的數字標進筆記（鍵盤馬上劃掉），打好數字時順便檢查這組還有沒有可能 */
 function angelHelp(L,len,rep){const W=deduce(L,len,rep);
-  W.yes.forEach(d=>{notes.d[+d]=1;});W.no.forEach(d=>{notes.d[+d]=2;});W.pos.forEach(([p,d])=>{notes.pos[p]=d;});saveNotes();renderNotes();
+  /* 只標數字有沒有；位置不填進筆記，不然只剩一種時等於把答案排好給你 */
+  W.yes.forEach(d=>{notes.d[+d]=1;});W.no.forEach(d=>{notes.d[+d]=2;});saveNotes();renderNotes();
   const K=rpKnow(W.cands,len),typed=input.length===len&&!locks.some(Boolean)?input:(input.length===len?input:'');let line;
-  if(W.left<=1)line='線索已經足夠推出答案了，想想看！';
+  if(W.left<=1)line='線索已經足夠推出答案了！數字標好了，位置自己排排看。';
   else if(typed){const ok=W.cands.includes(typed),seen=L.map((x,i)=>Object.assign({i},x)).filter(x=>x.hint||x.A!=null);line=ok?`你打的 ${typed} 還可能是答案，可以猜。`:`你打的 ${typed} 不可能：${exConflict(typed,seen,len)}。`;}
-  else line='鍵盤上劃掉的數字不用再猜。打好數字再叫我，我幫你檢查。';
+  else line=`鍵盤上劃掉的數字不用再猜。${W.pos.length?`其實已經有 ${W.pos.length} 個位置確定了，找找看是哪${W.pos.length>1?'幾':'一'}個。`:''}打好數字再叫我，我幫你檢查。`;
   return`<p class="angeln">${W.left<=1?'只剩 1 種可能':`還剩 <b>${W.left}</b> 種可能`}</p>${dStrip(K)}<p>${esc(line)}</p>`;}
 function ghostsLeft(){const w=(g().watchers||{})[me]||{},u=w.gh&&w.gh.r===g().round?w.gh.n:0;return Math.max(0,GHOSTS-u);}
 function ghostTargets(){const s=g();
@@ -2458,7 +2531,7 @@ function angelTextFrom(L,len,rep){const W=deduce(L,len,rep),t=[];
   return t.join('');}
 function renderBench(s,D){
   const C=s.phase==='coop'?coopState():null, cast=L=>L.map(id=>({id,name:nameOf(id),look:lookOf(id),off:unseen(id)}));
-  let h=roomHead('friends',`場邊 · 第 ${s.round} 局`,'<button class="hlink" id="leave" type="button">離開</button>');
+  let h=roomHead('friends',`場邊 · 第 ${s.round} 局`,`<button class="exitbtn" id="leave" type="button">${uiIcon('door')}離開</button>`);
   h+=`<div class="card center"><h2>你在場邊</h2><p class="hand">房主先開始了。這裡看不到答案，隨時可以回來</p><button class="btn" id="backIn" type="button">我回來了</button></div>`;
   if(C){const v=C.c.vil||{n:'魔王'};h+=`<div class="card">${stageSVG(cast(C.order).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}</div><div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?teamHistHTML(C.T):'<div class="empty-h">還沒猜過</div>'}</div>`;}
   else if(D.parts.length){h+=`<div class="card">${stageSVG(cast(D.parts))}</div>`;if(D.status==='playing')h+=progress(D)+board(D,D.parts[0]);}
@@ -2468,7 +2541,7 @@ function renderWatch(){
   const s=g(), D=derive(), coop=s.phase==='coop', bn=benchOf(me);
   if(vsS&&vsS.room)vsOff();
   if(bn&&s.phase!=='lobby'&&!(coop?coopState().over:D.status==='over')) return renderBench(s,D);
-  let h=roomHead('watch',`觀戰中 · 第 ${s.round} 局`,'<button class="hlink" id="leave" type="button">離開觀戰</button>');
+  let h=roomHead('watch',`觀戰中 · 第 ${s.round} 局`,`<button class="exitbtn" id="leave" type="button">${uiIcon('door')}離開觀戰</button>`);
   const tg=ghostTargets(), left=ghostsLeft(), aleft=angelsLeft();
   if(!tg.length||left<=0)ghostArmed=false; if(!tg.length||aleft<=0)angelArmed=false;
   const tip=!tg.length?'遊戲開始後才能用，每局幽靈 5 隻、天使 3 位':ghostArmed?'選一個玩家，他的畫面會被幽靈佔滿':angelArmed?'選一個玩家，天使會悄悄告訴他「照他自己的線索能確定什麼」':'幽靈：嚇人、擋住畫面 3 秒　天使：幫忙整理線索、提醒哪次猜錯';
@@ -2521,9 +2594,10 @@ function coopView(s){
     setTimeout(render,(C.c.startAt-Date.now())%1000+30);
   } else {
     const mine=C.guesser===me;
-    h+=`<div class="card vil mini${sayFx()}"><span class="vicon">${vilIcon(v)}</span><div style="flex:1 1 auto;min-width:0"><p>${esc(v.n)}：「${esc(coopSay&&coopSay.r===s.round?coopSay.t:v.says)}」</p></div></div>`;
-    if(C.waitingBoss) h+=`<div class="card center"><h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
-    else h+=`<div class="card center turn ${mine?'me':''}"><span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}</p>${C.left==null&&!mine?waitBtn('不等他'):''}</div>`;
+    /* 魔王台詞併進輪到誰的卡片，少一張卡片，紀錄能多放幾筆 */
+    const vl=`<div class="vline${sayFx()}"><span class="vicon">${vilIcon(v)}</span><p>${esc(v.n)}：「${esc(coopSay&&coopSay.r===s.round?coopSay.t:v.says)}」</p></div>`;
+    if(C.waitingBoss) h+=`<div class="card center">${vl}<h2>${esc(v.n)}思考中<span class="dots"></span></h2><p class="hand">${C.teamWin?'全隊猜中了！看魔王這回合能不能追平':'輪到魔王猜全隊的題目'}</p></div>`;
+    else h+=`<div class="card center turn ${mine?'me':''}">${vl}<span class="lbl">第 ${C.r} 回合</span><h2>${mine?'輪到你猜！':`輪到 ${esc(nameOf(C.guesser))} 猜`}</h2><p class="hand">${C.left==null?'沒有時間限制':`剩 <b id="turnLeft">${C.left}</b> 秒`}</p>${C.left==null&&!mine?waitBtn('不等他'):''}</div>`;
     h+=`<div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?`<div class="mine-h" id="mineH">${teamHistHTML(C.T)}</div>`:''}`+
       (mine&&!C.waitingBoss?`<div class="padbox">${slots(false,knownOf(C.T,s.len))}${errKey()}${pad(true)}</div>`:'')+
       ((mine&&!C.waitingBoss)||(inTeam&&angelMax())?`<div class="tools">${mine&&!C.waitingBoss?`<button class="btn ghost small tool" id="hintBtn">${uiIcon('bulb')}提示</button>`:''}${inTeam&&angelMax()?`<button class="btn ghost small tool" id="coopAngel" ${coopAngelsLeft()<=0?'disabled':''}>${angelIc()}小天使 ×${coopAngelsLeft()}</button>`:''}</div>`:'')+`</div>`;
@@ -2653,12 +2727,44 @@ setInterval(()=>{if(document.hidden)return;const sv=app.querySelector('svg.podiu
   if(AIC[k]<2||AIC[k]>14||Math.random()<.3)return;const [from,tos]=sv.dataset.ai.split('|');if(isDown(from))return;const t=pick(tos.split(','));if(!charOf(t))return;
   playFx({target:t,from,item:pick(['tomato','egg','slipper','tomato']),n:1,res:podRes()},true);},2400);
 function burstSVG(it){return pxSvg(it==='bomb'?'boom':it==='tomato'?'btom':it==='egg'?'begg':it==='heart'||it==='flower'?'blove':'clang',it==='bomb'?100:64);}
+/* 被丟中時整個螢幕的特效：疊一層半透明，手指照樣按得到鍵盤，幾秒後自己消失。
+   看不到自己的角色（戰況收著）也知道被丟了；戰況抽屜照舊留著，丟東西還是從那裡點 */
+function screenHit(item){
+  if(ls.get('ab_peek_off')==='1')return false;
+  const L=document.getElementById('hitl');if(!L)return false;
+  const W=L.clientWidth||innerWidth,H=L.clientHeight||innerHeight,S=Math.min(W,H),rn=(a,b)=>a+Math.random()*(b-a);
+  const put=(cls,html,x,y,w,h,life,st)=>{const d=document.createElement('div');d.className='hs '+cls;d.innerHTML=html;
+    d.style.cssText=`left:${Math.round(x-w/2)}px;top:${Math.round(y-h/2)}px;width:${Math.round(w)}px;height:${Math.round(h)}px;${st||''}`;L.appendChild(d);setTimeout(()=>d.remove(),life);return d;};
+  const spot=()=>[rn(.12,.88)*W,rn(.14,.84)*H];
+  const big=L.querySelectorAll('.hs.drip,.hs.soot,.hs.sole');if(big.length>7)[...big].slice(0,big.length-7).forEach(n=>n.remove());
+  if(item==='tomato'||item==='egg'){const z=Math.round(rn(.36,.5)*S),[x,y]=spot();put('drip '+item,pxSvg(item==='tomato'?'stom':'segg',z),x,y,z,z,3000);}
+  else if(item==='bomb'){const [x,y]=spot(),b=Math.round(S*.42);put('boomx',pxSvg('boom',b),x,y,b,b,500);
+    /* 炸過的地方灰灰的：爆炸中心一塊，再隨機兩塊，各冒幾縷煙 */
+    [[x,y],spot(),spot()].forEach(([sx,sy],i)=>{const z=Math.round(rn(.26,.38)*S);put('soot',pxSvg('smud',z),sx,sy,z,z*.8,3100);
+      for(let k=0;k<2;k++)put('puff',pxSvg('puff',22),sx+rn(-z*.3,z*.3),sy-z*.2,22,22,1300,`animation-delay:${(i*.12+k*.25).toFixed(2)}s`);});}
+  else if(item==='slipper'){const h=Math.round(rn(.4,.5)*S),w=h*9/16,[x,y]=spot();put('sole',pxSvg('sole',h),x,y,w,h,2500,Math.random()<.5?'scale:-1 1':'');
+    put('twk',pxSvg('star',22),x+w*.7,y-h*.35,22,22,1000);put('twk',pxSvg('star',16),x-w*.7,y-h*.1,16,16,1000,'animation-delay:.15s');
+    popWord(Math.min(W-50,x+w*.4),y-h*.45,'啪！','#7fe0d8');}
+  else if(item==='hammer'){/* 敲暈：眼前一黑、眼冒金星 */
+    put('vig','',0,0,0,0,1100,'left:0;top:0;width:auto;height:auto;right:0;bottom:0');
+    const rx=Math.round(Math.min(W*.36,160)),ry=Math.round(rx*.32),o=put('orbit','',W/2,H*.3,0,0,1950,`--rx:${rx}px;--ry:${ry}px`);
+    for(let i=0;i<5;i++){const t=document.createElement('i');t.innerHTML=pxSvg('star',26);t.style.animationDelay=`${(-i*.192).toFixed(3)}s`;o.appendChild(t);}
+    popWord(W/2,H*.3-ry-28,'噹！','#ffe066');}
+  else if(item==='flower'||item==='heart'){/* 獎勵：飄花瓣、飄愛心 */
+    const k=item==='flower'?'petal':'hrt',n=item==='flower'?16:12,old=L.querySelectorAll('.hs.fall');if(old.length>30)[...old].slice(0,old.length-30).forEach(e=>e.remove());
+    for(let i=0;i<n;i++){const z=Math.round(item==='flower'?rn(16,26):rn(20,30)),t=rn(2.6,3.8),dl=rn(0,.9);
+      put('fall',`<i>${pxSvg(k,z)}</i>`,rn(.04,.96)*W,0,z,z,(t+dl)*1000+100,`top:-34px;--t:${t.toFixed(2)}s;--dl:${dl.toFixed(2)}s;--sx:${Math.round(rn(-34,34))}px;--fh:${H+70}px;--ry0:${Math.round(rn(.1,.85)*H)}px`);}}
+  return true;
+}
 function playFx(x,mine){
   if(x.item==='ghost') return ghostFx(x,mine);
   if(x.item==='angel') return angelFx(x);
-  if(arenaHidden()){const hitMe=String(x.target).replace(/^p:/,'')===me&&!mine;
-    if(!hitMe)return;
-    if(arenaPeek()){setTimeout(()=>playFx(x,mine),260);return;}
+  /* 打到自己：別人丟的，或魔王反擊（魔王是每支手機自己算的，所以 mine 也是 true） */
+  const src0=String(x.from||x.pid||''), tg0=String(x.target).replace(/^p:/,''), toMe=(tg0===me||(!!solo&&tg0==='you'))&&(!mine||src0==='boss'||src0==='p:boss');
+  if(arenaHidden()){
+    if(!toMe)return;
+    const k=Math.min(x.n||1,3);for(let i=0;i<k;i++)setTimeout(()=>screenHit(x.item),i*180);
+    if(!mine&&x.name)toast(`${x.name} ${x.item==='hammer'?'用大鐵盆敲了':`用${ITEMN[x.item]||'東西'}丟了`}你${(x.n||1)>1?` ×${x.n}`:''}`);
     arenaHits+=x.n||1;sideUI(!!(code&&R),!document.getElementById('notesFab').hidden||notesOpen);const f=document.getElementById('arenaFab');f.classList.remove('hit');void f.offsetWidth;f.classList.add('hit');return;}
   const layer=document.getElementById('fxl'), el=tgtEl(x.target), emo=itemIcon(x.item)||'🍅', basin=x.item==='hammer';
   const r=el?el.getBoundingClientRect():{left:innerWidth/2-20,top:innerHeight/2-20,width:40,height:40};
@@ -2688,7 +2794,7 @@ function playFx(x,mine){
       if(res==='b'){f.style.transition='transform 420ms ease-out, opacity 420ms linear';f.style.transform=`translate(${tx-sx+side*70}px,${ty-sy-70}px) rotate(-540deg)`;f.style.opacity='0';setTimeout(()=>f.remove(),440);
         const s2=document.createElement('div');s2.className='splat';s2.style.left=(tx+side*14)+'px';s2.style.top=ty+'px';s2.innerHTML=burstSVG('clang');layer.appendChild(s2);setTimeout(()=>s2.remove(),700);
         popWord(tx+side*30,ty-20,'鏘！','#ffe066');if(Math.random()<.5)setTimeout(()=>sayAt(x.target,pick(PBLOCK)),250);return;}
-      f.remove(); const s=document.createElement('div'); s.className='splat'; s.style.left=tx+'px'; s.style.top=ty+'px';
+      f.remove(); if(toMe)screenHit(x.item); const s=document.createElement('div'); s.className='splat'; s.style.left=tx+'px'; s.style.top=ty+'px';
       s.innerHTML=burstSVG(basin?'clang':x.item);
       layer.appendChild(s); if(basin)popWord(tx,ty-34,'噹！','#ffe066'); setTimeout(()=>s.remove(),520);
       if(x.item==='bomb'){app.classList.remove('shake');void app.offsetWidth;app.classList.add('shake');setTimeout(()=>app.classList.remove('shake'),360);}
@@ -2960,7 +3066,7 @@ function renderSolo(){
   saveSolo();
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil;
-  let h=`<header class="roomhead"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div><button class="hlink" id="soloQuit" type="button">回首頁</button></header>`;
+  let h=`<header class="roomhead"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div><button class="exitbtn" id="soloQuit" type="button">${uiIcon('door')}回首頁</button></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
       <div class="card"><div class="chead"><h2>出一題給${esc(vil.n)}猜</h2><span class="sub">${s.rep?'可以重複':'不能重複'}</span></div><div class="padbox setp">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;

@@ -15,7 +15,7 @@ async function page(c,url,seen){const p=await c.newPage();p.__errs=[];p.on('page
 const shot=(p,n,full)=>p.screenshot({path:`${SHOTS}/${n}.png`,fullPage:!!full});
 async function name(p,n,sel){await p.fill('#nick',n);await p.click('#nickOk');await p.waitForSelector(sel||'#create');}
 async function typeNum(p,s){for(const d of s){await p.click(`.pad [data-k="${d}"]`);}}
-const reset=()=>fetch('http://localhost:8123/__reset');
+const reset=()=>fetch(new URL('/__reset',BASE));
 // 版面檢查：有沒有超出畫面、被切掉
 const layout=p=>p.evaluate(()=>{const W=innerWidth,bad=[];const de=document.documentElement;if(de.scrollWidth>W+1)bad.push('pageW '+de.scrollWidth+'>'+W);
   document.querySelectorAll('#app *, .upd:not([hidden]) *').forEach(e=>{if(e.closest('svg'))return;if(e.closest('#arena:not(.open):not(.peek)'))return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;const cs=getComputedStyle(e);if(cs.position==='fixed')return;if(r.right>W+1||r.left<-1)bad.push((e.id||e.className||e.tagName)+' x['+Math.round(r.left)+','+Math.round(r.right)+']');});
