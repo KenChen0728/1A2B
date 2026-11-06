@@ -710,7 +710,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.06-5';
+const APP_VERSION='2026.11.07-1';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -878,7 +878,7 @@ function paint(html){
   app.querySelectorAll('svg.stage,svg.podium').forEach(n=>{const src=n.outerHTML,o=live.find(x=>x._src===src);if(o)n.replaceWith(o);else n._src=src;});
   bind();
   if(!app.querySelector('svg.podium'))for(const k in POS)delete POS[k];
-  for(const k in POS){const c=charOf(k);if(c)c.style.translate=POS[k]+'px 0';}
+  for(const k in POS){const c=charOf(k);if(c){c.style.translate=POS[k]+'px 0';bubFollow(k,POS[k]);}}
   keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('.hd');if(hd)hs.forEach(n=>{if(n.parentNode!==hd.parentNode)hd.parentNode.appendChild(n);});const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
 }
 app.addEventListener('focusout',()=>setTimeout(()=>{const e=document.activeElement;if(pendingPaint!==null&&!(e&&app.contains(e)&&(e.tagName==='SELECT'||e.id==='teamSet'))){const x=pendingPaint;pendingPaint=null;paint(x);}},0));
@@ -1750,7 +1750,7 @@ function pxBuild(o){o=o||{};
   if(lk){const a=LOOK.acc[lk.acc][0];if(a!=='none')parts.push(a);const bd=LOOK.beard[lk.beard||0][0];if(bd!=='none')parts.push(bd);}
   if(o.gave)parts.push('flag');
   parts.forEach(p=>{const d=PX_PART[p];if(d)pxPut(M,d[1],Object.assign({},pal,p==='suit'||p==='vest'||p==='coat'?{S:skin}:{}),d[2]||0,d[0]);});
-  if(o.crown){let top=99;for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12&&y<top)top=y;}pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
+  if(o.crown){/* 王冠貼在頭的主體上（一排至少 5 格），不要被頭頂翹起來的幾根毛墊高 */const rows={};for(const k of M.keys()){const [x,y]=k.split(',').map(Number);if(x>=3&&x<=12)rows[y]=(rows[y]||0)+1;}let top=99;for(const y in rows)if(rows[y]>=5&&+y<top)top=+y;if(top===99)for(const y in rows)top=Math.min(top,+y);pxPut(M,PX_CROWN,{B:'#3fa0ff',R:'#e8364a',Y:'#ffd23f',y:'#d18f12'},0,top-5);}
   const F={};for(const k in PX_FACE)F[k]=pxPut(new Map(),PX_FACE[k],PX_FPAL,0,7);
   const face=o.face||(v&&v.face)||(o.boss?'boss':lk?LOOK.face[lk.face][0]:'normal');
   return{M,F,cx:8,hd:[2,3,14,14],face,back:hair==='none'||hair==='bald'?skin:hc,skin,shirt};
@@ -1985,11 +1985,14 @@ function scene(ws,ls,line,label,opt){ opt=opt||{};
     ws.forEach((p,i)=>{w+=svgWinner(wx0+i*wstep,layerTop,p.name,p.color,i,p.boss,p.prop,p.look,p.who,p.tg);});
     topY=layerTop-128-54; bx=W/2-60; by=topY+2; opt._tx=wx0;
   } else { topY=layerTop-56; bx=W/2-50; by=topY+4; }
-  const bw=Math.min(W-8,[...line].length*13+20);
+  const n=[...line].length, tw=Math.min(W-28,n*13.5), bw=tw+20;
   bx=ws.length?W/2-bw/2:bx; bx=Math.max(4,Math.min(bx,W-bw-4));
-  const bubble=`<rect x="${bx}" y="${by}" width="${bw}" height="28" rx="12" fill="#fff"/><path d="M${opt._tx!=null?Math.max(bx+14,Math.min(bx+bw-14,opt._tx)):bx+10} ${by+26} l-6 11 l12 -11z" fill="#fff"/><text x="${bx+10}" y="${by+19}" font-size="13" fill="#1b2331" stroke="#1b2331" stroke-width=".55" font-family="Cubic11,sans-serif">${esc(line)}</text>`;
+  const tx=opt._tx!=null?Math.max(bx+14,Math.min(bx+bw-14,opt._tx)):bx+10;
+  /* 字用固定寬度塞進白框（字型還沒載入也不會超出）；只有一個贏家時，泡泡跟著他閃躲移動 */
+  const bubble=`<g class="bbody"><rect x="${bx}" y="${by}" width="${bw}" height="28" rx="12" fill="#fff"/><text x="${bx+10}" y="${by+19}" font-size="13" fill="#1b2331" stroke="#1b2331" stroke-width=".55" font-family="Cubic11,sans-serif" textLength="${tw}" lengthAdjust="spacingAndGlyphs">${esc(line)}</text></g><path class="btail" d="M${tx} ${by+26} l-6 11 l12 -11z" fill="#fff"/>`;
+  const bfor=ws.length===1&&ws[0].who?` data-for="${esc(ws[0].who)}" data-bx="${bx}" data-bw="${bw}" data-tx="${tx}"`:'';
   const vbTop=topY-18;
-  return `<svg class="podium" ${opt.ai?`data-ai="${esc(opt.ai)}" data-aik="${esc(label+line)}"`:''} viewBox="0 ${vbTop} ${W} ${ground+14-vbTop}" role="img" aria-label="${esc(label)}"><ellipse cx="${W/2}" cy="${ground+2}" rx="${W/2-10}" ry="7" fill="#000" opacity=".25"/>${gs}<g class="dropin">${w}</g><g class="bubin">${bubble}</g></svg>`;
+  return `<svg class="podium" ${opt.ai?`data-ai="${esc(opt.ai)}" data-aik="${esc(label+line)}"`:''} viewBox="0 ${vbTop} ${W} ${ground+14-vbTop}" role="img" aria-label="${esc(label)}"><ellipse cx="${W/2}" cy="${ground+2}" rx="${W/2-10}" ry="7" fill="#000" opacity=".25"/>${gs}<g class="dropin">${w}</g><g class="bubin"${bfor}>${bubble}</g></svg>`;
 }
 function podium(D){
   if(!D.parts.length)return'';
@@ -2749,9 +2752,12 @@ function showLid(g,side,ms){const head=g.querySelector('.hd');if(!head)return;co
   const w=document.createElementNS(NS,'g');w.setAttribute('class','lid');w.innerHTML=pxG('lid',hx+side*30,hy+12,5,'','',side>0);head.parentNode.appendChild(w);setTimeout(()=>w.remove(),ms||750);}
 const POS={};
 let combo=0, comboT=0;
+function bubFollow(who,no){const b=app.querySelector(`.bubin[data-for="${CSS.escape(who)}"]`);if(!b)return;const bx=+b.dataset.bx,bw=+b.dataset.bw,tx=+b.dataset.tx,W=360;
+  const sh=Math.max(4-bx,Math.min(W-4-bw-bx,no)), ts=Math.max(bx+sh+14-tx,Math.min(bx+sh+bw-14-tx,no));
+  b.querySelector('.bbody').style.translate=sh+'px 0';b.querySelector('.btail').style.translate=ts+'px 0';}
 function moveDodge(g,who,dir){let bb;try{bb=g.getBBox();}catch(e){return;}const cx=bb.x+bb.width/2,o=POS[who]||0,W=360;
   let no=o+dir*64; if(cx+no<44||cx+no>W-44){dir=-dir;no=o+dir*64;} no=Math.max(44-cx,Math.min(W-44-cx,no)); POS[who]=no;
-  g.style.translate=no+'px 0';g.style.setProperty('--ld',dir);g.classList.remove('lean');void g.getBoundingClientRect();g.classList.add('lean');setTimeout(()=>g.classList.remove('lean'),500);}
+  g.style.translate=no+'px 0';bubFollow(who,no);g.style.setProperty('--ld',dir);g.classList.remove('lean');void g.getBoundingClientRect();g.classList.add('lean');setTimeout(()=>g.classList.remove('lean'),500);}
 function throwAtSpot(e,sv){const layer=document.getElementById('fxl'),me2=solo?'p:you':'p:'+me,fe=tgtEl(me2);if(!fe||isDown(me2))return;
   const fr=fe.getBoundingClientRect(),sx=fr.left+fr.width/2,sy=fr.top+fr.height*.3,tx=e.clientX,ty=e.clientY;const it=['hammer','tomato','egg','slipper','bomb'].includes(fxItem)?fxItem:'tomato';
   const f=document.createElement('div');f.className='fly big';f.innerHTML=itemIcon(it);f.style.left=sx+'px';f.style.top=sy+'px';f.style.transition='transform 400ms cubic-bezier(.2,.7,.4,1)';layer.appendChild(f);
