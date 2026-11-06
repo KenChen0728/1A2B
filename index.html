@@ -714,7 +714,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.07-4';
+const APP_VERSION='2026.11.07-5';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2669,10 +2669,10 @@ const itemIcon=k=>{const a=PX_ITEM[k];return a?pxIcon(a[0],a[1]):'';};
 /* 飛向臉時看到的各個面：拖鞋有鞋面、鞋底、側面；鐵盆有側面、開口（看進盆裡）、盆底 */
 const PX_SIDES={
  slipper:{top:PX_ITEM.slipper,
-  sole:[["...RRRRRR...","..RRrRRrRR..","..RRRRRRRR..","..RrRRRRrR..","..RRRRRRRR..","..RRrRRrRR..","..RRRRRRRR..","...RrRRrR...","...RRRRRR...","...RrRRrR...","...RRRRRR....","....RRRR...."],{R:'#3a9f98',r:'#226b66'}],
+  sole:[["...RRRRRR...","..rrrrrrrr..","..RRRRRRRR..","..rrrrrrrr..","..RRRRRRRR..","..rrrrrrrr..","..RRRRRRRR..","...rrrrrr...","...RRRRRR...","...rrrrrr...","...RRRRRR...","....RRRR...."],{R:'#3a9f98',r:'#226b66'}],
   edge:[["...YY..........","..Y..Y.........",".Y....YYYY.....","SSSSSSSSSSSSSSS","sssssssssssssss"],{S:'#5fd0c8',s:'#3a9f98',Y:'#ff8a3c'}]},
  hammer:{side:PX_ITEM.hammer,
-  top:[["....LLLLLL....","..LLGGGGGGLL..",".LGWGGGGGGGGL.",".LGWGGGGGGGGL.","LGWGGDDDDGGGGL","LGGGDDDDDDGGGL","LGGGDDDDDDGGGL","LGGGDDDDDDGGGL","LGGGDDDDDDGGGL","LGGGGDDDDGGGGL",".LGGGGGGGGGGL.",".LGGGGGGGGGGL.","..LLGGGGGGLL..","....LLLLLL...."],{L:'#e3e8ef',G:'#9aa3b2',D:'#5f6878',W:'#f2f5f9'}],
+  top:[["....LLLLLL....","..LLDDDDDDLL..",".LDDDDDDDDDDL.",".LDKKKKKKKKDL.","LDDKKKKKKKKDDL","LDKKKKKKKKKKDL","LDKKKKKKKKKKDL","LDKKKKKKKKKKDL","LDKKKKKKKKKKDL","LDDKKKKKKKKGDL",".LDGKKKKKKGGL.",".LGGGGKKGGGGL.","..LLGGGGGGLL..","....LLLLLL...."],{L:'#e3e8ef',G:'#b4bcc9',D:'#4a5262',K:'#2e3440'}],
   bottom:[["....LLLLLL....","..LLGGGGGGLL..",".LGGGGGGGGGGL.",".LGGGGGGGGGGL.","LGGGGDDDDGGGGL","LGGGDBBBBDGGGL","LGGGDBWBBDGGGL","LGGGDBWBBDGGGL","LGGGDBBBBDGGGL","LGGGGDDDDGGGGL",".LGGGGGGGGGGL.",".LGGGGGGGGGGL.","..LLGGGGGGLL..","....LLLLLL...."],{L:'#e3e8ef',G:'#b4bcc9',D:'#7d8796',B:'#cfd5de',W:'#f2f5f9'}]}};
 const faceIcon=(k,f)=>{const a=(PX_SIDES[k]||{})[f];return a?pxIcon(a[0],a[1]):itemIcon(k);};
 const ITEMN={hammer:'大鐵盆',tomato:'番茄',egg:'雞蛋',slipper:'拖鞋',bomb:'炸彈',flower:'花',heart:'愛心'};
