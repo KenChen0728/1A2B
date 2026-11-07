@@ -723,7 +723,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-2';
+const APP_VERSION='2026.11.08-3';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -3246,7 +3246,8 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
   setTimeout(()=>{try{const c=navigator.connection;if(c&&c.saveData)return;navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('warm'));}catch(e){}},9000);});
 /* ---------- 背景音樂 ----------
    自己寫的兩首 8-bit 小曲，用 WebAudio 當場合成：沒有音檔、不用下載，離線也能放。
-   大廳、結算放輕鬆的（C 大調）；遊戲中放緊張的（A 小調）。一個音符一格（八分音符），'-' 延長、'.' 休息；鼓：k 大鼓、s 小鼓、h 鈸。
+   大廳、結算放輕鬆的（C 大調 112）；遊戲中放緊張的（A 小調 160：十六分音符的低音和滴答鈸像時鐘在催、半音來回、Bb 和弦，旋律用比較尖的 12.5% 方波）。
+   一個音符一格（div 是一拍幾格，預設 2＝八分音符；緊張那首 4＝十六分音符），'-' 延長、'.' 休息；鼓：k 大鼓、s 小鼓、h 鈸、t 小聲的滴答。
    預設觀眾開、玩家關（同一個房間幾支手機一起放會很吵），按標題旁的音符切換，ab_bgm 記住。
    切到背景、關掉就停；iPhone 側邊靜音開關打開時聽不到（網頁音效跟著鈴聲開關） */
 const SONGS={
@@ -3254,30 +3255,30 @@ const SONGS={
   lead:'E4 . G4 . C5 - B4 G4|A4 - - E4 C4 . E4 .|F4 . A4 . C5 - A4 F4|G4 - - - D4 . G4 .|E4 . G4 . C5 - D5 E5|C5 - A4 - E4 . A4 .|F4 . A4 . B4 - D5 .|C5 - - - . . . .|A4 . C5 . F5 - E5 C5|D5 - B4 - G4 . B4 .|G4 . B4 . E5 - D5 B4|C5 - - - A4 . E4 .|F4 . A4 . C5 . A4 .|B4 - D5 - G5 - F5 .|E5 . D5 . C5 . G4 .|C5 - - - . . . .',
   bass:'C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|D3 . A3 . G2 . D3 .|C3 . G3 . C4 . G3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|E2 . B2 . E3 . B2 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|C3 . G3 . C4 - - .',
   drum:'khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss'},
- battle:{bpm:140,
-  lead:'A4 . C5 . E5 . D5 C5|A4 - - - F4 . A4 .|B4 . D5 . G5 - F5 E5|E5 - - - G#4 . B4 .|A4 . C5 . E5 . A5 G5|F5 - E5 - C5 . A4 .|B4 . D5 . G5 . D5 B4|E5 - D5 - C5 - B4 .|D5 . F5 . A5 - G5 F5|E5 - C5 - A4 . C5 .|D5 . F5 . D5 . A4 .|B4 - - - G#4 . E4 .|A4 . C5 . F5 . C5 .|B4 . D5 . G5 . D5 .|C5 . E5 . A5 - G5 E5|E5 - - - G#4 - B4 .',
-  bass:'A2 A3 A2 A3 A2 A3 A2 A3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|E2 E3 E2 E3 E2 E3 E2 E3|A2 A3 A2 A3 A2 A3 A2 A3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|E2 E3 E2 E3 E2 E3 E2 E3|D3 D4 D3 D4 D3 D4 D3 D4|A2 A3 A2 A3 A2 A3 A2 A3|D3 D4 D3 D4 D3 D4 D3 D4|E2 E3 E2 E3 E2 E3 E2 E3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|A2 A3 A2 A3 A2 A3 A2 A3|E2 E3 E2 E3 E2 E3 E2 E3',
-  drum:'khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|ksksksss|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|ksksksss'}};
+ battle:{bpm:160,div:4,duty:.125,
+  lead:'A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . G#5 - A5 -|A#4 . D5 . F5 . A#4 . D5 . F5 . G5 - F5 -|E5 - - - D#5 - E5 - F5 - E5 - D#5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A5 . G#5 . A5 . B5 . C6 .|A#5 - A5 - F5 - D5 - A#4 - D5 - F5 - A5 -|G#5 - - - E5 - - - B4 - - - G#4 - B4 -|D5 . F5 . A5 . D5 . F5 . A5 . A#5 - A5 -|D5 . F5 . A5 . D5 . F5 . A5 . C#5 - D5 -|E5 . A4 . C5 . E5 . A5 . E5 . C5 . A4 .|E5 - D#5 - E5 - F5 - E5 - D#5 - E5 - G#5 -|F5 . A#4 . D5 . F5 . A#5 . F5 . D5 . A#4 .|F5 - E5 - F5 - G5 - A5 - G5 - F5 - E5 -|B4 . E5 . G#5 . B5 . G#5 . E5 . D5 . B4 .|G#4 - A4 - B4 - C5 - D5 - D#5 - E5 - - -',
+  bass:'A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2',
+  drum:'kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss'}};
 const BGM=(()=>{
   const NN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
   const hz=t=>{const m=/^([A-G])(#?)(\d)$/.exec(t);return m?440*Math.pow(2,(12*(+m[3]+1)+NN[m[1]]+(m[2]?1:0)-69)/12):0;};
   const toks=s=>s.split('|').join(' ').split(/\s+/).filter(Boolean);
-  const songs={};for(const k in SONGS){const S=SONGS[k];songs[k]={step:60/S.bpm/2,lead:toks(S.lead),bass:toks(S.bass),drum:S.drum.replace(/\|/g,'').split('')};}
+  const songs={};for(const k in SONGS){const S=SONGS[k];songs[k]={step:60/S.bpm/(S.div||2),duty:S.duty||.25,lead:toks(S.lead),bass:toks(S.bass),drum:S.drum.replace(/\|/g,'').split('')};}
   let ac=null,G=null,cur=null,step=0,nextT=0,timer=null,stopT=null;
-  /* 一組音色：音量、雜訊（鼓）、25% 方波（紅白機的主旋律音色） */
+  /* 一組音色：音量、雜訊（鼓）、25% 和 12.5% 方波（紅白機的主旋律音色，12.5% 比較尖） */
   function graph(c){
     const fade=c.createGain();fade.gain.value=0;fade.connect(c.destination);
     const bus=c.createGain();bus.gain.value=.5;bus.connect(fade);
     const noise=c.createBuffer(1,c.sampleRate,c.sampleRate),d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
-    const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let i=1;i<n;i++){re[i]=Math.sin(2*Math.PI*i*.25)/(Math.PI*i);im[i]=(1-Math.cos(2*Math.PI*i*.25))/(Math.PI*i);}
-    return{c,fade,bus,noise,pulse:c.createPeriodicWave(re,im)};}
+    const wave=dt=>{const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let i=1;i<n;i++){re[i]=Math.sin(2*Math.PI*i*dt)/(Math.PI*i);im[i]=(1-Math.cos(2*Math.PI*i*dt))/(Math.PI*i);}return c.createPeriodicWave(re,im);};
+    return{c,fade,bus,noise,pulse:{25:wave(.25),125:wave(.125)}};}
   function init(){
     if(ac)return true;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
     try{ac=new AC();G=graph(ac);}catch(e){ac=null;return false;}return true;}
   /* 一個音：很快起音、慢慢變小、結尾收掉，聽起來一顆一顆的 */
-  function tone(G,t,f,dur,vol,kind){
+  function tone(G,t,f,dur,vol,kind,duty){
     const c=G.c,o=c.createOscillator(),gn=c.createGain();let out=gn;
-    if(kind==='lead')o.setPeriodicWave(G.pulse);else o.type='square';
+    if(kind==='lead')o.setPeriodicWave(G.pulse[duty===.125?125:25]);else o.type='square';
     o.frequency.setValueAtTime(f,t);
     if(kind==='bass'){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;gn.connect(lp);out=lp;}
     out.connect(G.bus);o.connect(gn);
@@ -3287,15 +3288,15 @@ const BGM=(()=>{
     const c=G.c;
     if(k==='k'){const o=c.createOscillator(),gn=c.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);
       gn.gain.setValueAtTime(.9,t);gn.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(gn);gn.connect(G.bus);o.start(t);o.stop(t+.18);return;}
-    const s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain(),len=k==='s'?.13:.035;
-    s.buffer=G.noise;fl.type=k==='s'?'bandpass':'highpass';fl.frequency.value=k==='s'?1800:7000;if(k==='s')fl.Q.value=.7;
-    gn.gain.setValueAtTime(k==='s'?.42:.11,t);gn.gain.exponentialRampToValueAtTime(.001,t+len);
+    const s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain(),len=k==='s'?.13:k==='t'?.02:.035;
+    s.buffer=G.noise;fl.type=k==='s'?'bandpass':'highpass';fl.frequency.value=k==='s'?1800:k==='t'?9000:7000;if(k==='s')fl.Q.value=.7;
+    gn.gain.setValueAtTime(k==='s'?.42:k==='t'?.06:.11,t);gn.gain.exponentialRampToValueAtTime(.001,t+len);
     s.connect(fl);fl.connect(gn);gn.connect(G.bus);s.start(t,Math.random()*.8);s.stop(t+len+.02);}
   const held=(L,i)=>{let n=1;while(L[(i+n)%L.length]==='-'&&n<L.length)n++;return n;};
   /* 第 i 格（八分音符）在時間 t 要響的音 */
   function beat(G,S,i,t){
     const N=S.lead.length;i%=N;
-    const a=S.lead[i];if(hz(a))tone(G,t,hz(a),held(S.lead,i)*S.step*.92,.16,'lead');
+    const a=S.lead[i];if(hz(a))tone(G,t,hz(a),held(S.lead,i)*S.step*.92,.16,'lead',S.duty);
     const b=S.bass[i];if(hz(b))tone(G,t,hz(b),held(S.bass,i)*S.step*.85,.26,'bass');
     const d=S.drum[i];if(d&&d!=='.')hit(G,t,d);}
   function sched(){

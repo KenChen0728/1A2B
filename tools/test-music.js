@@ -3,8 +3,9 @@ const {chromium,ctx,page,name,reset,room,layout,BASE}=require('./lib');
 let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
 (async()=>{const b=await chromium.launch();
  await reset();const c0=await ctx(b,{vp:{width:360,height:640}});const p=await page(c0,BASE);await name(p,'阿明');
- const chk=await p.evaluate(()=>Object.entries(BGM.songs).map(([k,S])=>{const bad=[...S.lead,...S.bass].filter(t=>!/^([A-G]#?\d|-|\.)$/.test(t));return{k,L:S.lead.length,B:S.bass.length,D:S.drum.length,bad,drumBad:S.drum.filter(d=>!'khs.'.includes(d))};}));
- for(const x of chk)ok(x.L===128&&x.B===128&&x.D===128&&!x.bad.length&&!x.drumBad.length,`${x.k}：旋律、低音、鼓都是 16 小節，沒有寫錯的音 ${JSON.stringify(x)}`);
+ const chk=await p.evaluate(()=>Object.entries(BGM.songs).map(([k,S])=>{const bad=[...S.lead,...S.bass].filter(t=>!/^([A-G]#?\d|-|\.)$/.test(t)),per=(SONGS[k].div||2)*4;return{k,bars:S.lead.length/per,L:S.lead.length,B:S.bass.length,D:S.drum.length,bad,drumBad:S.drum.filter(d=>!'khst.'.includes(d))};}));
+ for(const x of chk)ok(x.bars===16&&x.L===x.B&&x.B===x.D&&!x.bad.length&&!x.drumBad.length,`${x.k}：旋律、低音、鼓都是 16 小節，沒有寫錯的音 ${JSON.stringify(x)}`);
+ const sp=await p.evaluate(()=>({calm:BGM.songs.calm.step,battle:BGM.songs.battle.step,duty:BGM.songs.battle.duty}));ok(sp.battle<sp.calm/2&&sp.duty===.125,'緊張的曲子格子比較密、音色比較尖 '+JSON.stringify(sp));
  for(const k of ['calm','battle']){const r=await p.evaluate(async k=>{const d=await BGM.render(k,8);let pk=0,sq=0;for(const v of d){const a=Math.abs(v);if(a>pk)pk=a;sq+=v*v;}return{pk,rms:Math.sqrt(sq/d.length)};},k);
    ok(r.pk<0.95&&r.rms>0.03,`${k}：音量不爆、聽得到（最大 ${r.pk.toFixed(2)}、平均 ${r.rms.toFixed(3)}）`);}
  ok(await p.evaluate(()=>!document.querySelector('.musbtn')&&!BGM.song),'首頁沒有音樂、沒有音符鍵');
