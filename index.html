@@ -723,7 +723,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-5';
+const APP_VERSION='2026.11.08-6';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -860,7 +860,7 @@ function progress(D){
 function seg(attr,opts,cur,col,cls){return`<div class="pks ${cls||''}">${opts.map(([v,l,c])=>`<button type="button" class="pk ${c||col||''}" ${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join('')}</div>`;}
 
 let arenaWhy='', lastThrowAt=0, benchSeen=[], arenaOpen=false, peekUntil=0, peekNext=0, peekT=0, arenaHits=0, arenaN=0, arenaSeenN=0;
-let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false, joinCode='';
+let bgmT=null, fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false, joinCode='';
 let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
@@ -889,7 +889,7 @@ function paint(html){
   const k=scrKey();if(k!==lastKey){lastKey=k;app.classList.remove('swap');void app.offsetWidth;app.classList.add('swap');clearTimeout(swapT);swapT=setTimeout(()=>app.classList.remove('swap'),240);}
   /* 場景內容沒變就留著原本的節點：呼吸動畫不會重來，身上的道具也不用重貼 */
   app.querySelectorAll('svg.stage,svg.podium').forEach(n=>{const src=n.outerHTML,o=live.find(x=>x._src===src);if(o)n.replaceWith(o);else n._src=src;});
-  bind();
+  bind();clearTimeout(bgmT);bgmT=setTimeout(()=>{try{bgmSync();}catch(e){}},0);
   if(!app.querySelector('svg.podium'))for(const k in POS)delete POS[k];
   for(const k in POS){const c=charOf(k);if(c){c.style.translate=POS[k]+'px 0';bubFollow(k,POS[k]);}}
   keep.forEach(([w,hs])=>{const c=charOf(w);if(!c)return;const hd=c.querySelector('.hd');if(hd)hs.forEach(n=>{if(n.parentNode!==hd.parentNode)hd.parentNode.appendChild(n);});const st=KST[w];if(st&&st.down){c.style.setProperty('--d',st.d);c.classList.add('down');}});
@@ -3290,17 +3290,17 @@ const BGM=(()=>{
     if(kind==='lead')o.setPeriodicWave(G.pulse[duty===.125?125:25]);else o.type='square';
     o.frequency.setValueAtTime(f,t);
     if(kind==='bass'){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;gn.connect(lp);out=lp;}
-    out.connect(G.bus);o.connect(gn);
+    out.connect(G.out||G.bus);o.connect(gn);
     const end=t+dur;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+.008);gn.gain.linearRampToValueAtTime(vol*.6,Math.max(t+.01,end-.03));gn.gain.linearRampToValueAtTime(0,end);
     o.start(t);o.stop(end+.02);}
   function hit(G,t,k){
     const c=G.c;
     if(k==='k'){const o=c.createOscillator(),gn=c.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);
-      gn.gain.setValueAtTime(.9,t);gn.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(gn);gn.connect(G.bus);o.start(t);o.stop(t+.18);return;}
+      gn.gain.setValueAtTime(.9,t);gn.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(gn);gn.connect(G.out||G.bus);o.start(t);o.stop(t+.18);return;}
     const s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain(),len=k==='s'?.13:k==='t'?.02:.035;
     s.buffer=G.noise;fl.type=k==='s'?'bandpass':'highpass';fl.frequency.value=k==='s'?1800:k==='t'?9000:7000;if(k==='s')fl.Q.value=.7;
     gn.gain.setValueAtTime(k==='s'?.42:k==='t'?.06:.11,t);gn.gain.exponentialRampToValueAtTime(.001,t+len);
-    s.connect(fl);fl.connect(gn);gn.connect(G.bus);s.start(t,Math.random()*.8);s.stop(t+len+.02);}
+    s.connect(fl);fl.connect(gn);gn.connect(G.out||G.bus);s.start(t,Math.random()*.8);s.stop(t+len+.02);}
   const held=(L,i)=>{let n=1;while(L[(i+n)%L.length]==='-'&&n<L.length)n++;return n;};
   /* 第 i 格（八分音符）在時間 t 要響的音 */
   function beat(G,S,i,t){
@@ -3316,16 +3316,19 @@ const BGM=(()=>{
       /* 短曲放完：記下這一場已經放過，接著放下一首 */
       if(T.once&&step>=T.lead.length){doneTag=curTag;cur=null;clearInterval(timer);timer=null;return;}
       beat(G,T,step,nextT);nextT+=T.step;step++;}}
+  /* 每首曲子走自己的一路音量：換場景時把舊的一路 0.04 秒內收掉，先排好的音不會再漏出來 */
+  function cut(){const o=G&&G.out;if(!o)return;G.out=null;const t=ac.currentTime;o.gain.cancelScheduledValues(t);o.gain.setValueAtTime(o.gain.value,t);o.gain.linearRampToValueAtTime(0,t+.04);setTimeout(()=>{try{o.disconnect();}catch(e){}},300);}
+  function lane(){cut();G.out=ac.createGain();G.out.connect(G.bus);}
   /* tag 是哪一場的結算：同一場的短曲只放一次 */
   function play(name,tag){
     if(!songs[name]||!init())return;clearTimeout(stopT);
     if(songs[name].once&&tag&&doneTag===tag){if(cur)stop();return;}
     if(ac.state!=='running')ac.resume().catch(()=>{});
-    if(cur!==name||(songs[name].once&&curTag!==tag)){cur=name;curTag=tag||'';step=0;nextT=ac.currentTime+.08;}
+    if(cur!==name||(songs[name].once&&curTag!==tag)){cur=name;curTag=tag||'';step=0;nextT=ac.currentTime+.06;lane();}
     G.fade.gain.cancelScheduledValues(ac.currentTime);G.fade.gain.setTargetAtTime(1,ac.currentTime,.25);
     if(!timer)timer=setInterval(sched,100);sched();}
   function stop(){
-    if(!ac||!cur)return;cur=null;clearInterval(timer);timer=null;
+    if(!ac||!cur)return;cur=null;clearInterval(timer);timer=null;cut();
     G.fade.gain.cancelScheduledValues(ac.currentTime);G.fade.gain.setTargetAtTime(0,ac.currentTime,.08);
     clearTimeout(stopT);stopT=setTimeout(()=>{if(!cur&&ac.state==='running')ac.suspend().catch(()=>{});},600);}
   /* iPhone 要在手指點一下的當下才能開聲音：有在放的時候，每次點畫面都順便確認一次。
