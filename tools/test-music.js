@@ -18,7 +18,7 @@ let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
  await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(400);await p.evaluate(()=>{const v=document.getElementById('vsM');if(v&&!v.hidden)v.click();});await p.waitForTimeout(2300);
  ok(await p.evaluate(()=>BGM.song==='battle'),'開始猜：換成緊張的曲子');
  await p.click('#giveUp');await p.click('#giveUp');await p.waitForTimeout(2300);ok(await p.evaluate(()=>BGM.song==='lose'),'放棄：放失敗的短曲');
- await p.waitForTimeout(10500);ok(await p.evaluate(()=>BGM.song==='calm'),'短曲放完接回輕鬆的曲子，不會一直重放');
+ await p.waitForTimeout(10500);ok(await p.evaluate(()=>!BGM.song),'短曲放完就安靜，不會一直重放');await p.waitForTimeout(2300);ok(await p.evaluate(()=>!BGM.song),'還在結算畫面時保持安靜');
  await p.click('#soloQuit');await p.waitForTimeout(300);await p.click('#goSolo');await p.click('[data-smode="practice"]');await p.click('#soloStart');await p.waitForTimeout(300);
  const sec=await p.evaluate(()=>solo.secret);await guess(p,sec);await p.waitForTimeout(2300);ok(await p.evaluate(()=>BGM.song==='win'),'猜中：放勝利的短曲');
  await p.click('#soloQuit');await p.click('#soloQuit').catch(()=>{});await p.waitForSelector('#create',{timeout:5000}).catch(()=>{});await p.waitForTimeout(2300);

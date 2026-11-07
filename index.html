@@ -723,7 +723,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-4';
+const APP_VERSION='2026.11.08-5';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -3259,12 +3259,12 @@ const SONGS={
   lead:'A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . G#5 - A5 -|A#4 . D5 . F5 . A#4 . D5 . F5 . G5 - F5 -|E5 - - - D#5 - E5 - F5 - E5 - D#5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A5 . G#5 . A5 . B5 . C6 .|A#5 - A5 - F5 - D5 - A#4 - D5 - F5 - A5 -|G#5 - - - E5 - - - B4 - - - G#4 - B4 -|D5 . F5 . A5 . D5 . F5 . A5 . A#5 - A5 -|D5 . F5 . A5 . D5 . F5 . A5 . C#5 - D5 -|E5 . A4 . C5 . E5 . A5 . E5 . C5 . A4 .|E5 - D#5 - E5 - F5 - E5 - D#5 - E5 - G#5 -|F5 . A#4 . D5 . F5 . A#5 . F5 . D5 . A#4 .|F5 - E5 - F5 - G5 - A5 - G5 - F5 - E5 -|B4 . E5 . G#5 . B5 . G#5 . E5 . D5 . B4 .|G#4 - A4 - B4 - C5 - D5 - D#5 - E5 - - -',
   bass:'A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2',
   drum:'kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss'}};
-/* 結算的短曲：放一次就接回輕鬆那首（once、next） */
-SONGS.win={bpm:120,once:true,next:'calm',
-  lead:'C4 . E4 . G4 . C5 -|- - B4 - C5 - D5 -|E5 - - - C5 - G4 .|C5 - - - - - - .',
-  bass:'C3 . C3 . C3 . C3 .|G2 . G2 . G2 . G2 .|A2 . A2 . G2 . G2 .|C3 - - - - - - .',
-  drum:'k.s.k.s.|k.s.k.s.|k.s.k.sk|k.......'};
-SONGS.lose={bpm:96,once:true,next:'calm',
+/* 結算的短曲：只放一次，放完安靜，回到大廳或下一局才再放音樂 */
+SONGS.win={bpm:150,div:4,once:true,
+  lead:'G4 B4 D5 G5 B4 D5 G5 B5 - - - . A5 . B5 .|C6 - - . B5 - - . A5 - G5 - F#5 - G5 -|A5 - - - D5 - - - F#5 - - - A5 - - -|G5 - - - - - - - . . . . . . . .',
+  bass:'G2 . G3 . G2 . G3 . G2 . G3 . G2 . G3 .|C3 . C4 . C3 . C4 . D3 . D4 . D3 . D4 .|D3 . D4 . D3 . D4 . D3 . D4 . D3 . D4 .|G2 - - - - - - - . . . . . . . .',
+  drum:'k.h.s.h.k.h.s.h.|k.h.s.h.k.h.s.h.|k.h.s.h.k.s.s.ss|k...............'};
+SONGS.lose={bpm:96,once:true,
   lead:'G4 - - - F#4 - - -|F4 - - - - - - -|E4 - - - - - - .|. . . . . . . .',
   bass:'C3 - - - B2 - - -|A#2 - - - - - - -|A2 - - - - - - .|. . . . . . . .',
   drum:'........|........|s.......|........'};
@@ -3314,12 +3314,12 @@ const BGM=(()=>{
     if(nextT<ac.currentTime)nextT=ac.currentTime+.05;
     let T=S;while(nextT<ac.currentTime+.3){
       /* 短曲放完：記下這一場已經放過，接著放下一首 */
-      if(T.once&&step>=T.lead.length){doneTag=curTag;cur=T.next;T=songs[cur];step=0;nextT+=.4;continue;}
+      if(T.once&&step>=T.lead.length){doneTag=curTag;cur=null;clearInterval(timer);timer=null;return;}
       beat(G,T,step,nextT);nextT+=T.step;step++;}}
   /* tag 是哪一場的結算：同一場的短曲只放一次 */
   function play(name,tag){
     if(!songs[name]||!init())return;clearTimeout(stopT);
-    if(songs[name].once&&tag&&doneTag===tag)name=songs[name].next;
+    if(songs[name].once&&tag&&doneTag===tag){if(cur)stop();return;}
     if(ac.state!=='running')ac.resume().catch(()=>{});
     if(cur!==name||(songs[name].once&&curTag!==tag)){cur=name;curTag=tag||'';step=0;nextT=ac.currentTime+.08;}
     G.fade.gain.cancelScheduledValues(ac.currentTime);G.fade.gain.setTargetAtTime(1,ac.currentTime,.25);
@@ -3340,7 +3340,7 @@ const BGM=(()=>{
 })();
 function bgmOn(){const p=ls.get('ab_bgm');if(p==='1'||p==='0')return p==='1';try{return !!(code&&R&&!solo&&isWatcher(me));}catch(e){return false;}}
 /* 放哪一首：房間的大廳、結算放輕鬆的，遊戲中放緊張的；首頁不放 */
-/* 結算：贏了放勝利短曲、輸了放失敗短曲（平手、觀戰的對戰結算照常輕鬆那首），放完接回輕鬆那首 */
+/* 結算：贏了放勝利短曲、輸了放失敗短曲（平手、觀戰的對戰結算照常輕鬆那首），放完就安靜，回到大廳才再放 */
 let bgmTag='';
 function bgmScene(){bgmTag='';try{
   const end=(r,t)=>{bgmTag=t;return r==='win'?'win':r==='lose'||r==='gave'?'lose':'calm';};
