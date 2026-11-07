@@ -14,6 +14,9 @@ node tools/test-bench.js     # 不等他、場邊看不到答案、回來；戰�
 node tools/test-replay.js    # 復盤：每手都有建議、建議符合前面所有線索
 node tools/test-start.js     # 開場：VS 進度條、多人等連線（好了才上色）、合作延後開始
 node tools/test-fit.js all   # 各種手機尺寸每個畫面要不要滑（FIT=1 時超出算失敗）
+node tools/test-join.js      # 換瀏覽器接回位子、合作中途排進輪流、輪到離線的人到場邊、觀眾維持觀眾、舊邀請連結
+node tools/test-watch.js     # 大廳改觀戰、重新整理還是觀眾
+node tools/test-angel.js     # 小天使：合作全隊共用
 node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
 node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）
 ```

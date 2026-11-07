@@ -354,6 +354,13 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .posb.on{border-color:var(--a);box-shadow:0 0 0 3px color-mix(in srgb,var(--a) 30%,transparent)}
 .posb.known{opacity:.55;border-style:dashed}.posb:disabled{cursor:default}
 .posbtns{display:flex;gap:10px}.posbtns .btn{flex:1}
+.seatl{display:flex;flex-direction:column;gap:8px}
+.seatb{font:inherit;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--paper);color:var(--fg);box-shadow:0 3px 0 var(--line);cursor:pointer;text-align:left}
+.seatb svg{width:38px;height:38px;flex:0 0 auto;display:block}
+.seatb .sn{display:flex;flex-direction:column;min-width:0}
+.seatb b{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seatb small{font-size:13px;color:var(--muted)}
+.seatb .go{margin-left:auto;font-family:var(--f-disp);font-size:16px;color:var(--ink);white-space:nowrap}
 #posM{padding-inline:16px}
 .angelcard{position:fixed;left:50%;top:calc(12px + var(--safe-top));transform:translateX(-50%);width:min(440px,calc(100% - 24px));z-index:65;display:flex;gap:10px;align-items:flex-start;background:#fffaf0;color:#1b2331;border:2px solid #ffd34d;border-radius:18px;padding:12px 40px 12px 12px;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:angelin .5s cubic-bezier(.2,.8,.3,1.2)}
 .angelcard .aimg{flex:0 0 52px}.angelcard .aimg svg{width:52px;height:auto;display:block}
@@ -714,7 +721,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.07-5';
+const APP_VERSION='2026.11.08-1';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -851,7 +858,7 @@ function progress(D){
 function seg(attr,opts,cur,col,cls){return`<div class="pks ${cls||''}">${opts.map(([v,l,c])=>`<button type="button" class="pk ${c||col||''}" ${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`).join('')}</div>`;}
 
 let arenaWhy='', lastThrowAt=0, benchSeen=[], arenaOpen=false, peekUntil=0, peekNext=0, peekT=0, arenaHits=0, arenaN=0, arenaSeenN=0;
-let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false;
+let fbWait=true, pendingPaint=null, homeStep='menu', homeEdit=false, homePre=false, rulesOpen=false, joinCode='';
 let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
@@ -898,10 +905,11 @@ function render(){
     const subPage=nick.trim()&&!homeEdit&&(homeStep==='join'||homeStep==='solo');
     h=`<header><div class="titlerow"><h1>${subPage?(homeStep==='join'?'加入房間':'邊緣人模式'):'猜數字：幾A幾B'}</h1><button class="helpbtn" type="button" data-help="${homeStep==='join'?'friends':homeStep==='solo'?'solo':'rule'}" aria-label="說明">？</button></div>${subPage?'':'<p class="sub">猜數字比快，你還要猜多久？</p>'}</header>`+h+
     (()=>{
-      if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';}
+      /* 邀請連結的代碼只帶入一次，之後照使用者打的字；網址也清掉，重畫或下次打開才不會又變回舊代碼 */
+      if(!homePre&&/^[A-Z0-9]{4}$/.test(pre)){homePre=true;homeStep='join';joinCode=pre;try{history.replaceState(null,'',location.pathname);}catch(e){}}
       const back=`<button class="peek" id="homeBack">← 返回</button>`, err=homeErr?`<p class="err">${esc(homeErr)}</p>`:'';
       if(!nick.trim()||homeEdit) return `<div class="card namecard"><label for="nick"><h2>你叫什麼名字？</h2></label><input type="text" id="nick" maxlength="8" value="${esc(nick)}" placeholder="輸入暱稱，最多 8 個字" autocomplete="off"><button class="btn" id="nickOk">確定</button><p class="err" id="nickErr"></p></div>`;
-      if(homeStep==='join') return `<div class="card"><input type="text" id="codeIn" maxlength="4" value="${esc(/^[A-Z0-9]{4}$/.test(pre)?pre:'')}" placeholder="輸入邀請碼" aria-label="4 碼邀請碼" autocapitalize="characters" autocomplete="off"><button class="btn blue" id="joinBtn" ${busy||!db?'disabled':''}>加入</button><button class="peek" id="watchBtn" ${busy||!db?'disabled':''}>只想看，進去觀戰</button></div>${err}${back}`;
+      if(homeStep==='join') return `<div class="card"><input type="text" id="codeIn" maxlength="4" value="${esc(joinCode)}" placeholder="輸入邀請碼" aria-label="4 碼邀請碼" autocapitalize="characters" autocomplete="off"><button class="btn blue" id="joinBtn" ${busy||!db?'disabled':''}>加入</button><button class="peek" id="watchBtn" ${busy||!db?'disabled':''}>只想看，進去觀戰</button></div>${err}${back}`;
       if(homeStep==='solo') return soloBackCard()+soloCard()+back;
       return `<div class="card">${stageSVG([{id:'home',name:nick,look:myLook(),self:true,noyou:true}])}<div class="row homeact"><button class="btn" id="lookBtn">編輯角色</button></div></div>
       ${soloBackCard()}${ls.get('ab_room')&&db?`<div class="card back"><div style="flex:1 1 auto;min-width:0"><span class="lbl">你剛剛在房間</span><b class="secret" style="display:block">${esc(ls.get('ab_room'))}</b></div><button class="btn" id="backRoom" style="width:auto;padding:12px 18px">回到房間</button></div>`:''}
@@ -1304,10 +1312,12 @@ async function createRoom(){
   });
   busy=false; render();
 }
-async function joinRoom(c,watch){
+/* how：'watch' 按了「只想看」、'play' 按了「加入」、沒給是重新整理或回到房間（照房間裡原本的身分） */
+async function joinRoom(c,how){
   if(!db){homeErr='還在連線，請等一下再按';return render();}
   const n=readNick(); if(!n){homeErr='請先輸入暱稱';return render();}
   c=(c||'').trim().toUpperCase(); if(baseMe) me=ls.get('ab_alias_'+c)||baseMe; if(!/^[A-Z0-9]{4}$/.test(c)){homeErr='邀請碼是 4 個英文或數字';return render();}
+  const watch=how===true||how==='watch';
   homeErr=''; busy=true; render();
   await act(async()=>{
     const sn=await roomRef(c).get();
@@ -1322,16 +1332,29 @@ async function joinRoom(c,watch){
       await roomRef(c).update({watchers:{[me]:{name:n,look:lookStr(myLook()),joinedAt:Date.now()}}});
       enterRoom(c);return;
     }
-    if((d.watchers||{})[me]&&!(d.seats||{})[me]&&!watch&&(ls.get('ab_watch')===c||(d.watchers||{})[me].bench===d.round)){enterRoom(c);return;}
+    /* 觀眾和場邊的人：重新整理、回到房間都維持原本的身分（不靠這支手機記的 ab_watch，記錄不見也不會被拉成玩家）；
+       只有在大廳按「加入」才改成玩家。遊戲中觀眾看過答案，要等下一局 */
+    const w=(d.watchers||{})[me];
+    if(w&&!(d.seats||{})[me]&&!watch&&(how!=='play'||w.bench===d.round||d.phase!=='lobby')){
+      if(how==='play'&&w.bench!==d.round)toast('這局結束後，在大廳按「我也要玩」就能加入');
+      if(!w.bench)ls.set('ab_watch',c);
+      enterRoom(c);return;}
     if(!(d.seats||{})[me]){
-      const same=Object.entries(d.seats||{}).filter(([id,v])=>v&&v.name===n&&id!==me);
-      /* 同名的人還在線上就不是「斷線的你」，不能接手他的位子；沒有在線訊號的舊版手機維持原本的詢問 */
-      const taken=same.some(([id,v])=>v.hb&&Math.abs(Date.now()-v.hb)<HB_DEAD);
-      if(same.length===1&&!taken&&confirm(`房間裡已經有「${n}」，是你剛剛斷線或重新整理嗎？\n\n按「確定」接回原本的位子（題目和猜過的紀錄都會保留）\n按「取消」用新的身分加入`)){
-        me=same[0][0]; ls.set('ab_alias_'+c,me); toast('已接回原本的位子'); enterRoom(c); return;}
+      /* 房間裡有離線的人：可能就是換了手機或瀏覽器的你（LINE、Safari、主畫面 App 各存一份），問一下要不要接回原本的位子。
+         同名但還在線上的不算；沒有在線訊號的舊版手機只問同名的 */
+      const now=Date.now(), off=[];
+      Object.entries(d.seats||{}).forEach(([id,v])=>{if(!v||id===me)return;if(v.hb?Math.abs(now-v.hb)>=HB_DEAD:v.name===n)off.push([id,v,'離線']);});
+      Object.entries(d.watchers||{}).forEach(([id,v])=>{if(v&&id!==me&&d.phase!=='lobby'&&v.bench===d.round&&!(d.seats||{})[id])off.push([id,v,'在場邊']);});
+      if(off.length&&!w){
+        off.sort((a,b)=>(b[1].name===n)-(a[1].name===n));
+        const pid=await pickSeat(off,n);
+        if(pid==null)return;
+        if(pid){me=pid; ls.set('ab_alias_'+c,me); toast('已接回原本的位子'); enterRoom(c); return;}
+      }
       if(cnt>=MAXP){homeErr='這個房間人數已滿';return;}
       /* 房間裡沒有房主（例如最後一個人關掉頁面）：先進來的人直接當房主 */
       const up={seats:{[me]:{name:n,ready:false,joinedAt:Date.now(),look:lookStr(myLook()),hb:Date.now()}}};
+      if(w)up.watchers={[me]:null};
       if(!(d.seats||{})[d.host])up.host=me;
       await roomRef(c).update(up);
     } else await roomRef(c).update({seats:{[me]:{look:lookStr(myLook()),hb:Date.now()}}});
@@ -1366,7 +1389,7 @@ async function sweepRooms(){
 }
 function enterRoom(c){
   unsubs.forEach(u=>{try{u();}catch(e){}}); unsubs=[];
-  code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now();
+  code=c; R=null; roomMissing=false; guesses=[]; secrets=[]; chat=[]; chatLoaded=false; chatStart=Date.now(); joinCode='';
   mySecret=null; input=''; err=''; view=null; scored.clear(); notesKey=null;
   ls.set('ab_room',c); ss.set('ab_live',c); rememberRoom(c,me);
   hbSeen={}; hbLast=0; hostClaim=0; presKey=''; roomSigV=''; roomAt=Date.now();
@@ -1536,7 +1559,8 @@ async function comeBack(){
   if(C?C.over:D.status==='over')return;
   if(players().length>=MAXP){toast('位子滿了，下一局再回來');return;}
   const up={watchers:{[me]:null},seats:{[me]:{name:w.name||nameOf(me),ready:true,joinedAt:w.joinedAt||Date.now(),look:lookStr(myLook()),hb:Date.now(),ack:s.round}}};
-  if(C){const O=(s.coop&&s.coop.order)||[];if(!O.includes(me))up.coop={order:[...O,me]};}
+  /* 合作：重新排進輪流，插在不會改變現在輪到誰的位置（原本的位置可能會讓正在打字的人突然沒了這一手） */
+  if(C){const o=coopInsert(me);up.coop={order:o||((s.coop||{}).order||[]).filter(x=>x!==me)};}
   else if(!(me in D.A)){
     /* 開始時不在名單：回來只猜別人的題，隨機補一題讓流程走得下去，沒有人要猜這題 */
     const P=D.parts.filter(id=>id!==me),pool=P.filter(hasSecret),t=pick(pool.length?pool:P);
@@ -1545,6 +1569,11 @@ async function comeBack(){
     up.assign=JSON.stringify({...D.A,[me]:t});
   }
   await act(()=>roomRef().update(up));
+}
+/* 場邊的人只想看：拿掉場邊記號變成一般觀眾（看得到答案，這局不能回來；回到大廳也不會被自動排回玩家） */
+async function benchToWatch(){
+  if(!benchOf(me)||!confirmTap('toFan','看得到答案後這局不能回來，再按一次確定'))return;
+  ls.set('ab_watch',code); await act(()=>roomRef().update({watchers:{[me]:{bench:null}}}));
 }
 async function takeHost(){if(!isSeated(me))return;if(!confirmTap('takeHost','確定要接手？再按一次'))return;await act(()=>roomRef().update({host:me}));}
 function goneBar(ids){
@@ -2134,11 +2163,11 @@ function bind(){
   if($('goJoin')) $('goJoin').onclick=()=>{homeErr='';homeStep='join';render();window.scrollTo(0,0);};
   if($('goSolo')) $('goSolo').onclick=()=>{homeErr='';homeStep='solo';render();window.scrollTo(0,0);};
   if($('homeBack')) $('homeBack').onclick=()=>{homeErr='';homeStep='menu';render();window.scrollTo(0,0);};
-  const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');};ci.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)joinRoom(ci.value);};}
+  const ci=$('codeIn'); if(ci){ci.oninput=()=>{ci.value=ci.value.toUpperCase().replace(/[^A-Z0-9]/g,'');joinCode=ci.value;};ci.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229){ls.del('ab_watch');joinRoom(ci.value,'play');}};}
   if($('create')) $('create').onclick=()=>createRoom();
   if($('lookBtn')) $('lookBtn').onclick=()=>openLook();
-  if($('joinBtn')) $('joinBtn').onclick=()=>{ls.del('ab_watch');joinRoom($('codeIn').value);};
-  if($('watchBtn')) $('watchBtn').onclick=()=>{const c=($('codeIn').value||'').trim().toUpperCase();ls.set('ab_watch',c);joinRoom(c,true);};
+  if($('joinBtn')) $('joinBtn').onclick=()=>{ls.del('ab_watch');joinRoom($('codeIn').value,'play');};
+  if($('watchBtn')) $('watchBtn').onclick=()=>{const c=($('codeIn').value||'').trim().toUpperCase();ls.set('ab_watch',c);joinRoom(c,'watch');};
   if($('becomePlayer')) $('becomePlayer').onclick=becomePlayer;
   if($('toWatch')) $('toWatch').onclick=becomeWatcher;
   if($('ghostBtn')) $('ghostBtn').onclick=()=>{ghostArmed=!ghostArmed;angelArmed=false;render();};
@@ -2148,6 +2177,8 @@ function bind(){
   if($('rejoin')) $('rejoin').onclick=()=>joinRoom(code);
   if($('home')) $('home').onclick=goHome;
   if($('leave')) $('leave').onclick=leaveRoom;
+  if($('leave2')) $('leave2').onclick=leaveRoom;
+  if($('toFan')) $('toFan').onclick=benchToWatch;
   if($('closeRoom')) $('closeRoom').onclick=closeRoom;
   if($('endReview')) $('endReview').onclick=()=>{reviewing=false;reviewHTML='';render();window.scrollTo(0,0);};
   app.querySelectorAll('[data-item]').forEach(b=>b.onclick=()=>{fxItem=b.dataset.item;app.querySelectorAll('[data-item]').forEach(x=>x.setAttribute('aria-pressed',x===b));app.querySelectorAll('.itemn').forEach(x=>x.textContent=ITEMN[fxItem]);});
@@ -2322,21 +2353,36 @@ function coopState(){
   const s=g(), c=s.coop||{}, rr=s.round, now=Date.now();
   const T=guesses.filter(x=>x.round===rr&&x.kind==='team').sort((a,b)=>a.n-b.n);
   const B=guesses.filter(x=>x.round===rr&&x.kind==='boss').sort((a,b)=>a.n-b.n);
-  const order=(c.order||[]).filter(id=>isSeated(id));
+  const t=coopTurn(c.order,c,T,B,now), order=t.order;
   const teamWin=T.some(x=>!x.hint&&x.A===s.len), bossWin=B.some(x=>x.A===s.len);
   const waitingBoss=T.length>B.length;
   let over=false,result=null;
   if(c.surrender){over=true;result='lose';}
   else if(!waitingBoss&&(teamWin||bossWin)){over=true;result=teamWin&&bossWin?'tie':teamWin?'win':'lose';}
-  const r=T.length+1, countdown=now<(c.startAt||0);
-  const turnStart=r===1?(c.startAt||0):Math.max(c.startAt||0,(B[B.length-1]||{}).at||0);
+  const r=T.length+1, countdown=now<(c.startAt||0), {skips,skipped,guesser}=t;
+  const left=t.TURN_MS?Math.max(1,Math.ceil((t.TURN_MS-t.el%t.TURN_MS)/1000)):null;
+  return{c,T,B,order,skips,skipped,teamWin,bossWin,waitingBoss,over,result,r,countdown,guesser,left,bossSecret:c.bossC?dec(c.bossC,rr,'boss'):null};
+}
+/* 輪到誰：從最後一手的下一位開始，每逾時一次換下一位；名單裡沒坐著的人跳過。
+   raw 是房間存的名單，plus 是還沒坐下、但要先當成坐著來算的人。每支手機（含舊版）都用同一套算法，看到的才會一樣 */
+function coopTurn(raw,c,T,B,now,plus){
+  const order=(raw||[]).filter(id=>id===plus||isSeated(id));
+  const turnStart=T.length?Math.max(c.startAt||0,(B[B.length-1]||{}).at||0):(c.startAt||0);
   const TURN_MS=(c.turnSec===0?0:(c.turnSec||60))*1000;
   const el=Math.max(0,now-turnStart), skips=TURN_MS?Math.floor(el/TURN_MS):0;
   const lastP=T.length?T[T.length-1].pid:null, base=lastP&&order.includes(lastP)?order.indexOf(lastP)+1:0;
-  const guesser=order.length?order[(base+skips)%order.length]:null;
-  const skipped=skips>0&&order.length?order[(base+skips-1)%order.length]:null;
-  const left=TURN_MS?Math.max(1,Math.ceil((TURN_MS-el%TURN_MS)/1000)):null;
-  return{c,T,B,order,skips,skipped,teamWin,bossWin,waitingBoss,over,result,r,countdown,guesser,left,bossSecret:c.bossC?dec(c.bossC,rr,'boss'):null};
+  return{order,TURN_MS,el,skips,guesser:order.length?order[(base+skips)%order.length]:null,skipped:skips>0&&order.length?order[(base+skips-1)%order.length]:null};
+}
+/* 合作進行中才坐下的人（新加入、換了瀏覽器、從場邊回來）排進輪流，回傳新的名單；現在插不進去就回傳 null，等一下再試。
+   還在倒數：排最後。魔王在想：沒有人在打字，排在最後一手的下一位。
+   有人在猜：只插在不會改變「現在輪到誰」的位置（盡量是現在這位的下一個），不然正在打字的人會突然沒了這一手 */
+function coopInsert(id){
+  const s=g(),c=s.coop||{},raw=(c.order||[]).filter(x=>x!==id),C=coopState(),now=Date.now(),n=raw.length;
+  if(C.countdown||!C.guesser)return raw.concat(id);
+  if(C.waitingBoss){const L=C.T[C.T.length-1].pid,o=raw.slice();o.splice(raw.indexOf(L)+1,0,id);return o;}
+  const at=raw.indexOf(C.guesser);
+  for(let k=0;k<=n;k++){const p=(at+1+k)%(n+1),o=raw.slice();o.splice(p,0,id);if(coopTurn(o,c,C.T,C.B,now,id).guesser===C.guesser)return o;}
+  return null;
 }
 function coopAuto(){
   const s=g(); if(s.phase!=='coop')return; const C=coopState();
@@ -2375,6 +2421,18 @@ function pickPos(free,len,known,cost){return new Promise(res=>{
   el.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===el)done(null);return;}
     if(b.dataset.p!=null){sel=+b.dataset.p;draw();return;} if(b.dataset.x==='c')done(null); if(b.dataset.x==='ok'&&sel!=null)done(sel);};
   draw(); el.hidden=false;});}
+/* 加入時問「你是不是其中一位」：回傳選到的人、''（新加入）或 null（關掉，不加入） */
+function pickSeat(list,nick){return new Promise(res=>{
+  let el=document.getElementById('seatM'); if(!el){el=document.createElement('div');el.id='seatM';el.className='upd';document.body.appendChild(el);}
+  el.innerHTML=`<div class="card posbox" role="dialog" aria-modal="true" aria-labelledby="seatT"><div class="dhead"><h2 id="seatT" style="flex:1 1 auto;margin:0">你是不是其中一位？</h2><button type="button" class="dclose" data-x="c" aria-label="關閉">✕</button></div>
+    <p class="sub" style="margin:0">房間裡有人斷線了。如果你剛剛換了手機或瀏覽器（例如從 LINE 跳到 Safari），點你的名字接回原本的位子，猜過的紀錄都會保留。</p>
+    <div class="seatl">${list.map(([id,v,tag])=>`<button type="button" class="seatb" data-id="${esc(id)}">${headSVG(parseLook(v.look)||randLook(id))}<span class="sn"><b>${esc(v.name)}</b><small>${esc(tag)}</small></span><span class="go">是我 ›</span></button>`).join('')}</div>
+    <button type="button" class="btn ghost" data-x="new">不是，我是新加入的「${esc(nick)}」</button></div>`;
+  const onEsc=e=>{if(e.key==='Escape')done(null);};
+  const done=v=>{document.removeEventListener('keydown',onEsc);el.hidden=true;el.innerHTML='';el.onclick=null;res(v);};
+  document.addEventListener('keydown',onEsc);
+  el.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===el)done(null);return;}if(b.dataset.id)done(b.dataset.id);else done(b.dataset.x==='new'?'':null);};
+  el.hidden=false;const f=el.querySelector('.seatb');if(f)f.focus();});}
 const knownOf=(L,len)=>{const k=Array(len).fill(null);L.filter(x=>x.hint).forEach(x=>k[+x.pos]=x.g);return k;};
 async function coopHint(){
   const s=g(), C=coopState(); if(C.over||C.waitingBoss||C.guesser!==me||!C.bossSecret)return;
@@ -2392,13 +2450,17 @@ async function coopSetTeam(v){
   const s=g(); if(!isHost())return; const e=validate(v); if(e){toast(e);return;}
   await act(()=>roomRef().update({coop:{team:v}}));
 }
-let bossBusy='', lastBossN=0, coopTick=null, skipSeen={}, coopSay=null;
+let bossBusy='', lastBossN=0, coopTick=null, skipSeen={}, coopSay=null, coopJoinAt=0, coopBenchAt=0;
 function coopStep(){
   const s=g(); clearTimeout(coopTick); if(!code||!R||s.phase!=='coop')return;
   const C=coopState();
   if(C.B.length>lastBossN&&!C.over&&C.c.vil){lastBossN=C.B.length;coopSay={r:s.round,t:pick(C.c.vil.all||[C.c.vil.says])};saidNow=true;return render();}
   lastBossN=C.B.length;
   if(C.over)return;
+  /* 開局後才坐下的人排進輪流（不然輪到他的身分永遠不會猜） */
+  if(isSeated(me)&&!(C.c.order||[]).includes(me)&&Date.now()-coopJoinAt>4000){const o=coopInsert(me);if(o){coopJoinAt=Date.now();roomRef().update({coop:{order:o}}).then(()=>toast('你加入這一局了，照順序輪到你就能猜')).catch(()=>{coopJoinAt=0;});}}
+  /* 輪到已經離線的人：房主先請他到場邊，全隊不用每輪乾等；他回來按「我回來了」就再排進來 */
+  if(isHost()&&!C.countdown&&!C.waitingBoss&&C.guesser&&C.guesser!==me&&isGone(C.guesser)&&Date.now()-coopBenchAt>6000){coopBenchAt=Date.now();roomRef().update(benchUp([C.guesser])).catch(()=>{coopBenchAt=0;});}
   /* 開場：每個人連上就回報；有人還沒好，房主把開始時間往後延，最多兩次，不會卡死 */
   if(C.countdown){
     if(C.order.includes(me)&&(s.seats[me]||{}).ack!==s.round&&Date.now()-acking>3000){acking=Date.now();roomRef().update({seats:{[me]:{ack:s.round}}}).catch(()=>{acking=0;});}
@@ -2480,19 +2542,22 @@ function angelsLeft(){const w=(g().watchers||{})[me]||{},u=w.an&&w.an.r===g().ro
 async function sendAngel(t){
   if(!isWatcher(me)||!ghostTargets().includes(t))return; const left=angelsLeft(); if(left<=0){toast('這局的天使用完了');return;}
   angelArmed=false; const used=ANGELS-left+1, text=angelText(t);
-  toast(`天使把悄悄話送給 ${nameOf(t)} 了`);
+  toast(g().phase==='coop'?'天使把全隊的線索整理好，送給大家了':`天使把悄悄話送給 ${nameOf(t)} 了`);
   try{await roomRef().update({watchers:{[me]:{an:{r:g().round,n:used}}}});await db.collection(`rooms/${code}/fx`).add({pid:me,name:nameOf(me),target:t,item:'angel',text,n:1,at:Date.now()});}catch(e){toast('天使沒飛出去，再試一次');}
   render();
 }
 function angelFx(x){
   const el=tgtEl(x.target),layer=document.getElementById('fxl');
   if(el&&!x.solo){const r=el.getBoundingClientRect(),d=document.createElement('div');d.className='minighost';d.innerHTML=angelSVG();d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+r.height*.35)+'px';layer.appendChild(d);setTimeout(()=>d.remove(),1600);}
-  if(x.target!==me){toast(`${x.name||'觀眾'} 派天使去幫 ${nameOf(x.target)}`);return;}
+  /* 合作是全隊一起猜：觀眾派來的天使，隊友也跳出同一張卡片，全隊再猜一次就一起消失 */
+  let team=false,k=x.k;
+  if(!x.solo&&code&&R&&g().phase==='coop'){const C=coopState();team=!C.over&&C.order.includes(me)&&C.order.includes(x.target);if(team)k=C.T.length;}
+  if(x.target!==me&&!team){toast(`${x.name||'觀眾'} 派天使去幫 ${nameOf(x.target)}`);return;}
   clearAngel();
-  const c=document.createElement('div');c.className='angelcard';c.innerHTML=`<div class="aimg">${angelSVG()}</div><div class="atx"><span class="lbl">${x.by?`${esc(x.by)} 叫的小天使，全隊一起看`:x.solo?'小天使幫你整理':`觀眾 ${esc(x.name||'')} 派來的天使`}</span>${x.html||`<p>${esc(x.text||'加油！')}</p>`}</div><button type="button" class="aclose" aria-label="收起">✕</button>`;
+  const c=document.createElement('div');c.className='angelcard';c.innerHTML=`<div class="aimg">${angelSVG()}</div><div class="atx"><span class="lbl">${x.by?`${esc(x.by)} 叫的小天使，全隊一起看`:x.solo?'小天使幫你整理':team?`觀眾 ${esc(x.name||'')} 派來的天使，全隊一起看`:`觀眾 ${esc(x.name||'')} 派來的天使`}</span>${x.html||`<p>${esc(x.text||'加油！')}</p>`}</div><button type="button" class="aclose" aria-label="收起">✕</button>`;
   /* 收起來變成側邊的小標籤，點一下再打開，下一次猜題才消失 */
   const t=document.createElement('button');t.type='button';t.className='nfab gfab angeltab';t.innerHTML='天<br>使';t.setAttribute('aria-label','打開小天使的提示');t.hidden=true;
-  if(x.k!=null)c.dataset.k=x.k;
+  if(k!=null)c.dataset.k=k;
   const fold=f=>{c.hidden=f;t.hidden=!f;};
   c.querySelector('.aclose').onclick=()=>fold(true);t.onclick=()=>fold(false);document.body.append(c,t);
   if(!x.solo)setTimeout(()=>{if(c.isConnected)fold(true);},14000);
@@ -2576,7 +2641,7 @@ function angelTextFrom(L,len,rep){const W=deduce(L,len,rep),t=[];
 function renderBench(s,D){
   const C=s.phase==='coop'?coopState():null, cast=L=>L.map(id=>({id,name:nameOf(id),look:lookOf(id),off:unseen(id)}));
   let h=roomHead('friends',`場邊 · 第 ${s.round} 局`,`<button class="exitbtn" id="leave" type="button">${uiIcon('door')}離開</button>`);
-  h+=`<div class="card center"><h2>你在場邊</h2><p class="hand">房主先開始了。這裡看不到答案，隨時可以回來</p><button class="btn" id="backIn" type="button">我回來了</button></div>`;
+  h+=`<div class="card center"><h2>你在場邊</h2><p class="hand">房主先開始了。這裡看不到答案，隨時可以回來</p><button class="btn" id="backIn" type="button">我回來了</button><button class="btn ghost" id="toFan" type="button">只想看，改成觀眾</button><p class="rules" style="margin:0">改成觀眾就看得到答案、能放幽靈和天使，這局不能再回來，之後也不會被拉回玩家。</p></div>`;
   if(C){const v=C.c.vil||{n:'魔王'};h+=`<div class="card">${stageSVG(cast(C.order).concat([{id:'boss',name:v.n,boss:true,prop:v.p,color:v.c}]))}</div><div class="card"><span class="lbl">全隊猜${esc(v.n)}的題</span>${C.T.length?teamHistHTML(C.T):'<div class="empty-h">還沒猜過</div>'}</div>`;}
   else if(D.parts.length){h+=`<div class="card">${stageSVG(cast(D.parts))}</div>`;if(D.status==='playing')h+=progress(D)+board(D,D.parts[0]);}
   paint(h);sideUI(true,false);
@@ -2586,9 +2651,11 @@ function renderWatch(){
   if(vsS&&vsS.room)vsOff();
   if(bn&&s.phase!=='lobby'&&!(coop?coopState().over:D.status==='over')) return renderBench(s,D);
   let h=roomHead('watch',`觀戰中 · 第 ${s.round} 局`,`<button class="exitbtn" id="leave" type="button">${uiIcon('door')}離開觀戰</button>`);
+  /* 玩家都離開或斷線了：講清楚這局停住了，不要讓觀眾一直看著「輪到誰」空等 */
+  const P=players(); if(!P.some(p=>!unseen(p.id))) h+=`<div class="card gonebar"><span class="lbl">${P.length?'玩家都離線了':'玩家都離開了'}</span><p class="rules" style="margin:0">${P.length?'這局停在這裡，等他們回來才會繼續。':'房間裡已經沒有玩家了。'}</p><button class="btn ghost" id="leave2" type="button">離開觀戰</button></div>`;
   const tg=ghostTargets(), left=ghostsLeft(), aleft=angelsLeft();
   if(!tg.length||left<=0)ghostArmed=false; if(!tg.length||aleft<=0)angelArmed=false;
-  const tip=!tg.length?'遊戲開始後才能用，每局幽靈 5 隻、天使 3 位':ghostArmed?'選一個玩家，他的畫面會被幽靈佔滿':angelArmed?'選一個玩家，天使會悄悄告訴他「照他自己的線索能確定什麼」':'幽靈：嚇人、擋住畫面 3 秒　天使：幫忙整理線索、提醒哪次猜錯';
+  const tip=!tg.length?'遊戲開始後才能用，每局幽靈 5 隻、天使 3 位':ghostArmed?'選一個玩家，他的畫面會被幽靈佔滿':angelArmed?(coop?'選一個玩家，天使會把全隊的線索整理給整隊看':'選一個玩家，天使會悄悄告訴他「照他自己的線索能確定什麼」'):'幽靈：嚇人、擋住畫面 3 秒　天使：幫忙整理線索、提醒哪次猜錯';
   if(!bn)h+=`<div class="card ghostcard"><span class="lbl">你是觀眾 · 上帝視角</span><div class="ghrow">
     <button type="button" id="ghostBtn" class="ghostbtn ${ghostArmed?'armed':''}" ${tg.length&&left>0?'':'disabled'} aria-label="放幽靈，剩 ${left} 隻">${ghostSVG()}<b>×${left}</b></button>
     <button type="button" id="angelBtn" class="ghostbtn angel ${angelArmed?'armed':''}" ${tg.length&&aleft>0?'':'disabled'} aria-label="派天使，剩 ${aleft} 位">${angelSVG()}<b>×${aleft}</b></button></div>
@@ -2650,7 +2717,7 @@ function coopView(s){
     h+=`<div class="card"><span class="lbl">全隊的題目（${esc(v.n)}要猜這個）</span><b class="secret">${esc(C.c.team||'')}</b>
       ${isHost()&&!C.T.length?`<div class="sendrow"><input type="text" id="teamSet" inputmode="numeric" maxlength="${s.len}" placeholder="房主可以改成自己出的題"><button class="btn" id="teamSetBtn" style="width:auto;padding:10px 14px">改題目</button></div>`:''}</div>`;
     h+=`<div class="card"><span class="lbl">${esc(v.n)}猜全隊的題</span>${cpuHistHTML(C.B)}</div>`;
-    h+=`<div class="card"><span class="lbl">輪流順序</span><div class="chips">${C.order.map(id=>`<span class="pill ${id===C.guesser&&!C.waitingBoss?'ok':''}">${esc(nameOf(id))}${id===me?'（你）':''}</span>`).join('')}</div>${!inTeam?'<p class="rules">這一局開始時你還沒加入，可以先觀戰。</p>':''}</div>`;
+    h+=`<div class="card"><span class="lbl">輪流順序</span><div class="chips">${C.order.map(id=>`<span class="pill ${id===C.guesser&&!C.waitingBoss?'ok':''}">${esc(nameOf(id))}${id===me?'（你）':''}</span>`).join('')}</div>${!inTeam?'<p class="rules">你是開局後才進來的，馬上把你排進輪流（有人正在猜的話，等他這一手猜完）</p>':''}</div>`;
     h=h0+(inTeam?arena(h,C.B.length):h);
   }
   return h;
