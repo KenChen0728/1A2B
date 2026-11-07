@@ -1,0 +1,38 @@
+// 背景音樂：曲子格式正確、音量不爆、玩家預設關、觀眾預設開、遊戲中換緊張的曲子、按音符切換會記住、標題列放得下
+const {chromium,ctx,page,name,reset,room,layout,BASE}=require('./lib');
+let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
+(async()=>{const b=await chromium.launch();
+ await reset();const c0=await ctx(b,{vp:{width:360,height:640}});const p=await page(c0,BASE);await name(p,'阿明');
+ const chk=await p.evaluate(()=>Object.entries(BGM.songs).map(([k,S])=>{const bad=[...S.lead,...S.bass].filter(t=>!/^([A-G]#?\d|-|\.)$/.test(t));return{k,L:S.lead.length,B:S.bass.length,D:S.drum.length,bad,drumBad:S.drum.filter(d=>!'khs.'.includes(d))};}));
+ for(const x of chk)ok(x.L===128&&x.B===128&&x.D===128&&!x.bad.length&&!x.drumBad.length,`${x.k}：旋律、低音、鼓都是 16 小節，沒有寫錯的音 ${JSON.stringify(x)}`);
+ for(const k of ['calm','battle']){const r=await p.evaluate(async k=>{const d=await BGM.render(k,8);let pk=0,sq=0;for(const v of d){const a=Math.abs(v);if(a>pk)pk=a;sq+=v*v;}return{pk,rms:Math.sqrt(sq/d.length)};},k);
+   ok(r.pk<0.95&&r.rms>0.03,`${k}：音量不爆、聽得到（最大 ${r.pk.toFixed(2)}、平均 ${r.rms.toFixed(3)}）`);}
+ ok(await p.evaluate(()=>!document.querySelector('.musbtn')&&!BGM.song),'首頁沒有音樂、沒有音符鍵');
+ await p.click('#goSolo');await p.click('#soloStart');await p.waitForSelector('.musbtn');
+ ok(await p.evaluate(()=>document.querySelector('.musbtn').getAttribute('aria-pressed')==='false'&&!BGM.song),'邊緣人：有音符鍵，預設沒有音樂');
+ ok((await layout(p)).length===0,'360 寬邊緣人標題列放得下');
+ await p.click('.musbtn');await p.waitForTimeout(400);
+ ok(await p.evaluate(()=>localStorage.getItem('ab_bgm')==='1'&&BGM.song==='calm'&&BGM.state==='running'),'按音符打開：出題時放輕鬆的曲子');
+ await p.click('#randSecret');await p.click('.pad [data-k="ok"]');await p.waitForTimeout(400);await p.evaluate(()=>{const v=document.getElementById('vsM');if(v&&!v.hidden)v.click();});await p.waitForTimeout(2300);
+ ok(await p.evaluate(()=>BGM.song==='battle'),'開始猜：換成緊張的曲子');
+ await p.click('#soloQuit');await p.click('#soloQuit').catch(()=>{});await p.waitForSelector('#create',{timeout:5000}).catch(()=>{});await p.waitForTimeout(2300);
+ ok(await p.evaluate(()=>!code&&!solo&&!BGM.song),'回首頁就停');
+ await p.reload();await p.waitForTimeout(800);await p.click('#goSolo');await p.click('#soloStart');await p.waitForTimeout(2300);ok(await p.evaluate(()=>BGM.song==='calm'),'重新整理後還記得開著');
+ await p.click('.musbtn');await p.waitForTimeout(300);ok(await p.evaluate(()=>localStorage.getItem('ab_bgm')==='0'&&!BGM.song),'再按一次關掉');
+ await c0.close();
+ /* 觀眾預設開；遊戲中換緊張的曲子；結束回大廳換回來 */
+ await reset();const r=await room(b,3,{vp:{width:360,height:640}});const [h,a,x]=r.ps;
+ ok((await layout(h)).length===0,'360 寬房間標題列放得下');
+ await x.click('#toWatch');await x.waitForSelector('.ghostcard');await x.waitForTimeout(2300);
+ ok(await x.evaluate(()=>BGM.song==='calm'&&document.querySelector('.musbtn').getAttribute('aria-pressed')==='true'),'改觀戰：預設有音樂');
+ ok(await h.evaluate(()=>!BGM.song),'玩家那邊還是沒有音樂');
+ await a.click('#ready');await h.waitForTimeout(300);await h.click('#start');await h.waitForFunction(()=>g().phase!=='lobby');await x.waitForTimeout(2300);
+ ok(await x.evaluate(()=>BGM.song==='battle'),'遊戲開始：換成緊張的曲子');
+ await x.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});await x.waitForTimeout(300);
+ ok(await x.evaluate(()=>!BGM.song),'切到背景就停');
+ await x.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));});await x.waitForTimeout(300);
+ ok(await x.evaluate(()=>BGM.song==='battle'),'回來接著放');
+ await h.click('#again');await h.click('#again');await h.waitForFunction(()=>g().phase==='lobby');await x.waitForTimeout(2300);
+ ok(await x.evaluate(()=>BGM.song==='calm'),'回到大廳換回輕鬆的曲子');
+ const errs=[...p.__errs,...h.__errs,...a.__errs,...x.__errs];ok(!errs.length,'沒有錯誤 '+errs.join(' | '));
+ await b.close();console.log(fails?'失敗 '+fails:'全部通過');process.exit(fails?1:0);})().catch(e=>{console.log('ERR',e.message);process.exit(1);});

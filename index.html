@@ -289,6 +289,8 @@ textarea{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--li
 .hist .hrow:has(+ .think){border-bottom:0}
 .titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .helpbtn{font:inherit;font-size:15px;min-height:44px;min-width:44px;flex:0 0 auto;white-space:nowrap;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+@media (max-width:419px){.h1x{display:none}}
+.musbtn{padding:0;width:44px;display:inline-grid;place-items:center}.musbtn .uii{width:21px;height:21px;vertical-align:0}.musbtn .moff,.musbtn.off .mon{display:none}.musbtn.off .moff{display:inline}
 .helpc{width:min(400px,100%);box-sizing:border-box;max-width:400px;text-align:left;align-items:stretch;gap:10px;touch-action:pan-y}
 #help,#lookM{padding-block:calc(16px + var(--safe-top)) calc(16px + env(safe-area-inset-bottom,0px))}
 #helpBody{overflow:hidden}
@@ -721,7 +723,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-1';
+const APP_VERSION='2026.11.08-2';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -863,7 +865,7 @@ let installEv=null;
 const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const INAPP=/\bLine\/|FBAN|FBAV|FB_IAB|Instagram|MicroMessenger/i.test(navigator.userAgent);
 addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEv=e;});
-const roomHead=(help,sub,links)=>`<header class="roomhead"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${help}" aria-label="這一頁怎麼玩">？</button></div><div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div><div class="subrow"><p class="sub">${sub}</p>${links}</div></header>`;
+const roomHead=(help,sub,links)=>`<header class="roomhead"><div class="titlerow"><h1>幾A幾B</h1><button class="helpbtn" type="button" data-help="${help}" aria-label="這一頁怎麼玩">？</button>${musBtn()}</div><div class="codebox"><span class="lbl">邀請碼</span><b>${esc(code)}</b><button class="peek" id="copyCode">分享</button></div><div class="subrow"><p class="sub">${sub}</p>${links}</div></header>`;
 /* 電腦版：有角色場景的畫面分兩欄，左邊場景固定不捲走、右邊打字 */
 const wideNow=()=>innerWidth>=740||(innerWidth>=620&&innerHeight<480); let wasWide=wideNow();
 function twoCol(){if(!wideNow()||!app.querySelector(':scope>.card svg.stage:not(.one)'))return;
@@ -1122,7 +1124,7 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
    pic('',G2,'第 3 步：大家準備','friends3','大家按<b>準備完成</b>，房主按<b>開始遊戲</b>'),
    pic('',G2,'第 4 步：每人出一題','friends4','每人出一題，猜<b>別人</b>的題','沒想法可以按隨機出題'),
    {k:'',g:G2,t:'有人斷線怎麼辦',h:`<div class="hpic">${helpStage([{x:84,look:L,name:'你',crown:true},{x:216,look:a,name:'小美',face:'cry'}])}</div>
-     <p class="hline">有人太慢或斷線，房主可以按<b>不等他</b>先開始</p><p class="hsub">他會先到場邊，看不到答案，按<b>我回來了</b>就能回來；房主不見時，線上最早進房的人會自動接手</p>`},
+     <p class="hline">有人太慢或斷線，房主可以按<b>不等他</b>先開始</p><p class="hsub">他會先到場邊，看不到答案，按<b>我回來了</b>就能回來；房主不見時，線上最早進房的人會自動接手。換了瀏覽器（例如從 LINE 跳到 Safari）再加入，點自己的名字就能接回原本的位子</p>`},
    {k:'modes',g:G3,t:'三種玩法',h:`<div class="hpic"><div class="h3">
      <div><span class="hic">${helpIcon({x:30,look:L,crown:true,face:'A'})}</span><b>全部猜完</b><span>次數少的贏</span></div>
      <div><span class="hic">${helpIcon({x:30,look:a,face:'wow'})}</span><b>先猜中</b><span>有人中就結束</span></div>
@@ -1158,6 +1160,8 @@ function helpPages(){const L=myLook(),a=parseLook('1.1.4.2.0.4.0'),b=parseLook('
      <div><span class="hi">${angelSVG()}</span><p><b>天使 3 位</b>送上線索</p></div>
      <div style="grid-column:1/3"><span class="hi">${uiIcon('note')}</span><p><b>看得到</b>大家的題目和猜測</p></div></div></div>
      <p class="hline">想下場時，在大廳按<b>我也要玩</b></p>`},
+   {k:'',g:G7,t:'背景音樂',h:`<div class="hpic"><div class="hgrid"><div style="grid-column:1/3"><span class="hi">${uiIcon('music')}</span><p>按標題旁的<b>音符</b>開關音樂</p></div></div></div>
+     <p class="hline">觀眾預設有音樂，玩家要自己打開</p><p class="hsub">同一個房間好幾支手機一起放會很吵；遊戲中會換成緊張的曲子。手機靜音時聽不到</p>`},
    ...installPages()];}
 /* 加到主畫面：把使用者自己的裝置排在第一頁 */
 function installPages(){const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1), and=/Android/.test(ua), mac=/Macintosh/.test(ua)&&!ios;
@@ -1844,7 +1848,9 @@ const PX_UI={
  versus:[["RRR.......BB","RRRR.....BBB",".RRRR...BBB.","..RRRR.BBB..","...RRRBBB...","....RRBB....","...BBBRRR...","..BBB..RRRR.",".BBB....RRRR","BBB......RRR"],{R:'#ffd34d',B:'#ffffff'}],
  eye:[["...WWWW...",".WWWWWWWW.","WWWBBBBWWW","WWBBKKBBWW","WWBBKKBBWW","WWWBBBBWWW",".WWWWWWWW.","...WWWW..."],{W:'#eef1f6',B:'#3fa0ff',K:'#1e1b2e'}],
  door:[["DDDDDDD...","DWWWWWD...","DWWWWWD.A.","DWWWWWDAA.","DWWWYWAAAA","DWWWWWDAA.","DWWWWWD.A.","DWWWWWD...","DDDDDDD..."],{D:'#8a5a34',W:'#c98a52',Y:'#ffd34d',A:'#ffd34d'}],
- flag:[["NWWWWWWW..","NWWWWWWWW.","NWWWWWWWWW","NWWWWWWW..","N.........","N.........","N.........","N........."],{N:'#8a6a45',W:'#ffffff'}]
+ flag:[["NWWWWWWW..","NWWWWWWWW.","NWWWWWWWWW","NWWWWWWW..","N.........","N.........","N.........","N........."],{N:'#8a6a45',W:'#ffffff'}],
+ music:[["...YYYYYYY","...YYYYYYY","...Y.....Y","...Y.....Y","...Y.....Y",".YYY...YYY","YYYY..YYYY","YYYY..YYYY",".YY....YY."],{Y:'#ffd34d'}],
+ musicoff:[["RR.GGGGGGG.",".RRGGGGGGG.","..RR.....G.","...RR....G.","...GRR...G.",".GGG.RRGGG.","GGGG..RRGG.","GGGG..GRRG.",".GG....GRR.",".........RR","..........R"],{G:'#9aa3b5',R:'#e53935'}]
 };
 /* 打中時的像素效果：黏在身上的污漬、腫包、星星、爆炸 */
 const PX_FX={
@@ -3199,7 +3205,7 @@ function renderSolo(){
   saveSolo();
   const s=solo, duel=s.mode==='duel', nk='solo_'+s.id, used=s.hist.filter(x=>x.hint).length;
   const vil=s.vil;
-  let h=`<header class="roomhead"><div class="titlerow"><h1>邊緣人模式</h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button><p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div><button class="exitbtn" id="soloQuit" type="button">${uiIcon('door')}回首頁</button></header>`;
+  let h=`<header class="roomhead"><div class="titlerow"><h1>邊緣人<span class="h1x">模式</span></h1><button class="helpbtn" type="button" data-help="${s.result?'fun':s.hist.length?'stuck':'solo'}" aria-label="這一頁怎麼玩">？</button>${musBtn()}<p class="sub">${duel?(s.diff==='hard'?'困難':'簡單'):'練習'}${s.rep?' · 可重複':''}</p></div><button class="exitbtn" id="soloQuit" type="button">${uiIcon('door')}回首頁</button></header>`;
   if(s.phase==='setup'){
     h+=`<div class="card vil"><span class="vicon">${vilIcon(vil)}</span><div><span class="lbl">你的對手：${esc(vil.n)}</span><p>「${esc(vil.says)}」</p></div></div>
       <div class="card"><div class="chead"><h2>出一題給${esc(vil.n)}猜</h2><span class="sub">${s.rep?'可以重複':'不能重複'}</span></div><div class="padbox setp">${slots(true)}<div class="peekrow"><button class="peek" id="peek">${peek?'隱藏數字':'顯示數字'}</button><button class="peek" id="randSecret">${uiIcon('dice')} 隨機出題</button></div><p class="err">${esc(err)}</p>${pad(false)}</div></div>`;
@@ -3238,6 +3244,100 @@ setTimeout(()=>{if(!db){fbWait=false;render();}},11000);
 if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});
   /* 畫面和連線都好了才存說明圖片，沒網路時說明也看得到 */
   setTimeout(()=>{try{const c=navigator.connection;if(c&&c.saveData)return;navigator.serviceWorker.ready.then(r=>r.active&&r.active.postMessage('warm'));}catch(e){}},9000);});
+/* ---------- 背景音樂 ----------
+   自己寫的兩首 8-bit 小曲，用 WebAudio 當場合成：沒有音檔、不用下載，離線也能放。
+   大廳、結算放輕鬆的（C 大調）；遊戲中放緊張的（A 小調）。一個音符一格（八分音符），'-' 延長、'.' 休息；鼓：k 大鼓、s 小鼓、h 鈸。
+   預設觀眾開、玩家關（同一個房間幾支手機一起放會很吵），按標題旁的音符切換，ab_bgm 記住。
+   切到背景、關掉就停；iPhone 側邊靜音開關打開時聽不到（網頁音效跟著鈴聲開關） */
+const SONGS={
+ calm:{bpm:112,
+  lead:'E4 . G4 . C5 - B4 G4|A4 - - E4 C4 . E4 .|F4 . A4 . C5 - A4 F4|G4 - - - D4 . G4 .|E4 . G4 . C5 - D5 E5|C5 - A4 - E4 . A4 .|F4 . A4 . B4 - D5 .|C5 - - - . . . .|A4 . C5 . F5 - E5 C5|D5 - B4 - G4 . B4 .|G4 . B4 . E5 - D5 B4|C5 - - - A4 . E4 .|F4 . A4 . C5 . A4 .|B4 - D5 - G5 - F5 .|E5 . D5 . C5 . G4 .|C5 - - - . . . .',
+  bass:'C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|D3 . A3 . G2 . D3 .|C3 . G3 . C4 . G3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|E2 . B2 . E3 . B2 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|C3 . G3 . C4 - - .',
+  drum:'khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss'},
+ battle:{bpm:140,
+  lead:'A4 . C5 . E5 . D5 C5|A4 - - - F4 . A4 .|B4 . D5 . G5 - F5 E5|E5 - - - G#4 . B4 .|A4 . C5 . E5 . A5 G5|F5 - E5 - C5 . A4 .|B4 . D5 . G5 . D5 B4|E5 - D5 - C5 - B4 .|D5 . F5 . A5 - G5 F5|E5 - C5 - A4 . C5 .|D5 . F5 . D5 . A4 .|B4 - - - G#4 . E4 .|A4 . C5 . F5 . C5 .|B4 . D5 . G5 . D5 .|C5 . E5 . A5 - G5 E5|E5 - - - G#4 - B4 .',
+  bass:'A2 A3 A2 A3 A2 A3 A2 A3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|E2 E3 E2 E3 E2 E3 E2 E3|A2 A3 A2 A3 A2 A3 A2 A3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|E2 E3 E2 E3 E2 E3 E2 E3|D3 D4 D3 D4 D3 D4 D3 D4|A2 A3 A2 A3 A2 A3 A2 A3|D3 D4 D3 D4 D3 D4 D3 D4|E2 E3 E2 E3 E2 E3 E2 E3|F2 F3 F2 F3 F2 F3 F2 F3|G2 G3 G2 G3 G2 G3 G2 G3|A2 A3 A2 A3 A2 A3 A2 A3|E2 E3 E2 E3 E2 E3 E2 E3',
+  drum:'khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|ksksksss|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|khshkksh|ksksksss'}};
+const BGM=(()=>{
+  const NN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  const hz=t=>{const m=/^([A-G])(#?)(\d)$/.exec(t);return m?440*Math.pow(2,(12*(+m[3]+1)+NN[m[1]]+(m[2]?1:0)-69)/12):0;};
+  const toks=s=>s.split('|').join(' ').split(/\s+/).filter(Boolean);
+  const songs={};for(const k in SONGS){const S=SONGS[k];songs[k]={step:60/S.bpm/2,lead:toks(S.lead),bass:toks(S.bass),drum:S.drum.replace(/\|/g,'').split('')};}
+  let ac=null,G=null,cur=null,step=0,nextT=0,timer=null,stopT=null;
+  /* 一組音色：音量、雜訊（鼓）、25% 方波（紅白機的主旋律音色） */
+  function graph(c){
+    const fade=c.createGain();fade.gain.value=0;fade.connect(c.destination);
+    const bus=c.createGain();bus.gain.value=.5;bus.connect(fade);
+    const noise=c.createBuffer(1,c.sampleRate,c.sampleRate),d=noise.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let i=1;i<n;i++){re[i]=Math.sin(2*Math.PI*i*.25)/(Math.PI*i);im[i]=(1-Math.cos(2*Math.PI*i*.25))/(Math.PI*i);}
+    return{c,fade,bus,noise,pulse:c.createPeriodicWave(re,im)};}
+  function init(){
+    if(ac)return true;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return false;
+    try{ac=new AC();G=graph(ac);}catch(e){ac=null;return false;}return true;}
+  /* 一個音：很快起音、慢慢變小、結尾收掉，聽起來一顆一顆的 */
+  function tone(G,t,f,dur,vol,kind){
+    const c=G.c,o=c.createOscillator(),gn=c.createGain();let out=gn;
+    if(kind==='lead')o.setPeriodicWave(G.pulse);else o.type='square';
+    o.frequency.setValueAtTime(f,t);
+    if(kind==='bass'){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;gn.connect(lp);out=lp;}
+    out.connect(G.bus);o.connect(gn);
+    const end=t+dur;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+.008);gn.gain.linearRampToValueAtTime(vol*.6,Math.max(t+.01,end-.03));gn.gain.linearRampToValueAtTime(0,end);
+    o.start(t);o.stop(end+.02);}
+  function hit(G,t,k){
+    const c=G.c;
+    if(k==='k'){const o=c.createOscillator(),gn=c.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);
+      gn.gain.setValueAtTime(.9,t);gn.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(gn);gn.connect(G.bus);o.start(t);o.stop(t+.18);return;}
+    const s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain(),len=k==='s'?.13:.035;
+    s.buffer=G.noise;fl.type=k==='s'?'bandpass':'highpass';fl.frequency.value=k==='s'?1800:7000;if(k==='s')fl.Q.value=.7;
+    gn.gain.setValueAtTime(k==='s'?.42:.11,t);gn.gain.exponentialRampToValueAtTime(.001,t+len);
+    s.connect(fl);fl.connect(gn);gn.connect(G.bus);s.start(t,Math.random()*.8);s.stop(t+len+.02);}
+  const held=(L,i)=>{let n=1;while(L[(i+n)%L.length]==='-'&&n<L.length)n++;return n;};
+  /* 第 i 格（八分音符）在時間 t 要響的音 */
+  function beat(G,S,i,t){
+    const N=S.lead.length;i%=N;
+    const a=S.lead[i];if(hz(a))tone(G,t,hz(a),held(S.lead,i)*S.step*.92,.16,'lead');
+    const b=S.bass[i];if(hz(b))tone(G,t,hz(b),held(S.bass,i)*S.step*.85,.26,'bass');
+    const d=S.drum[i];if(d&&d!=='.')hit(G,t,d);}
+  function sched(){
+    if(!ac||!cur)return;const S=songs[cur];
+    /* 手機忙著畫畫面時計時器會晚到，先排好 0.3 秒內要響的音 */
+    if(nextT<ac.currentTime)nextT=ac.currentTime+.05;
+    while(nextT<ac.currentTime+.3){beat(G,S,step,nextT);nextT+=S.step;step++;}}
+  function play(name){
+    if(!songs[name]||!init())return;clearTimeout(stopT);
+    if(ac.state!=='running')ac.resume().catch(()=>{});
+    if(cur!==name){cur=name;step=0;nextT=ac.currentTime+.08;}
+    G.fade.gain.cancelScheduledValues(ac.currentTime);G.fade.gain.setTargetAtTime(1,ac.currentTime,.25);
+    if(!timer)timer=setInterval(sched,100);sched();}
+  function stop(){
+    if(!ac||!cur)return;cur=null;clearInterval(timer);timer=null;
+    G.fade.gain.cancelScheduledValues(ac.currentTime);G.fade.gain.setTargetAtTime(0,ac.currentTime,.08);
+    clearTimeout(stopT);stopT=setTimeout(()=>{if(!cur&&ac.state==='running')ac.suspend().catch(()=>{});},600);}
+  /* iPhone 要在手指點一下的當下才能開聲音：有在放的時候，每次點畫面都順便確認一次。
+     要變成觀眾的那一下也先打開（觀眾預設有音樂），幾秒內沒有放就再關掉省電 */
+  function prime(){if(!init())return;if(ac.state!=='running'){ac.resume().catch(()=>{});try{const b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);}catch(e){}}
+    if(!cur){clearTimeout(stopT);stopT=setTimeout(()=>{if(!cur&&ac.state==='running')ac.suspend().catch(()=>{});},8000);}}
+  function unlock(){if(cur)prime();}
+  /* 測試用：離線算出一段音樂，檢查音量有沒有爆掉 */
+  async function render(name,sec){const S=songs[name],oc=new OfflineAudioContext(1,Math.ceil(sec*22050),22050),g=graph(oc);g.fade.gain.value=1;
+    for(let i=0,t=0;t<sec;i++,t+=S.step)beat(g,S,i,t);return (await oc.startRendering()).getChannelData(0);}
+  return{play,stop,unlock,prime,render,get song(){return cur;},get state(){return ac?ac.state:'none';},songs};
+})();
+function bgmOn(){const p=ls.get('ab_bgm');if(p==='1'||p==='0')return p==='1';try{return !!(code&&R&&!solo&&isWatcher(me));}catch(e){return false;}}
+/* 放哪一首：房間的大廳、結算放輕鬆的，遊戲中放緊張的；首頁不放 */
+function bgmScene(){try{
+  if(solo)return solo.phase==='play'&&!solo.result?'battle':'calm';
+  if(code&&R){if(R.phase==='coop')return coopState().over?'calm':'battle';const st=derive().status;return st==='lobby'||st==='over'?'calm':'battle';}
+}catch(e){}return null;}
+function bgmSync(){const want=bgmOn()&&!document.hidden?bgmScene():null;if(want)BGM.play(want);else BGM.stop();
+  document.querySelectorAll('.musbtn').forEach(b=>{const on=bgmOn();b.classList.toggle('off',!on);b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'背景音樂：開（按一下關掉）':'背景音樂：關（按一下打開）');});}
+const musBtn=()=>`<button class="helpbtn musbtn${bgmOn()?'':' off'}" type="button" aria-pressed="${bgmOn()}" aria-label="${bgmOn()?'背景音樂：開（按一下關掉）':'背景音樂：關（按一下打開）'}"><span class="mon">${uiIcon('music')}</span><span class="moff">${uiIcon('musicoff')}</span></button>`;
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#watchBtn,#toWatch,#toFan')&&ls.get('ab_bgm')!=='0')BGM.prime();
+  const b=e.target.closest&&e.target.closest('.musbtn');if(!b)return;const on=!bgmOn();ls.set('ab_bgm',on?'1':'0');bgmSync();BGM.unlock();
+  toast(on?(ls.get('ab_bgm_tip')?'背景音樂開了':'背景音樂開了。聽不到的話，看看手機是不是靜音'):'背景音樂關了');if(on)ls.set('ab_bgm_tip','1');});
+['click','touchend','keydown'].forEach(ev=>addEventListener(ev,()=>BGM.unlock(),{capture:true,passive:true}));
+document.addEventListener('visibilitychange',bgmSync);
+setInterval(bgmSync,2000);
 /* 400KB 的像素字型只用在角色名字和對話框：等畫面出來才在背景下載，省流量模式不下載，沒下載時用內建字體 */
 function loadPixelFont(){try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||'')))return;const f=new FontFace('Cubic11','url(Cubic_11.woff2)',{display:'swap'});document.fonts.add(f);f.load().catch(()=>{});}catch(e){}}
 addEventListener('load',()=>setTimeout(()=>{(window.requestIdleCallback||(fn=>fn()))(loadPixelFont,{timeout:4000});},1800));

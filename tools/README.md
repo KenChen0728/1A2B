@@ -17,6 +17,7 @@ node tools/test-fit.js all   # 各種手機尺寸每個畫面要不要滑（FIT=
 node tools/test-join.js      # 換瀏覽器接回位子、合作中途排進輪流、輪到離線的人到場邊、觀眾維持觀眾、舊邀請連結
 node tools/test-watch.js     # 大廳改觀戰、重新整理還是觀眾
 node tools/test-angel.js     # 小天使：合作全隊共用
+node tools/test-music.js     # 背景音樂：曲子格式、音量不爆、觀眾預設開、玩家預設關、遊戲中換曲子、切到背景就停
 node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
 node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）
 ```
