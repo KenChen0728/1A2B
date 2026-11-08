@@ -1,14 +1,19 @@
 /* =====================================================================
- * chip-audio.js ── 幾A幾B 第二版音樂與音效（試聽中，還沒放進遊戲）
+ * chip-audio.js ── 幾A幾B 第三版音樂與音效（試聽中，還沒放進遊戲）
  * 全部用 Web Audio API 當場合成，沒有任何音檔。
  *
  * 用法（手機瀏覽器規定：第一次一定要在「點擊／觸控」的事件裡呼叫才會出聲）：
- *   ChipAudio.playLobbyBGM();    大廳背景音樂（無限循環）
- *   ChipAudio.playBattleBGM();   戰鬥解謎背景音樂（無限循環）
- *   ChipAudio.stopBGM();         停止背景音樂（0.05 秒內收乾淨，回音殘響也一起收，不會漏拍）
- *   ChipAudio.playWinSFX();      猜中 4A 的獲勝音效
+ *   ChipAudio.playLobbyBGM();          大廳背景音樂（無限循環）
+ *   ChipAudio.playBattleBGM();         戰鬥解謎背景音樂（無限循環）
+ *   ChipAudio.setBattleIntensity(true) 熱血爆發：戰鬥旋律的低通濾波從 1500Hz 打開到 5200Hz（false 收回）
+ *   ChipAudio.stopBGM();               停止背景音樂（0.05 秒內收乾淨，回音殘響也一起收，不會漏拍）
+ *   音效：playSlipperSFX() 拖鞋打中、playIronPotSFX() 大鐵盆打中、playEvadeSFX() 閃掉、
+ *         playShieldBlockSFX() 鍋蓋擋掉、playKnockoutSFX() 被打倒、playDizzySFX() 眼冒金星、
+ *         playLoseSFX() 輸了、playWinSFX() 猜中 4A
  *   ChipAudio.setVolume({music: 1, sfx: 1});
- * 也可以直接呼叫 playLobbyBGM()、playBattleBGM()、playWinSFX()、stopBGM()。
+ *   打中類的音效會讓背景音樂瞬間壓低（ducking），音效才不會被蓋過。
+ *   試聽頁要比較上一版：playLobbyBGM({version: 2})、playBattleBGM({version: 2})。
+ * 也可以直接呼叫 playLobbyBGM()、playBattleBGM()、playWinSFX()、stopBGM() 等同名函式。
  *
  * 旋律、和弦都是原創：只參考指定作品的速度、音色和氣氛，沒有使用原曲的旋律。
  *
@@ -153,12 +158,16 @@
     const revSend = c.createGain(); revSend.connect(rev.input);
     const revRet = c.createGain(); revRet.gain.value = fx.revLevel; rev.output.connect(revRet); revRet.connect(level);
     const tracks = {};
-    /** 取得音軌（第一次用到才建立）：gain 音量、pan 左右、echo／rev 送到回音／殘響的量 */
+    /** 取得音軌（第一次用到才建立）：gain 音量、pan 左右、echo／rev 送到回音／殘響的量、
+     *  lp：在音軌上串一個低通濾波器（BiquadFilter lowpass），頻率之後可以動態改（存在 .lp） */
     function track(name, o) {
       if (tracks[name]) return tracks[name];
       o = o || {};
       const g = c.createGain(); g.gain.value = o.gain || 1;
-      const p = panner(c, o.pan || 0); g.connect(p); p.connect(dry);
+      const p = panner(c, o.pan || 0);
+      if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = -3; g.connect(f); f.connect(p); g.lp = f; }
+      else g.connect(p);
+      p.connect(dry);
       if (o.echo) { const s = c.createGain(); s.gain.value = o.echo; p.connect(s); s.connect(echoSend); }
       if (o.rev) { const s = c.createGain(); s.gain.value = o.rev; p.connect(s); s.connect(revSend); }
       return (tracks[name] = g);
@@ -240,9 +249,10 @@
    */
   const GAP = 0.010;
   function sawLead(L, t, m, dur, vel) {
-    const c = L.c, f = hz(m), end = t + Math.max(0.03, dur - GAP);
+    const c = L.c, f = hz(m), end = t + Math.max(0.03, dur - GAP), hot = L.hot;
     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1;
-    lp.frequency.setValueAtTime(5000, t); lp.frequency.exponentialRampToValueAtTime(2200, t + 0.08);
+    /* 熱血爆發時，每個音自己的濾波也開到 9000 → 5000Hz，鋸齒波才真的亮起來 */
+    lp.frequency.setValueAtTime(hot ? 9000 : 5000, t); lp.frequency.exponentialRampToValueAtTime(hot ? 5000 : 2200, t + 0.08);
     const amp = c.createGain(); lp.connect(amp); amp.connect(L.track('lead', { pan: -0.05, echo: 0.22, rev: 0.16 }));
     amp.gain.setValueAtTime(1e-4, t);
     amp.gain.exponentialRampToValueAtTime(vel, t + 0.004);                        // 4 毫秒起音：乾脆
@@ -318,7 +328,7 @@
   /**
    * 大廳：D 大調、92 BPM、一格＝八分音符、16 小節（約 42 秒）一循環
    * 溫暖放鬆、有留白：旋律多用長音（顫音才聽得出來），句尾留空拍；
-   * 前 4 小節只有旋律、分解和弦、低音；第 5 小節加入和弦鋪底；第 9 小節才加入很輕的節奏
+   * 前 4 小節只有旋律、分解和弦、低音；第 5 小節加入和弦鋪底和輕快的節奏（第二版是第 9 小節才有很輕的節奏）
    */
   const LOBBY = {
     bpm: 92, perBeat: 2,
@@ -345,8 +355,16 @@
       else if (s === 6) triBass(L, t, root, 2 * dt, 0.24);
       // 4. 和弦鋪底：第 5 小節開始，每次換和弦就放一個
       if (bar >= 4 && S.changeAt(k)) { let n = 1; while (n < S.N && !S.changeAt(k + n)) n++; lobbyPad(L, t, voicing(ch.pcs, 64), n * dt, 0.022); }
-      // 5. 很輕的節奏：第 9 小節開始，像心跳一樣的大鼓和反拍的鈸
-      if (bar >= 8) { if (s === 0) kick(L, t, 0.16); if (s === 3 || s === 7) hat(L, t, 0.05, 0.05); }
+      // 5. 節奏
+      if (S.v3) {
+        // 第三版：前 4 小節空著，第 5 小節帶入輕快的復古節奏（第 1、3 拍大鼓、第 2、4 拍輕小鼓、反拍鈸，第 9 小節起鈸變十六分音符）
+        if (bar >= 4) {
+          if (s === 0 || s === 4) kick(L, t, 0.22);
+          if (s === 2 || s === 6) snare(L, t, 0.09);
+          if (s % 2 === 1) hat(L, t, 0.06, 0.04);
+          if (bar >= 8 && s % 2 === 0) hat(L, t + dt / 2, 0.025, 0.03);
+        }
+      } else if (bar >= 8) { if (s === 0) kick(L, t, 0.16); if (s === 3 || s === 7) hat(L, t, 0.05, 0.05); }   // 第二版：第 9 小節才有心跳般的大鼓和反拍鈸
     },
   };
 
@@ -354,6 +372,9 @@
    * 戰鬥：E 小調、126 BPM、一格＝十六分音符、16 小節（約 30 秒）一循環
    * 熱血、機智：鋸齒波旋律大量用切分音（落在反拍的十六分音符），每個音都是斷音；
    * 三角波低音根音、高八度來回跳；第 5 小節開始反拍加入和弦「切」；第 8、16 小節最後小鼓連打
+   * 第三版：鋸齒波旋律先經過一個低通濾波器（音軌上的 lp）——
+   *   平時 1500Hz：刺耳的高頻削掉，旋律溫和地退到後面，跳躍的三角波低音比較突出，不搶思考
+   *   setBattleIntensity(true)：0.12 秒的時間常數打開到 6000Hz、旋律大聲 4dB，鋸齒波整個亮起來；false 時 0.4 秒慢慢收回
    */
   const BATTLE = {
     bpm: 126, perBeat: 4,
@@ -389,13 +410,18 @@
     },
   };
 
+  /* 第三版：沿用同一份譜，只改編曲和濾波（v3 旗標） */
+  const LOBBY3 = Object.assign(Object.create(LOBBY), { v3: true });
+  const BATTLE3 = Object.assign(Object.create(BATTLE), { v3: true });
+  const CALM_HZ = 1500, HOT_HZ = 6000, HOT_GAIN = 1.6;   // 熱血時旋律也大聲一點（+4dB），爆發感才明顯
+
   /**
    * 猜中 4A：一個 25% 方波振盪器，每 33 毫秒換一個音（setValueAtTime 直接跳過去、不滑音 → 紅白機的味道）。
    * 0.4 秒內在 C 大三和弦裡一圈一圈往上爬：C5 E5 G5 C6｜E5 G5 C6 E6｜G5 C6 E6 G6，
    * 最後定格在 C6 的長音，加上 7Hz 的快速顫音閃閃發亮，再慢慢消失；短短的左右回音讓尾巴更亮。
    * 音量：10 毫秒起音、琶音過程越來越大聲、長音維持 0.12 秒、0.8 秒內淡出。
    */
-  function winSfx(c, dest, t) {
+  function winSfx(c, dest, B, t) {
     const SEQ = ['C5', 'E5', 'G5', 'C6', 'E5', 'G5', 'C6', 'E6', 'G5', 'C6', 'E6', 'G6'].map((n) => hz(midi(n)));
     const STEP = 0.033, tEnd = t + SEQ.length * STEP, FINAL = hz(midi('C6'));
     const o = c.createOscillator(); o.setPeriodicWave(pulse25(c));
@@ -409,25 +435,177 @@
     const dep = c.createGain(); dep.gain.setValueAtTime(0, t); dep.gain.setValueAtTime(0, tEnd + 0.08); dep.gain.linearRampToValueAtTime(FINAL * 0.008, tEnd + 0.3);
     lfo.connect(dep); dep.connect(o.frequency);
     amp.gain.setValueAtTime(1e-4, t);
-    amp.gain.exponentialRampToValueAtTime(0.16, t + 0.01);
-    amp.gain.linearRampToValueAtTime(0.24, tEnd);
-    amp.gain.setValueAtTime(0.24, tEnd + 0.12);
+    amp.gain.exponentialRampToValueAtTime(0.11, t + 0.01);
+    amp.gain.linearRampToValueAtTime(0.16, tEnd);
+    amp.gain.setValueAtTime(0.16, tEnd + 0.12);
     amp.gain.exponentialRampToValueAtTime(1e-4, tEnd + 0.9);
     o.start(t); lfo.start(t); o.stop(tEnd + 0.95); lfo.stop(tEnd + 0.95);
     return { end: tEnd + 1.8, nodes: [amp, echo.output, send] };
   }
 
+  /* ================= 音效（第三版規格） =================
+   * 每個音效都是 (c, out, B, t)：c＝AudioContext、out＝輸出（音效音量）、B＝總混音（白噪音、壓低音樂用）、t＝開始時間
+   * 回傳 { end: 聲音結束的時間, nodes: 結束後要斷開的節點（有反饋迴路的一定要斷，不然會一直佔運算） } */
+  /** 播一段循環的白噪音 */
+  function noiseSrc(c, B, t, dur) { const s = c.createBufferSource(); s.buffer = B.noise; s.loop = true; s.start(t, Math.random() * 1.5); s.stop(t + dur + 0.05); return s; }
+  /**
+   * 背景音樂瞬間壓低（ducking）：音效打中的那一下，音樂 0.03 秒內壓到 depth，
+   * hold 秒後用 0.25 秒的時間常數慢慢回來 → 音效的衝擊感不會被音樂蓋過
+   */
+  function duck(B, t, depth, hold) {
+    const g = B.duck.gain; g.cancelScheduledValues(t); g.setValueAtTime(1, t);
+    g.linearRampToValueAtTime(depth, t + 0.03); g.setTargetAtTime(1, t + hold, 0.25);
+  }
+  /**
+   * 拖鞋打中：兩層
+   *   ① 白噪音 → 1000Hz 高通（只留清脆的部分）→ 1 毫秒衝到最大、0.03 秒內收到 0 → 「啪」
+   *   ② 180Hz 正弦波 → 3 毫秒起音、0.08 秒內收到 0 → 打到肉的悶沉重量
+   */
+  function slipperSfx(c, out, B, t) {
+    const n = noiseSrc(c, B, t, 0.04), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1000;
+    const g1 = c.createGain(); g1.gain.setValueAtTime(1e-4, t); g1.gain.exponentialRampToValueAtTime(0.9, t + 0.001); g1.gain.exponentialRampToValueAtTime(1e-4, t + 0.03);
+    n.connect(hp); hp.connect(g1); g1.connect(out);
+    const o = c.createOscillator(); o.frequency.value = 180;
+    const g2 = c.createGain(); g2.gain.setValueAtTime(1e-4, t); g2.gain.exponentialRampToValueAtTime(0.8, t + 0.003); g2.gain.exponentialRampToValueAtTime(1e-4, t + 0.08);
+    o.connect(g2); g2.connect(out); o.start(t); o.stop(t + 0.1);
+    duck(B, t, 0.5, 0.15);
+    return { end: t + 0.12, nodes: [] };
+  }
+  /**
+   * 大鐵盆打中：375、513、741、985Hz 四個不成倍數（不協和）的頻率一起響 → 金屬聲
+   *   低的兩個（375 正弦、513 方波）留下來，1.6／1.2 秒慢慢消失；高的兩個（741 正弦、985 方波）0.15 秒內收掉
+   *   方波的高次泛音太刺 → 4500Hz 低通修掉一點；敲到的瞬間加一點 2500Hz 以上的雜音
+   *   延遲迴路：延遲 31 毫秒 → 低通 2200Hz → 回授 0.8 → 回到延遲；每 31 毫秒回來一次、每次剩 8 成，
+   *   聲音在迴路裡繞，變成空心的「鏜ーー」嗡嗡長尾巴（約 1 秒）
+   */
+  function potSfx(c, out, B, t) {
+    const mix = c.createGain(); mix.gain.value = 0.5;
+    const tone = c.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 4500; tone.Q.value = -3;
+    mix.connect(tone); tone.connect(out);
+    [[375, 'sine', 1.0, 1.6], [513, 'square', 0.22, 1.2], [741, 'sine', 0.6, 0.15], [985, 'square', 0.16, 0.15]].forEach(([f, type, a, dec]) => {
+      const o = c.createOscillator(); o.type = type; o.frequency.value = f;
+      const g = c.createGain(); g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(a, t + 0.002); g.gain.exponentialRampToValueAtTime(1e-4, t + dec);
+      o.connect(g); g.connect(mix); o.start(t); o.stop(t + dec + 0.02);
+    });
+    const n = noiseSrc(c, B, t, 0.02), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500;
+    const gn = c.createGain(); gn.gain.setValueAtTime(0.4, t); gn.gain.exponentialRampToValueAtTime(1e-4, t + 0.015);
+    n.connect(hp); hp.connect(gn); gn.connect(out);
+    const d = c.createDelay(1); d.delayTime.value = 0.031;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2200; lp.Q.value = -3;
+    const fb = c.createGain(); fb.gain.value = 0.8;
+    const wet = c.createGain(); wet.gain.value = 0.5;
+    tone.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d); lp.connect(wet); wet.connect(out);
+    duck(B, t, 0.35, 0.5);
+    return { end: t + 2.4, nodes: [d, lp, fb, wet] };
+  }
+  /**
+   * 閃掉：白噪音 → 很窄的帶通（Q＝6，只留一小段頻率）
+   *   0.1 秒內中心頻率 300 → 2500Hz，再 0.05 秒急速掉回 700Hz；音量跟著先大後小；左邊滑到右邊
+   *   → 東西「咻」地擦過身邊
+   */
+  function evadeSfx(c, out, B, t) {
+    const n = noiseSrc(c, B, t, 0.17), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 6;
+    bp.frequency.setValueAtTime(300, t); bp.frequency.exponentialRampToValueAtTime(2500, t + 0.1); bp.frequency.exponentialRampToValueAtTime(700, t + 0.15);
+    const g = c.createGain(); g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(2.2, t + 0.08); g.gain.exponentialRampToValueAtTime(1e-4, t + 0.15);
+    const p = panner(c, 0); if (p.pan) { p.pan.setValueAtTime(-0.6, t); p.pan.linearRampToValueAtTime(0.6, t + 0.15); }
+    n.connect(bp); bp.connect(g); g.connect(p); p.connect(out);
+    return { end: t + 0.2, nodes: [] };
+  }
+  /**
+   * 鍋蓋擋掉：2200Hz、2850Hz 兩個三角波＋一點點 4000Hz 以上的雜音
+   *   0.01 秒衝到最大、0.1 秒內收到 0 → 硬物碰撞的「叮！」；0.06 秒後再輕輕彈一下（三分之一音量）
+   */
+  function shieldSfx(c, out, B, t) {
+    const hit = (t0, v) => {
+      [2200, 2850].forEach((f) => {
+        const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = f;
+        const g = c.createGain(); g.gain.setValueAtTime(1e-4, t0); g.gain.exponentialRampToValueAtTime(v, t0 + 0.01); g.gain.exponentialRampToValueAtTime(1e-4, t0 + 0.1);
+        o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + 0.12);
+      });
+      const n = noiseSrc(c, B, t0, 0.03), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4000;
+      const gn = c.createGain(); gn.gain.setValueAtTime(v * 0.25, t0); gn.gain.exponentialRampToValueAtTime(1e-4, t0 + 0.025);
+      n.connect(hp); hp.connect(gn); gn.connect(out);
+    };
+    hit(t, 0.35); hit(t + 0.06, 0.12);
+    duck(B, t, 0.6, 0.1);
+    return { end: t + 0.2, nodes: [] };
+  }
+  /**
+   * 被打倒：三層
+   *   ① 底層：三角波 0.3 秒內從 120Hz 滑到 40Hz → 重重落地（手機喇叭放不太出來，耳機聽得到）
+   *   ② 中層：白噪音 → 400Hz 低通，3 毫秒爆開、0.25 秒收掉 → 撞擊的衝擊
+   *   ③ 高層：25% 方波 C6 G5 D#5 C5 G4（C 小調）每 40 毫秒往下跳 → 8-bit 的潰敗感，手機上主要聽這一層
+   */
+  function knockSfx(c, out, B, t) {
+    const o = c.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.3);
+    const g = c.createGain(); g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(0.9, t + 0.005); g.gain.exponentialRampToValueAtTime(1e-4, t + 0.38);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.4);
+    const n = noiseSrc(c, B, t, 0.3), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 400;
+    const gn = c.createGain(); gn.gain.setValueAtTime(1e-4, t); gn.gain.exponentialRampToValueAtTime(1.4, t + 0.003); gn.gain.exponentialRampToValueAtTime(1e-4, t + 0.25);
+    n.connect(lp); lp.connect(gn); gn.connect(out);
+    const NOTES = ['C6', 'G5', 'D#5', 'C5', 'G4'].map((x) => hz(midi(x))), t0 = t + 0.02, tE = t0 + NOTES.length * 0.04;
+    const a = c.createOscillator(); a.setPeriodicWave(pulse25(c));
+    NOTES.forEach((f, i) => a.frequency.setValueAtTime(f, t0 + i * 0.04));
+    const la = c.createBiquadFilter(); la.type = 'lowpass'; la.frequency.value = 5000; la.Q.value = -3;
+    const ga = c.createGain(); ga.gain.setValueAtTime(1e-4, t); ga.gain.setValueAtTime(1e-4, t0); ga.gain.exponentialRampToValueAtTime(0.17, t0 + 0.008);
+    ga.gain.exponentialRampToValueAtTime(0.06, tE); ga.gain.exponentialRampToValueAtTime(1e-4, tE + 0.08);
+    a.connect(la); la.connect(ga); ga.connect(out); a.start(t); a.stop(tE + 0.1);
+    duck(B, t, 0.35, 0.35);
+    return { end: tE + 0.12, nodes: [] };
+  }
+  /**
+   * 眼冒金星：方波 0.5 秒內每 15 毫秒隨機跳一個音（整體趨勢 1200Hz → 300Hz 往下走，每次在趨勢上下 ±22% 亂跳），
+   *   再掛一個 13Hz 的正弦 LFO 在頻率上（幅度 ±70Hz）→ 用力晃的暈眩感；3500Hz 低通讓方波不刺耳
+   */
+  function dizzySfx(c, out, B, t) {
+    const o = c.createOscillator(); o.type = 'square';
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3500; lp.Q.value = -3;
+    const g = c.createGain(); o.connect(lp); lp.connect(g); g.connect(out);
+    const STEP = 0.015, N = Math.round(0.5 / STEP);
+    for (let i = 0; i < N; i++) { const base = 1200 * Math.pow(300 / 1200, i / (N - 1)); o.frequency.setValueAtTime(base * (0.78 + Math.random() * 0.44), t + i * STEP); }
+    const lfo = c.createOscillator(); lfo.frequency.value = 13;
+    const dep = c.createGain(); dep.gain.value = 70; lfo.connect(dep); dep.connect(o.frequency);
+    g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(0.07, t + 0.01); g.gain.setValueAtTime(0.07, t + 0.35); g.gain.exponentialRampToValueAtTime(1e-4, t + 0.5);
+    o.start(t); lfo.start(t); o.stop(t + 0.52); lfo.stop(t + 0.52);
+    return { end: t + 0.55, nodes: [] };
+  }
+  /**
+   * 輸了：方波＋三角波（一半一半，2600Hz 低通讓它不刺），每個音 0.15 秒：C5 → G#4 → G4 → F#4
+   *   每個音 8 毫秒起音、結束前 25 毫秒收掉（音和音之間分開）；
+   *   最後一個音唱 0.1 秒後往下滑（Pitch Drop）到大約低一個八度多，0.7 秒內淡出
+   */
+  function loseSfx(c, out, B, t) {
+    const NOTES = ['C5', 'G#4', 'G4', 'F#4'].map((x) => hz(midi(x))), D = 0.15;
+    const sq = c.createOscillator(); sq.type = 'square';
+    const tr = c.createOscillator(); tr.type = 'triangle';
+    const gs = c.createGain(); gs.gain.value = 0.45; const gt = c.createGain(); gt.gain.value = 0.55;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.Q.value = -3;
+    const g = c.createGain(); sq.connect(gs); tr.connect(gt); gs.connect(lp); gt.connect(lp); lp.connect(g); g.connect(out);
+    NOTES.forEach((f, i) => {
+      const t0 = t + i * D; sq.frequency.setValueAtTime(f, t0); tr.frequency.setValueAtTime(f, t0);
+      g.gain.setValueAtTime(1e-4, t0); g.gain.exponentialRampToValueAtTime(0.13, t0 + 0.008);
+      if (i < NOTES.length - 1) { g.gain.setValueAtTime(0.11, t0 + D - 0.025); g.gain.exponentialRampToValueAtTime(1e-4, t0 + D - 0.005); }
+    });
+    const tl = t + (NOTES.length - 1) * D, last = NOTES[NOTES.length - 1];
+    [sq, tr].forEach((x) => { x.frequency.setValueAtTime(last, tl + 0.1); x.frequency.exponentialRampToValueAtTime(last / 2.2, tl + 0.75); });
+    g.gain.setValueAtTime(0.13, tl + 0.1); g.gain.exponentialRampToValueAtTime(1e-4, tl + 0.8);
+    sq.start(t); tr.start(t); sq.stop(tl + 0.82); tr.stop(tl + 0.82);
+    return { end: tl + 0.85, nodes: [] };
+  }
+  const SFX = { slipper: slipperSfx, pot: potSfx, evade: evadeSfx, shield: shieldSfx, knock: knockSfx, dizzy: dizzySfx, lose: loseSfx, win: winSfx };
+
   /* ================= 播放、排程 ================= */
   const AHEAD = 0.12, TICK_MS = 25;
-  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 };
+  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 }, hot = false;
   /** 總混音：音樂、音效各一個音量 → 壓縮器（大聲小聲比較平均，也避免爆音）→ 喇叭 */
   function masterChain(c) {
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.2;
     comp.connect(c.destination);
-    const music = c.createGain(); music.gain.value = MUSIC_LEVEL * vol.music; music.connect(comp);
+    const music = c.createGain(); music.gain.value = MUSIC_LEVEL * vol.music;
+    const duckG = c.createGain(); music.connect(duckG); duckG.connect(comp);       // 音效打中時把音樂壓低（ducking）
     const sfx = c.createGain(); sfx.gain.value = vol.sfx; sfx.connect(comp);
-    return { comp, music, sfx, noise: noiseBuffer(c) };
+    return { comp, music, duck: duckG, sfx, noise: noiseBuffer(c) };
   }
   const MUSIC_LEVEL = 0.5;
   function ensure() {
@@ -439,11 +617,30 @@
     if (ctx.state !== 'running') ctx.resume().catch(() => {});
     return ctx;
   }
+  /** 建一條軌道；第三版戰鬥先把旋律音軌連同低通濾波器建好，熱血開關才有東西可以調 */
+  function laneFor(c, dest, S, noise) {
+    const L = makeLane(c, dest, S.fx(S), noise);
+    if (S.v3 && S.bassPat) { L.hot = hot; L.track('lead', { pan: -0.05, echo: 0.22, rev: 0.16, lp: hot ? HOT_HZ : CALM_HZ, gain: hot ? HOT_GAIN : 1 }); }
+    return L;
+  }
   function startSong(S) {
     const c = ensure(); if (!c) return;
     stopBGM(); prepare(S);
-    cur = { S, L: makeLane(c, bus.music, S.fx(S), bus.noise), i: 0, t: c.currentTime + 0.06 };
+    cur = { S, L: laneFor(c, bus.music, S, bus.noise), i: 0, t: c.currentTime + 0.06 };
     tick(); timer = setInterval(tick, TICK_MS);
+  }
+  /**
+   * 熱血爆發：true 時戰鬥旋律的低通濾波 0.12 秒時間常數打開到 6000Hz、音量 +4dB（鋸齒波整個亮起來），
+   * false 時 0.4 秒時間常數收回 1500Hz、原本音量（溫和、退到後面）。只影響第三版戰鬥；先設好再開始播也可以
+   */
+  function setBattleIntensity(high) {
+    hot = !!high;
+    if (!cur || !cur.L.track) return;
+    cur.L.hot = hot;
+    const tr = cur.L.track('lead'), f = tr.lp; if (!f) return;
+    const t = ctx.currentTime, tc = hot ? 0.12 : 0.4;
+    f.frequency.cancelScheduledValues(t); f.frequency.setValueAtTime(f.frequency.value, t); f.frequency.setTargetAtTime(hot ? HOT_HZ : CALM_HZ, t, tc);
+    tr.gain.cancelScheduledValues(t); tr.gain.setValueAtTime(tr.gain.value, t); tr.gain.setTargetAtTime(hot ? HOT_GAIN : 1, t, tc);
   }
   /** 時鐘排程：把「現在 ～ 現在＋0.12 秒」之間該響的格子都排好 */
   function tick() {
@@ -459,36 +656,52 @@
     setTimeout(() => { try { o.disconnect(); } catch (e) {} }, 300);
     cur = null;
   }
-  function playWinSFX() {
+  /** 播一個音效；結束後把有反饋迴路的節點斷開 */
+  function playSfx(name) {
     const c = ensure(); if (!c) return;
-    const r = winSfx(c, bus.sfx, c.currentTime + 0.02);
-    setTimeout(() => r.nodes.forEach((n) => { try { n.disconnect(); } catch (e) {} }), (r.end - c.currentTime) * 1000);
+    const out = c.createGain(); out.connect(bus.sfx);
+    const r = SFX[name](c, out, bus, c.currentTime + 0.02);
+    setTimeout(() => { [out].concat(r.nodes).forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - c.currentTime) * 1000 + 200);
   }
   function setVolume(v) {
     Object.assign(vol, v || {});
     if (bus) { bus.music.gain.value = MUSIC_LEVEL * vol.music; bus.sfx.gain.value = vol.sfx; }
   }
-  /** 測試用：離線算出一段聲音（'lobby'、'battle'、'win'），檢查音量、有沒有爆音 */
+  /**
+   * 測試用：離線算出一段聲音，檢查音量、有沒有爆音、熱血開關有沒有變亮
+   *   曲子：'lobby'、'battle'（第三版）、'lobby2'、'battle2'（第二版）、'battleHot'（第三版熱血）
+   *   音效：'slipper'、'pot'、'evade'、'shield'、'knock'、'dizzy'、'lose'、'win'
+   */
   async function render(name, sec, sr) {
     sr = sr || 44100;
     const oc = new OfflineAudioContext(2, Math.ceil(sec * sr), sr), b = masterChain(oc);
-    if (name === 'win') winSfx(oc, b.sfx, 0.05);
+    if (SFX[name]) { const out = oc.createGain(); out.connect(b.sfx); SFX[name](oc, out, b, 0.05); }
     else {
-      const S = prepare(name === 'lobby' ? LOBBY : BATTLE), L = makeLane(oc, b.music, S.fx(S), b.noise);
+      const S = prepare({ lobby: LOBBY3, battle: BATTLE3, lobby2: LOBBY, battle2: BATTLE, battleHot: BATTLE3 }[name]);
+      const keep = hot; hot = name === 'battleHot';
+      const L = laneFor(oc, b.music, S, b.noise); hot = keep;
       for (let i = 0, t = 0.05; t < sec; i++, t += S.stepDur) S.step(L, i, t);
     }
     return oc.startRendering();
   }
 
   const API = {
-    playLobbyBGM: () => startSong(LOBBY),
-    playBattleBGM: () => startSong(BATTLE),
-    stopBGM, playWinSFX, setVolume, render,
-    get playing() { return cur ? (cur.S === LOBBY ? 'lobby' : 'battle') : null; },
+    /** opts.version＝2 播上一版（試聽比較用），沒給就是第三版 */
+    playLobbyBGM: (opts) => startSong(opts && opts.version === 2 ? LOBBY : LOBBY3),
+    playBattleBGM: (opts) => startSong(opts && opts.version === 2 ? BATTLE : BATTLE3),
+    stopBGM, setBattleIntensity, setVolume, render,
+    playSlipperSFX: () => playSfx('slipper'),
+    playIronPotSFX: () => playSfx('pot'),
+    playEvadeSFX: () => playSfx('evade'),
+    playShieldBlockSFX: () => playSfx('shield'),
+    playKnockoutSFX: () => playSfx('knock'),
+    playDizzySFX: () => playSfx('dizzy'),
+    playLoseSFX: () => playSfx('lose'),
+    playWinSFX: () => playSfx('win'),
+    get playing() { return cur ? (cur.S.bassPat ? 'battle' : 'lobby') + (cur.S.v3 ? '' : '2') : null; },
+    get intensity() { return hot; },
   };
   global.ChipAudio = API;
-  global.playLobbyBGM = API.playLobbyBGM;
-  global.playBattleBGM = API.playBattleBGM;
-  global.playWinSFX = API.playWinSFX;
-  global.stopBGM = API.stopBGM;
+  ['playLobbyBGM', 'playBattleBGM', 'stopBGM', 'setBattleIntensity', 'playSlipperSFX', 'playIronPotSFX', 'playEvadeSFX',
+    'playShieldBlockSFX', 'playKnockoutSFX', 'playDizzySFX', 'playLoseSFX', 'playWinSFX'].forEach((k) => { global[k] = API[k]; });
 })(typeof window !== 'undefined' ? window : globalThis);

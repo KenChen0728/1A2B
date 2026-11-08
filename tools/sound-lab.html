@@ -36,18 +36,31 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     <p class="tip">把音量調大再按 ▶。iPhone 側邊的靜音開關打開時，iOS 17 以後這一頁也聽得到；聽不到的話先把靜音關掉。</p>
   </header>
 
-  <section class="card" aria-labelledby="h-v2">
-    <h2 id="h-v2">第二版（照你給的規格）</h2>
+  <section class="card" aria-labelledby="h-v3">
+    <h2 id="h-v3">第三版（Google 的完整規格）</h2>
     <div class="row"><span class="lbl">大廳</span><div class="btns">
       <button type="button" data-song="calm" data-ver="old" data-label="現在">▶ 現在</button>
-      <button type="button" data-v2="lobby" data-label="第二版">▶ 第二版</button></div></div>
+      <button type="button" data-v2="lobby2" data-label="第二版">▶ 第二版</button>
+      <button type="button" data-v2="lobby" data-label="第三版">▶ 第三版</button></div></div>
     <div class="row"><span class="lbl">戰鬥</span><div class="btns">
       <button type="button" data-song="battle" data-ver="old" data-label="現在">▶ 現在</button>
-      <button type="button" data-v2="battle" data-label="第二版">▶ 第二版</button></div></div>
-    <div class="row"><span class="lbl">猜中 4A</span><div class="btns">
-      <button type="button" data-v2fx="win">▶ 第二版</button>
-      <button type="button" data-song="win" data-ver="old" data-label="現在的勝利短曲">▶ 現在的勝利短曲</button></div></div>
-    <p class="tip">大廳：方波加三角波的旋律，帶 5.5Hz 顫音，回音左右來回、殘響很長；前 4 小節最空，第 9 小節才有很輕的節奏。戰鬥：126 BPM，鋸齒波一顆一顆的斷音，三角波低音上下跳。旋律都是原創，只參考速度、音色和氣氛。</p>
+      <button type="button" data-v2="battle2" data-label="第二版">▶ 第二版</button>
+      <button type="button" data-v2="battle" data-label="第三版">▶ 第三版</button>
+      <button type="button" id="hot" aria-pressed="false">熱血爆發：關</button></div></div>
+    <p class="tip">第三版戰鬥：平時旋律藏在 1500Hz 低通後面，溫和、不搶思考；放第三版時按「熱血爆發」，0.3 秒內打開到 6000Hz、旋律也大聲一點，鋸齒波整個亮起來，再按一次收回。大廳第三版：第 5 小節就帶入輕快的節奏。</p>
+    <div class="row"><span class="lbl">音效</span><div class="btns">
+      <button type="button" data-v3fx="slipper">拖鞋打中</button>
+      <button type="button" data-v3fx="pot">大鐵盆打中</button>
+      <button type="button" data-v3fx="evade">閃掉</button>
+      <button type="button" data-v3fx="shield">鍋蓋擋掉</button>
+      <button type="button" data-v3fx="knock">被打倒</button>
+      <button type="button" data-v3fx="dizzy">眼冒金星</button></div></div>
+    <div class="row"><span class="lbl">結算</span><div class="btns">
+      <button type="button" data-v3fx="win">猜中 4A</button>
+      <button type="button" data-v3fx="lose">輸了（第三版）</button>
+      <button type="button" data-song="lose" data-ver="old" data-label="輸了（現在）">▶ 輸了（現在）</button>
+      <button type="button" data-song="win" data-ver="old" data-label="贏了（現在）">▶ 贏了（現在）</button></div></div>
+    <p class="tip">一邊放戰鬥一邊按音效，可以聽打中時音樂被壓低。番茄、雞蛋、炸彈、花、愛心和「丟出去」規格裡沒寫，先用下面第一版的。旋律都是原創，只參考速度、音色和氣氛。</p>
   </section>
 
   <section class="card" aria-labelledby="h-bgm">
@@ -94,7 +107,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     <h2 id="h-tell">聽完跟我說</h2>
     <p class="tip" style="margin:0 0 4px">每首選「現在」還是「新版」；哪個音效要改，用自己的話說就好，例如「番茄不夠濕」「鐵盆再重一點」。</p>
   </section>
-  <p class="ver">試聽頁 2（2026-11-09）· 這一頁不會改到遊戲</p>
+  <p class="ver">試聽頁 3（2026-11-09）· 這一頁不會改到遊戲</p>
 </main>
 <script src="chip-audio.js"></script>
 <script>
@@ -474,8 +487,9 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   /* 試聽頁：iPhone 靜音開關打開時也聽得到（iOS 17 以後才有，遊戲本體不會這樣做） */
   try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
   if(b.dataset.song){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();if(!on){play(b.dataset.song,b.dataset.ver,()=>mark(null));mark(b);}return;}
-  if(b.dataset.v2){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();mark(null);if(!on){setVol();if(b.dataset.v2==='lobby')ChipAudio.playLobbyBGM();else ChipAudio.playBattleBGM();mark(b);}return;}
-  if(b.dataset.v2fx){setVol();ChipAudio.playWinSFX();return;}
+  if(b.dataset.v2){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();mark(null);if(!on){setVol();const v=b.dataset.v2,o={version:/2$/.test(v)?2:3};if(/^lobby/.test(v))ChipAudio.playLobbyBGM(o);else ChipAudio.playBattleBGM(o);mark(b);}return;}
+  if(b.dataset.v3fx){setVol();({slipper:ChipAudio.playSlipperSFX,pot:ChipAudio.playIronPotSFX,evade:ChipAudio.playEvadeSFX,shield:ChipAudio.playShieldBlockSFX,knock:ChipAudio.playKnockoutSFX,dizzy:ChipAudio.playDizzySFX,lose:ChipAudio.playLoseSFX,win:ChipAudio.playWinSFX})[b.dataset.v3fx]();return;}
+  if(b.id==='hot'){const h=!ChipAudio.intensity;ChipAudio.setBattleIntensity(h);b.setAttribute('aria-pressed',h);b.classList.toggle('on',h);b.textContent='熱血爆發：'+(h?'開':'關');return;}
   if(b.dataset.fx){sfx(b.dataset.fx,b.dataset.item);return;}
   if(b.id==='stopAll'){stop();ChipAudio.stopBGM();mark(null);}});
 document.getElementById('vm').addEventListener('input',setVol);document.getElementById('vs').addEventListener('input',setVol);
