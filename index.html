@@ -723,7 +723,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-7';
+const APP_VERSION='2026.11.08-8';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2024,7 +2024,8 @@ function scene(ws,ls,line,label,opt){ opt=opt||{};
     ws.forEach((p,i)=>{w+=svgWinner(wx0+i*wstep,layerTop,p.name,p.color,i,p.boss,p.prop,p.look,p.who,p.tg);});
     topY=layerTop-128-54; bx=W/2-60; by=topY+2; opt._tx=wx0;
   } else { topY=layerTop-56; bx=W/2-50; by=topY+4; }
-  const n=[...line].length, tw=Math.min(W-28,n*13.5), bw=tw+20;
+  /* 每個字的寬度：中文 13.5、英文數字 7、空白 4.5。全用中文寬度時，英文會被拉開變成「a l l  p a s s」 */
+  const cw=c=>c===' '?4.5:/[\u0020-\u007e]/.test(c)?7:13.5, tw=Math.min(W-28,[...line].reduce((t,c)=>t+cw(c),0)), bw=tw+20;
   bx=ws.length?W/2-bw/2:bx; bx=Math.max(4,Math.min(bx,W-bw-4));
   const tx=opt._tx!=null?Math.max(bx+14,Math.min(bx+bw-14,opt._tx)):bx+10;
   /* 字用固定寬度塞進白框（字型還沒載入也不會超出）；只有一個贏家時，泡泡跟著他閃躲移動 */
