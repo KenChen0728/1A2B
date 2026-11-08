@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>幾A幾B 音樂試聽</title>
+<style>
+:root{--paper:#f6f8fb;--ink:#1d3a6b;--fg:#1f2733;--muted:#5f6978;--line:#d5dde8;--card:#fff;--on:#1d3a6b;--onfg:#fff;--acc:#d9534f}
+@media (prefers-color-scheme:dark){:root{--paper:#141a24;--ink:#9cc1ff;--fg:#e6ebf2;--muted:#93a0b3;--line:#2c3646;--card:#1b2230;--on:#9cc1ff;--onfg:#141a24}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif;padding:max(16px,env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:560px;margin:0 auto;display:grid;gap:16px}
+h1{font-size:24px;margin:0;color:var(--ink)}
+h2{font-size:18px;margin:0 0 4px;color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px}
+.tip{color:var(--muted);font-size:14px;margin:6px 0 0}
+.row{display:grid;grid-template-columns:4.2em 1fr;gap:8px;align-items:center;padding:8px 0;border-top:1px dashed var(--line)}
+.row:first-of-type{border-top:0}
+.lbl{font-weight:700}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-size:15px;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--fg);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button:active{transform:translateY(1px)}
+button.on{background:var(--on);color:var(--onfg);border-color:var(--on);font-weight:700}
+button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.vol{display:grid;grid-template-columns:3em 1fr;gap:10px;align-items:center;min-height:44px}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.ver{color:var(--muted);font-size:13px;text-align:center;margin:0}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>音樂試聽</h1>
+    <p class="tip">方向 ②：溫暖可愛（木琴、長笛、撥弦、弦樂）。先關掉手機側邊的靜音開關、把音量調大，再按 ▶。</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-bgm">
+    <h2 id="h-bgm">背景音樂</h2>
+    <div class="row"><span class="lbl">大廳</span><div class="btns">
+      <button type="button" data-song="calm" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-song="calm" data-ver="new" data-label="新版">▶ 新版</button>
+      <button type="button" data-song="calm" data-ver="long" data-label="新版・長音">▶ 新版・長音</button></div></div>
+    <div class="row"><span class="lbl">遊戲中</span><div class="btns">
+      <button type="button" data-song="battle" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-song="battle" data-ver="new" data-label="新版">▶ 新版</button></div></div>
+    <div class="row"><span class="lbl">贏了</span><div class="btns">
+      <button type="button" data-song="win" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-song="win" data-ver="new" data-label="新版">▶ 新版</button></div></div>
+    <div class="row"><span class="lbl">輸了</span><div class="btns">
+      <button type="button" data-song="lose" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-song="lose" data-ver="new" data-label="新版">▶ 新版</button></div></div>
+    <p class="tip">新版大廳的前 4 小節比較輕，第 5 小節才加入鼓。「新版・長音」是長笛把音拉長、木琴只敲重拍，比較不吵。</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-fx">
+    <h2 id="h-fx">丟東西</h2>
+    <div id="items"></div>
+    <p class="tip">拖鞋和大鐵盆打中後會接「眼冒金星」。可以一邊放「遊戲中」的新版一邊按，聽打中時音樂被壓低的感覺。</p>
+  </section>
+
+  <section class="card" aria-labelledby="h-etc">
+    <h2 id="h-etc">其他</h2>
+    <div class="btns" style="padding:6px 0 4px">
+      <button type="button" data-fx="dodge">閃掉</button>
+      <button type="button" data-fx="block">鍋蓋擋掉</button>
+      <button type="button" data-fx="knock">被打倒</button>
+      <button type="button" data-fx="stars">眼冒金星</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-vol">
+    <h2 id="h-vol">音量</h2>
+    <div class="vol"><span>音樂</span><input type="range" id="vm" min="0" max="100" value="80" aria-label="音樂音量"></div>
+    <div class="vol"><span>音效</span><input type="range" id="vs" min="0" max="100" value="80" aria-label="音效音量"></div>
+    <div class="btns" style="padding:6px 0 4px"><button type="button" id="stopAll">■ 全部停止</button></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-tell">
+    <h2 id="h-tell">聽完跟我說</h2>
+    <p class="tip" style="margin:0 0 4px">每首選「現在」還是「新版」；哪個音效要改，用自己的話說就好，例如「番茄不夠濕」「鐵盆再重一點」。</p>
+  </section>
+  <p class="ver">試聽頁 1（2026-11-09）· 這一頁不會改到遊戲</p>
+</main>
+<script>
+'use strict';
+/* ===== 曲子：從遊戲 index.html 的 SONGS 複製過來（旋律、低音、鼓都一樣） ===== */
+const SONGS={
+ calm:{bpm:112,
+  lead:'E4 . G4 . C5 - B4 G4|A4 - - E4 C4 . E4 .|F4 . A4 . C5 - A4 F4|G4 - - - D4 . G4 .|E4 . G4 . C5 - D5 E5|C5 - A4 - E4 . A4 .|F4 . A4 . B4 - D5 .|C5 - - - . . . .|A4 . C5 . F5 - E5 C5|D5 - B4 - G4 . B4 .|G4 . B4 . E5 - D5 B4|C5 - - - A4 . E4 .|F4 . A4 . C5 . A4 .|B4 - D5 - G5 - F5 .|E5 . D5 . C5 . G4 .|C5 - - - . . . .',
+  bass:'C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|A2 . E3 . A3 . E3 .|D3 . A3 . G2 . D3 .|C3 . G3 . C4 . G3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|E2 . B2 . E3 . B2 .|A2 . E3 . A3 . E3 .|F2 . C3 . F3 . C3 .|G2 . D3 . G3 . D3 .|C3 . G3 . C4 . G3 .|C3 . G3 . C4 - - .',
+  drum:'khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshkhsh|khshksss'},
+ battle:{bpm:160,div:4,duty:.125,
+  lead:'A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . G#5 - A5 -|A#4 . D5 . F5 . A#4 . D5 . F5 . G5 - F5 -|E5 - - - D#5 - E5 - F5 - E5 - D#5 - E5 -|A4 . C5 . E5 . A4 . C5 . E5 . F5 - E5 -|A4 . C5 . E5 . A5 . G#5 . A5 . B5 . C6 .|A#5 - A5 - F5 - D5 - A#4 - D5 - F5 - A5 -|G#5 - - - E5 - - - B4 - - - G#4 - B4 -|D5 . F5 . A5 . D5 . F5 . A5 . A#5 - A5 -|D5 . F5 . A5 . D5 . F5 . A5 . C#5 - D5 -|E5 . A4 . C5 . E5 . A5 . E5 . C5 . A4 .|E5 - D#5 - E5 - F5 - E5 - D#5 - E5 - G#5 -|F5 . A#4 . D5 . F5 . A#5 . F5 . D5 . A#4 .|F5 - E5 - F5 - G5 - A5 - G5 - F5 - E5 -|B4 . E5 . G#5 . B5 . G#5 . E5 . D5 . B4 .|G#4 - A4 - B4 - C5 - D5 - D#5 - E5 - - -',
+  bass:'A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2 D2 D2 D3 D2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2 A2 A2 A3 A2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2 A#2 A#2 A#3 A#2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2|E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2 E2 E2 E3 E2',
+  drum:'kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtktktstht|kthtsthtssssssss'}};
+/* 結算的短曲：只放一次，放完安靜，回到大廳或下一局才再放音樂 */
+SONGS.win={bpm:150,div:4,once:true,
+  lead:'G4 B4 D5 G5 B4 D5 G5 B5 - - - . A5 . B5 .|C6 - - . B5 - - . A5 - G5 - F#5 - G5 -|A5 - - - D5 - - - F#5 - - - A5 - - -|G5 - - - - - - - . . . . . . . .',
+  bass:'G2 . G3 . G2 . G3 . G2 . G3 . G2 . G3 .|C3 . C4 . C3 . C4 . D3 . D4 . D3 . D4 .|D3 . D4 . D3 . D4 . D3 . D4 . D3 . D4 .|G2 - - - - - - - . . . . . . . .',
+  drum:'k.h.s.h.k.h.s.h.|k.h.s.h.k.h.s.h.|k.h.s.h.k.s.s.ss|k...............'};
+SONGS.lose={bpm:96,once:true,
+  lead:'G4 - - - F#4 - - -|F4 - - - - - - -|E4 - - - - - - .|. . . . . . . .',
+  bass:'C3 - - - B2 - - -|A#2 - - - - - - -|A2 - - - - - - .|. . . . . . . .',
+  drum:'........|........|s.......|........'};
+/* 和弦：每小節一個，同一小節兩個就是前後各半小節 */
+const CHORDS={calm:'C|Am|F|G|C|Am|Dm G|C|F|G|Em|Am|F|G7|C|C',battle:'Am|Am|Bb|Am|Am|Am|Bb|E|Dm|Dm|Am|Am|Bb|Bb|E7|E',win:'G|C D|D|G',lose:'C B|Bb|Am|-'};
+
+/* ===== 小工具 ===== */
+const NN={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const midi=t=>{const m=/^([A-G])(#?)(\d)$/.exec(t||'');return m?12*(+m[3]+1)+NN[m[1]]+(m[2]?1:0):null;};
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const toks=s=>s.split('|').join(' ').split(/\s+/).filter(Boolean);
+function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+let R=rng(42);
+const held=(L,i)=>{let n=1;while(L[(i+n)%L.length]==='-'&&n<L.length)n++;return n;};
+/* 連著後面的休止一起算：拉長音用 */
+const until=(L,i,max)=>{let n=1;while(n<max&&(L[(i+n)%L.length]==='-'||L[(i+n)%L.length]==='.'))n++;return n;};
+function chordPcs(n){if(!n||n==='-')return null;const m=/^([A-G])([b#]?)(m?)(7?)$/.exec(n);if(!m)return null;const r=(NN[m[1]]+(m[2]==='#'?1:m[2]==='b'?-1:0)+12)%12,p=[r,(r+(m[3]?3:4))%12,(r+7)%12];if(m[4])p.push((r+10)%12);return p;}
+/* 和弦排在 center 附近，換和弦時手指移動最少，聽起來比較順 */
+function voice(p,center){return p.map(pc=>{let best=0,bd=99;for(let o=1;o<9;o++){const m=12*o+pc,d=Math.abs(m-center);if(d<bd){bd=d;best=m;}}return best;}).sort((a,b)=>a-b);}
+function model(name){const S=SONGS[name],div=S.div||2,per=div*4,lead=toks(S.lead),bass=toks(S.bass),drum=S.drum.replace(/\|/g,'').split('');
+  const ch=CHORDS[name].split('|').map(b=>b.trim().split(/\s+/));
+  const chordAt=i=>{const b=ch[Math.floor(i/per)%ch.length];return b[b.length>1&&(i%per)>=per/2?1:0];};
+  const changeAt=i=>{const k=i%per;return k===0||(k===per/2&&ch[Math.floor(i/per)%ch.length].length>1);};
+  return{name,bpm:S.bpm,div,per,step:60/S.bpm/div,beat:60/S.bpm,lead,bass,drum,N:lead.length,once:!!S.once,duty:S.duty||.25,chordAt,changeAt};}
+const satCurve=k=>{const n=1024,c=new Float32Array(n),d=Math.tanh(k);for(let i=0;i<n;i++){const x=i/(n-1)*2-1;c[i]=Math.tanh(k*x)/d;}return c;};
+const pan=(c,v)=>{if(c.createStereoPanner){const p=c.createStereoPanner();p.pan.value=v;return p;}return c.createGain();};
+function noiseBuf(c){const n=c.sampleRate*2,b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0),r=rng(99);for(let i=0;i<n;i++)d[i]=r()*2-1;return b;}
+/* 殘響：雜訊慢慢變暗、變小，前面加幾個早期反射，像一個溫暖的房間 */
+function makeIR(c,sec){const sr=c.sampleRate,n=Math.floor(sr*sec),b=c.createBuffer(2,n,sr),pre=Math.floor(sr*.014);
+  for(let ch=0;ch<2;ch++){const d=b.getChannelData(ch),r=rng(ch?11:5);let lp=0;
+    for(let i=pre;i<n;i++){const x=(i-pre)/(n-pre),a=.15+.8*x;lp=lp*a+(r()*2-1)*(1-a);d[i]=lp*Math.exp(-x*5);}
+    for(const [ms,g] of [[11,.45],[19,.32],[27,.25],[37,.18],[48,.12]]){const k=pre+Math.floor(sr*(ms+(ch?2.3:0))/1000);if(k<n)d[k]+=(r()<.5?-g:g);}}
+  return b;}
+/* 包絡：起音 a 秒到 peak，時間常數 d 掉到 peak*s，dur 秒後放開（時間常數 r）。回傳可以停掉的時間 */
+function env(p,t,a,peak,d,s,dur,r){p.setValueAtTime(0,t);p.linearRampToValueAtTime(peak,t+a);p.setTargetAtTime(peak*s,t+a,d);
+  const te=t+Math.max(dur,a+.01),v=peak*s+(peak-peak*s)*Math.exp(-(te-t-a)/d);p.setValueAtTime(v,te);p.setTargetAtTime(0,te,r);return te+r*6;}
+
+/* ===== 總混音：音樂和音效分開調音量，打中時音樂壓低（duck），最後壓縮、限幅 ===== */
+function master(c){
+  const out=c.createGain();out.connect(c.destination);
+  const lim=c.createDynamicsCompressor();lim.threshold.value=-2;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.002;lim.release.value=.12;lim.connect(out);
+  const comp=c.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=10;comp.ratio.value=2.5;comp.attack.value=.006;comp.release.value=.22;comp.connect(lim);
+  const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=45;hp.Q.value=.7;hp.connect(comp);
+  const music=c.createGain(),duck=c.createGain();music.connect(duck);duck.connect(hp);
+  const sfx=c.createGain();sfx.connect(hp);
+  const old=c.createGain();old.connect(c.destination); /* 「現在」不經過新的混音，聽到的就是遊戲裡的樣子 */
+  const sfxRev=c.createConvolver();sfxRev.buffer=makeIR(c,1.2);const sr=c.createGain();sr.gain.value=.8;sfxRev.connect(sr);sr.connect(sfx);
+  return{c,music,duck,sfx,old,sfxRev,noise:noiseBuf(c),ir:makeIR(c,1.8)};}
+
+/* 每種樂器一條音軌：左右位置、送多少殘響和回音（主旋律在前、和弦在後、鼓在中間） */
+const CHS={mallet:{pan:-.08,rev:.24,dly:.1},flute:{pan:.14,rev:.32,dly:.14},pluck:{pan:.36,rev:.28,dly:.16},padL:{pan:-.55,rev:.5},padR:{pan:.55,rev:.5},
+  bass:{pan:0,rev:.05,sat:2,lp:3000,hp:65},kick:{pan:0,rev:.03},snare:{pan:.06,rev:.18},shaker:{pan:.28,rev:.08},wood:{pan:-.24,rev:.12},
+  glock:{pan:-.18,rev:.32,dly:.18},brass:{pan:0,rev:.22,dly:.08},cym:{pan:.1,rev:.3},strings:{pan:.05,rev:.3}};
+const TRIM=.14,TRIMS={calm:1,battle:.8,win:1,lose:1};
+/* 每首曲子一路音量（lane）：換曲子時 0.04 秒收掉，殘響回音也一起收，不會漏拍 */
+function lane(M,ver,S){const c=M.c,L={c,M,S,ver,noise:M.noise,ch:{}};
+  const out=c.createGain();out.connect(ver==='old'?M.old:M.music);L.out=out;
+  if(ver==='old'){L.bus=c.createGain();L.bus.gain.value=.5;L.bus.connect(out);L.pulse={25:pw(c,.25),125:pw(c,.125)};return L;}
+  const sum=c.createGain();sum.gain.value=TRIM*(TRIMS[S.name]||1);sum.connect(out);
+  const rv=c.createConvolver();rv.buffer=M.ir;const rg=c.createGain();rg.gain.value=.9;rv.connect(rg);rg.connect(sum);
+  const dl=c.createDelay(1.5);dl.delayTime.value=S.beat*.75;const fb=c.createGain();fb.gain.value=.28;const dlp=c.createBiquadFilter();dlp.type='lowpass';dlp.frequency.value=2600;
+  dl.connect(dlp);dlp.connect(fb);fb.connect(dl);const dg=c.createGain();dg.gain.value=.5;dlp.connect(dg);dg.connect(sum);
+  /* 音軌用到才建：沒用到的樂器不佔手機的運算 */
+  const mk=k=>{const o=CHS[k],i=c.createGain();let n=i;
+    if(o.sat){const ws=c.createWaveShaper();ws.curve=satCurve(o.sat);n.connect(ws);n=ws;}
+    if(o.lp){const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;n.connect(f);n=f;}
+    if(o.hp){const f=c.createBiquadFilter();f.type='highpass';f.frequency.value=o.hp;n.connect(f);n=f;}
+    const p=pan(c,o.pan||0);n.connect(p);p.connect(sum);
+    if(o.rev){const g=c.createGain();g.gain.value=o.rev;p.connect(g);g.connect(rv);}
+    if(o.dly){const g=c.createGain();g.gain.value=o.dly;p.connect(g);g.connect(dl);}
+    return i;};
+  L.ch=new Proxy({},{get:(o,k)=>o[k]||(o[k]=mk(k))});
+  return L;}
+
+/* ===== 「現在」：照抄遊戲裡的 8-bit 音色 ===== */
+function pw(c,dt){const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let i=1;i<n;i++){re[i]=Math.sin(2*Math.PI*i*dt)/(Math.PI*i);im[i]=(1-Math.cos(2*Math.PI*i*dt))/(Math.PI*i);}return c.createPeriodicWave(re,im);}
+function oldTone(L,t,f,dur,vol,kind,duty){const c=L.c,o=c.createOscillator(),gn=c.createGain();let out=gn;
+  if(kind==='lead')o.setPeriodicWave(L.pulse[duty===.125?125:25]);else o.type='square';
+  o.frequency.setValueAtTime(f,t);
+  if(kind==='bass'){const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;gn.connect(lp);out=lp;}
+  out.connect(L.bus);o.connect(gn);
+  const end=t+dur;gn.gain.setValueAtTime(0,t);gn.gain.linearRampToValueAtTime(vol,t+.008);gn.gain.linearRampToValueAtTime(vol*.6,Math.max(t+.01,end-.03));gn.gain.linearRampToValueAtTime(0,end);
+  o.start(t);o.stop(end+.02);}
+function oldHit(L,t,k){const c=L.c;
+  if(k==='k'){const o=c.createOscillator(),gn=c.createGain();o.type='triangle';o.frequency.setValueAtTime(190,t);o.frequency.exponentialRampToValueAtTime(48,t+.12);
+    gn.gain.setValueAtTime(.9,t);gn.gain.exponentialRampToValueAtTime(.001,t+.16);o.connect(gn);gn.connect(L.bus);o.start(t);o.stop(t+.18);return;}
+  const s=c.createBufferSource(),fl=c.createBiquadFilter(),gn=c.createGain(),len=k==='s'?.13:k==='t'?.02:.035;
+  s.buffer=L.noise;fl.type=k==='s'?'bandpass':'highpass';fl.frequency.value=k==='s'?1800:k==='t'?9000:7000;if(k==='s')fl.Q.value=.7;
+  gn.gain.setValueAtTime(k==='s'?.42:k==='t'?.06:.11,t);gn.gain.exponentialRampToValueAtTime(.001,t+len);
+  s.connect(fl);fl.connect(gn);gn.connect(L.bus);s.start(t,R()*.8);s.stop(t+len+.02);}
+function oldStep(L,i,t){const S=L.S,N=S.N;i%=N;
+  const a=midi(S.lead[i]);if(a!=null)oldTone(L,t,mtof(a),held(S.lead,i)*S.step*.92,.16,'lead',S.duty);
+  const b=midi(S.bass[i]);if(b!=null)oldTone(L,t,mtof(b),held(S.bass,i)*S.step*.85,.26,'bass');
+  const d=S.drum[i];if(d&&d!=='.')oldHit(L,t,d);}
+
+/* ===== 先算好的聲音 =====
+   木琴、鐵琴、鼓、跳弓低音這些固定的聲音，第一次用到時直接用 JS 算成音檔存起來，
+   之後每個音只要一個播放節點，手機的負擔小很多（同一個音色，只是先算好） */
+function bq(type,f,Q,sr,gdb){const w=2*Math.PI*Math.min(f,sr*.45)/sr,cs=Math.cos(w),sn=Math.sin(w),al=sn/(2*Q);let b0,b1,b2,a0,a1,a2;
+  if(type==='lp'){b0=(1-cs)/2;b1=1-cs;b2=b0;a0=1+al;a1=-2*cs;a2=1-al;}
+  else if(type==='hp'){b0=(1+cs)/2;b1=-(1+cs);b2=b0;a0=1+al;a1=-2*cs;a2=1-al;}
+  else if(type==='bp'){b0=al;b1=0;b2=-al;a0=1+al;a1=-2*cs;a2=1-al;}
+  else{const A=Math.pow(10,(gdb||0)/40);b0=1+al*A;b1=-2*cs;b2=1-al*A;a0=1+al/A;a1=-2*cs;a2=1-al/A;}
+  const k0=b0/a0,k1=b1/a0,k2=b2/a0,k3=a1/a0,k4=a2/a0;let x1=0,x2=0,y1=0,y2=0;
+  return x=>{const y=k0*x+k1*x1+k2*x2-k3*y1-k4*y2;x2=x1;x1=x;y2=y1;y1=y;return y;};}
+function bqv(sr){let x1=0,x2=0,y1=0,y2=0,k0=1,k1=0,k2=0,k3=0,k4=0;return{set(f,Q){const w=2*Math.PI*Math.min(f,sr*.45)/sr,cs=Math.cos(w),al=Math.sin(w)/(2*Q),a0=1+al;k0=(1-cs)/2/a0;k1=(1-cs)/a0;k2=k0;k3=-2*cs/a0;k4=(1-al)/a0;},
+  run(x){const y=k0*x+k1*x1+k2*x2-k3*y1-k4*y2;x2=x1;x1=x;y2=y1;y1=y;return y;}};}
+const SB=new Map();
+function sbuf(c,key,sec,fill){const sr=c.sampleRate,k=sr+':'+key;if(SB.has(k))return SB.get(k);const n=Math.ceil(sec*sr),b=c.createBuffer(1,n,sr),d=b.getChannelData(0);fill(d,sr,n);
+  const fl=Math.min(n,Math.floor(sr*.01));for(let i=0;i<fl;i++)d[n-1-i]*=i/fl;SB.set(k,b);return b;}
+/* 一組衰減的正弦波（木琴、鐵琴的泛音）：用旋轉的方式算，比每個樣本算 sin 快 */
+function partials(d,sr,n,f,P,att){for(const [r,a,tc] of P){const w=2*Math.PI*f*r/sr;if(f*r>sr*.45)continue;const cw=Math.cos(w),sw=Math.sin(w);let x=1,y=0;
+  for(let i=0;i<n;i++){const t=i/sr,e=t<att?a*t/att:a*Math.exp(-(t-att)/tc);d[i]+=e*y;const nx=x*cw-y*sw;y=x*sw+y*cw;x=nx;}}}
+function noiseBurst(d,sr,n,seed,flt,g,tc,len,t0){const r=rng(seed),i0=Math.floor((t0||0)*sr),m=Math.min(n,i0+Math.floor(len*sr));for(let i=i0;i<m;i++){const t=(i-i0)/sr;d[i]+=flt(r()*2-1)*g*Math.exp(-t/tc);}}
+const tri=ph=>1-4*Math.abs(ph-Math.round(ph));
+/* 不刺耳的鋸齒波（polyBLEP：把跳下來的那一點磨圓，少掉數位雜音） */
+const blep=(t,dt)=>t<dt?(t/=dt,t+t-t*t-1):t>1-dt?(t=(t-1)/dt,t*t+t+t+1):0;
+function sawInto(d,sr,n,f,g,envf){let ph=0;const dt=f/sr;for(let i=0;i<n;i++){d[i]+=g*(2*ph-1-blep(ph,dt))*envf(i/sr);ph+=dt;if(ph>=1)ph-=1;}}
+function pb(L,ch,b,t,vel,rate){const c=L.c,s=c.createBufferSource();s.buffer=b;if(rate&&rate!==1)s.playbackRate.value=rate;const g=c.createGain();g.gain.value=vel;s.connect(g);g.connect(L.ch[ch]);s.start(t);}
+function marimbaBuf(c,m,hard){const f=mtof(m),dec=Math.min(1.2,Math.max(.22,(hard?.75:1)*(1.05-(m-60)*.028)));
+  return sbuf(c,'mar'+m+(hard?'h':''),dec*2.2+.05,(d,sr,n)=>{partials(d,sr,n,f,[[1,1,dec/3.2],[3.93,hard?.4:.26,dec*.32/3.2],[9.2,hard?.16:.07,dec*.12/3.2]],.0015);
+    noiseBurst(d,sr,n,m*31+(hard?7:1),bq('bp',Math.min(7000,f*5),1,sr),hard?.5:.3,.00245,.03);});}
+function glockBuf(c,m){const f=mtof(m);return sbuf(c,'gl'+m,1.4*2.3,(d,sr,n)=>partials(d,sr,n,f,[[1,1,1.4/3],[2.76,.3,.5/3],[5.4,.12,.25/3],[8.93,.05,.12/3]],.001));}
+const KC={f0:150,f1:55,dec:.28,sweep:.09},KB={f0:130,f1:52,dec:.3,sweep:.1};
+function kickBuf(c,o){return sbuf(c,'kick'+o.f0+'_'+o.f1+'_'+o.dec,o.dec*2+.03,(d,sr,n)=>{let ph=0;
+  for(let i=0;i<n;i++){const t=i/sr,f=t<o.sweep?o.f0*Math.pow(o.f1/o.f0,t/o.sweep):o.f1;ph+=2*Math.PI*f/sr;d[i]+=Math.sin(ph)*(t<.003?t/.003:Math.exp(-(t-.003)/(o.dec/3.5)));}
+  noiseBurst(d,sr,n,5,bq('lp',2200,.707,sr),.35,.0017,.02);
+  let p2=0;for(let i=0;i<Math.min(n,sr*.06);i++){const t=i/sr,f=t<.03?260*Math.pow(140/260,t/.03):140;p2+=2*Math.PI*f/sr;d[i]+=Math.sin(p2)*.3*Math.exp(-t/.0088);}});}
+function snareBuf(c,brush){const dec=brush?.16:.12,a=brush?.012:.002;return sbuf(c,'sn'+(brush?'b':''),dec*1.6+.1,(d,sr,n)=>{const r=rng(11),hp=bq('hp',brush?700:1100,.707,sr),pk=bq('pk',3200,1,sr,4);
+  for(let i=0;i<n;i++){const t=i/sr;d[i]+=pk(hp(r()*2-1))*(t<a?t/a:Math.exp(-(t-a)/(dec/3)));}
+  const g0=brush?.25:.5,tc=.07/Math.log(g0/.001);let ph=0;for(let i=0;i<Math.min(n,sr*.08);i++){const t=i/sr,f=t<.05?210*Math.pow(160/210,t/.05):160;ph+=f/sr;d[i]+=tri(ph)*g0*Math.exp(-t/tc);}});}
+function shakerBuf(c){return sbuf(c,'shk',.12,(d,sr,n)=>{const r=rng(13),hp=bq('hp',5500,.707,sr),bp=bq('bp',9500,.8,sr);for(let i=0;i<n;i++){const t=i/sr;d[i]+=bp(hp(r()*2-1))*(t<.012?t/.012:Math.exp(-(t-.012)/.018));}});}
+function woodBuf(c,hi){const f=hi?1250:950;return sbuf(c,'wd'+(hi?'h':''),.13,(d,sr,n)=>{partials(d,sr,n,f,[[1,1,.018],[1.52,.45,.018]],.0015);noiseBurst(d,sr,n,17,bq('bp',f*2,2,sr),.4,.00134,.02);});}
+function clapBuf(c){return sbuf(c,'clap',.36,(d,sr,n)=>{for(let k=0;k<4;k++){const last=k===3;noiseBurst(d,sr,n,19+k,bq('bp',1150,.9,sr),last?1:.7,last?.045:.004,last?.3:.03,k*.011);}});}
+function tambBuf(c){return sbuf(c,'tamb',.26,(d,sr,n)=>{const r=rng(23),hp=bq('hp',7000,.707,sr);for(let i=0;i<n;i++){const t=i/sr;d[i]+=hp(r()*2-1)*(t<.004?t/.004:Math.exp(-(t-.004)/.045));}
+  partials(d,sr,n,1,[[5200,.04,.05],[7300,.04,.05],[9100,.04,.05]],.001);});}
+function cymBuf(c,len){return sbuf(c,'cym'+len,len*1.6,(d,sr,n)=>{const r=rng(29),hp=bq('hp',4500,.707,sr);for(let i=0;i<n;i++){const t=i/sr;d[i]+=hp(r()*2-1)*(t<.02?t/.02:Math.exp(-(t-.02)/(len/4)));}});}
+/* 短弓弦樂：兩把稍微走音的鋸齒波，起音快、很快變小聲 */
+function stacBuf(c,m,D){const f=mtof(m);return sbuf(c,'st'+m+'_'+D.toFixed(3),D+.32,(d,sr,n)=>{const tmp=new Float32Array(n),vD=.55+.45*Math.exp(-(D-.012)/.1),
+    ef=t=>t<.012?t/.012:t<D?.55+.45*Math.exp(-(t-.012)/.1):vD*Math.exp(-(t-D)/.05);
+  sawInto(tmp,sr,n,f*Math.pow(2,-6/1200),.5,ef);sawInto(tmp,sr,n,f*Math.pow(2,6/1200),.5,ef);const lp=bq('lp',Math.min(6000,f*5),1.07,sr);for(let i=0;i<n;i++)d[i]=lp(tmp[i]);});}
+/* 跳弓低音：鋸齒波＋一點正弦波，濾波器一開始亮、0.09 秒內變暗 */
+function spiccBuf(c,m,D){const f=mtof(m);return sbuf(c,'sp'+m+'_'+D.toFixed(3),D+.2,(d,sr,n)=>{let ph=0,ps=0;const flt=bqv(sr),f0=Math.min(2400,f*9),f1=Math.max(200,f*3),vD=.25+.75*Math.exp(-(D-.004)/.06);
+  for(let i=0;i<n;i++){const t=i/sr;if(i%32===0)flt.set(t<.09?f0*Math.pow(f1/f0,t/.09):f1,1.2);
+    ph+=f/sr;ps+=2*Math.PI*f/sr;const x=2*(ph-Math.round(ph))+.15*Math.sin(ps);
+    const e=t<.004?t/.004:t<D?.25+.75*Math.exp(-(t-.004)/.06):vD*Math.exp(-(t-D)/.03);d[i]+=flt.run(x)*e;}});}
+/* ===== 新版的樂器 ===== */
+/* 木琴：基音加上第 4、第 10 倍左右的泛音（木琴音條的特色），高音收得快；加一點琴槌敲到的聲音 */
+function marimba(L,t,m,vel,o){pb(L,'mallet',marimbaBuf(L.c,m,!!(o&&o.hard)),t,vel);}
+/* 長笛：正弦波加一點三角波，起音稍慢、吹一陣子才開始抖音，再加一點氣音 */
+function flute(L,t,m,vel,dur){const c=L.c,f=mtof(m),mix=c.createGain(),o1=c.createOscillator(),o2=c.createOscillator(),g2=c.createGain();
+  o2.type='triangle';o1.frequency.value=f;o2.frequency.value=f;g2.gain.value=.3;o1.connect(mix);o2.connect(g2);g2.connect(mix);
+  const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=5+R()*.6;lg.gain.setValueAtTime(0,t);lg.gain.setValueAtTime(0,t+.2);lg.gain.linearRampToValueAtTime(f*.0055,t+.5);lfo.connect(lg);lg.connect(o1.frequency);lg.connect(o2.frequency);
+  const n=c.createBufferSource();n.buffer=L.noise;n.loop=true;const nb=c.createBiquadFilter();nb.type='bandpass';nb.frequency.value=Math.min(9000,f*2.5);nb.Q.value=1.5;const ng=c.createGain();ng.gain.value=.05;n.connect(nb);nb.connect(ng);ng.connect(mix);
+  const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=Math.min(9000,f*5);const e=c.createGain();mix.connect(lp);lp.connect(e);e.connect(L.ch.flute);
+  const end=env(e.gain,t,.045,vel,.25,.8,dur,.06);o1.start(t);o2.start(t);lfo.start(t);n.start(t,R()*1.5);[o1,o2,lfo,n].forEach(x=>x.stop(end));}
+/* 撥弦（豎琴、木吉他）：Karplus-Strong，一小段雜音在迴圈裡越來越圓，像弦被撥了一下。算好的音存起來重複用 */
+const KS=new Map();
+function ksBuf(c,m,bright){const sr=c.sampleRate,f=mtof(m),N=Math.max(4,Math.round(sr/f-.5)),key=sr+':'+N+':'+bright;if(KS.has(key))return KS.get(key);
+  const t60=Math.min(3.2,Math.max(.7,3.1-Math.log2(f/110)*.62)),sec=Math.min(2.6,t60*.8),n=Math.floor(sr*sec),b=c.createBuffer(1,n,sr),d=b.getChannelData(0),w=new Float32Array(N),r=rng(N*13+7);
+  for(let i=0;i<N;i++)w[i]=r()*2-1;
+  const passes=bright>.7?0:bright>.4?1:2;for(let p=0;p<passes;p++)for(let i=0;i<N;i++)w[i]=.5*(w[i]+w[(i+1)%N]);
+  let mean=0;for(let i=0;i<N;i++)mean+=w[i];mean/=N;for(let i=0;i<N;i++)w[i]-=mean;
+  const loss=Math.pow(.001,1/(t60*f));let j=0,pk=0;
+  for(let i=0;i<n;i++){const cur=w[j];w[j]=loss*.5*(cur+w[(j+1)%N]);d[i]=cur;const a=cur<0?-cur:cur;if(a>pk)pk=a;j=(j+1)%N;}
+  const k=pk?.9/pk:1,fl=Math.floor(sr*.06);for(let i=0;i<n;i++)d[i]*=k*(i>n-fl?(n-i)/fl:1);
+  const o={b,f0:sr/(N+.5)};KS.set(key,o);return o;}
+function pluck(L,t,m,vel,o){o=o||{};const c=L.c,K=ksBuf(c,m,o.bright!=null?o.bright:.5),s=c.createBufferSource(),rate=mtof(m)/K.f0;s.buffer=K.b;s.playbackRate.value=rate;
+  const g=c.createGain();g.gain.setValueAtTime(vel,t);let end=t+K.b.duration/rate;
+  if(o.dur){const rel=o.rel||.05;g.gain.setValueAtTime(vel,t+o.dur);g.gain.setTargetAtTime(0,t+o.dur,rel);end=Math.min(end,t+o.dur+rel*6);}
+  let n=s;if(o.lp){const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;s.connect(f);n=f;}
+  n.connect(g);g.connect(L.ch[o.ch||'pluck']);s.start(t);s.stop(end);}
+/* 弦樂鋪底：每個音兩把稍微走音的鋸齒波，一把放左、一把放右，慢慢淡入淡出，加一點顫音 */
+function strings(L,t,ms,vel,dur,o){o=o||{};const c=L.c,lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=4.8;lg.gain.value=7;lfo.connect(lg);let end=t;
+  [['padL',-7],['padR',7]].forEach(([ch,dt])=>{const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=o.lp||1700;lp.Q.value=.5;const e=c.createGain();lp.connect(e);e.connect(L.ch[ch]);end=env(e.gain,t,o.a||.4,vel,.8,.9,dur,o.r||.3);
+    ms.forEach(m=>{const os=c.createOscillator();os.type='sawtooth';os.frequency.value=mtof(m);os.detune.value=dt+(R()-.5)*4;lg.connect(os.detune);os.connect(lp);os.start(t);os.stop(end);});});
+  lfo.start(t);lfo.stop(end);}
+/* 短弓弦樂：緊張那首的旋律加厚用（先算好的聲音） */
+function strStac(L,t,m,vel,dur){pb(L,'strings',stacBuf(L.c,m,Math.max(.06,dur*.85)),t,vel);}
+/* 低音弦樂跳弓：十六分音符一直推，重拍比較重（先算好的聲音） */
+function spicc(L,t,m,vel,dur){pb(L,'bass',spiccBuf(L.c,m,dur),t,vel);}
+/* 撥奏低音（像低音提琴）：撥弦加一點正弦波撐住低頻 */
+function upright(L,t,m,vel,dur){pluck(L,t,m,vel,{ch:'bass',bright:.2,dur:Math.max(.12,dur),rel:.06,lp:1400});
+  const c=L.c,os=c.createOscillator();os.frequency.value=mtof(m);const g=c.createGain();os.connect(g);g.connect(L.ch.bass);const end=env(g.gain,t,.006,vel*.5,.18,.35,Math.max(.1,dur),.05);os.start(t);os.stop(end);}
+/* 鐵琴：亮晶晶的高音 */
+function glock(L,t,m,vel){pb(L,'glock',glockBuf(L.c,m),t,vel);}
+/* 長號「哇」：濾波先關、打開、再慢慢關起來；最後一聲拉長、抖音、越來越沒力 */
+function bone(L,t,m,vel,dur,last){const c=L.c,f=mtof(m),os=c.createOscillator();os.type='sawtooth';
+  os.frequency.setValueAtTime(f*Math.pow(2,-.6/12),t);os.frequency.exponentialRampToValueAtTime(f,t+.07);
+  const lp=c.createBiquadFilter();lp.type='lowpass';lp.Q.value=6;lp.frequency.setValueAtTime(350,t);lp.frequency.exponentialRampToValueAtTime(1700,t+.18);lp.frequency.exponentialRampToValueAtTime(600,t+Math.max(.3,dur*.9));
+  const e=c.createGain();os.connect(lp);lp.connect(e);e.connect(L.ch.brass);let end;
+  if(last){const lfo=c.createOscillator(),lg=c.createGain(),lg2=c.createGain();lfo.frequency.value=5.5;lg.gain.setValueAtTime(0,t);lg.gain.linearRampToValueAtTime(f*.025,t+dur*.6);lg2.gain.setValueAtTime(0,t);lg2.gain.linearRampToValueAtTime(450,t+dur*.6);
+    lfo.connect(lg);lg.connect(os.frequency);lfo.connect(lg2);lg2.connect(lp.frequency);end=env(e.gain,t,.05,vel,1.2,.7,dur,.25);lfo.start(t);lfo.stop(end);}
+  else end=env(e.gain,t,.04,vel,.5,.75,dur*.92,.06);
+  os.start(t);os.stop(end);}
+function tuba(L,t,m,vel,dur){const c=L.c,f=mtof(m),o1=c.createOscillator(),o2=c.createOscillator();o2.type='triangle';o1.frequency.value=f;o2.frequency.value=f;const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;const e=c.createGain();o1.connect(lp);o2.connect(lp);lp.connect(e);e.connect(L.ch.bass);const end=env(e.gain,t,.05,vel,.4,.7,dur*.9,.08);o1.start(t);o2.start(t);o1.stop(end);o2.stop(end);}
+/* 打擊樂：軟的大鼓、刷子小鼓、沙鈴、木魚（時鐘的滴答）、拍手、鈴鼓、鈸（都是先算好的聲音） */
+function kick(L,t,vel,o){pb(L,'kick',kickBuf(L.c,o||KC),t,vel);}
+function snare(L,t,vel,o){pb(L,'snare',snareBuf(L.c,!!(o&&o.brush)),t,vel);}
+function shaker(L,t,vel){pb(L,'shaker',shakerBuf(L.c),t,vel);}
+function wood(L,t,vel,hi){pb(L,'wood',woodBuf(L.c,!!hi),t,vel);}
+function clap(L,t,vel){pb(L,'snare',clapBuf(L.c),t,vel);}
+function tamb(L,t,vel){pb(L,'shaker',tambBuf(L.c),t,vel);}
+function cymbal(L,t,vel,len){pb(L,'cym',cymBuf(L.c,len),t,vel);}
+
+/* ===== 新版的編曲 ===== */
+const hum=t=>t+(R()-.5)*.01;          /* 時間差一點點（±5 毫秒），不像機器 */
+const vel=v=>v*(1+(R()-.5)*.18);      /* 輕重也差一點點 */
+function padAt(L,k,t,center,v,o){const S=L.S;if(!S.changeAt(k))return;const p=chordPcs(S.chordAt(k));if(!p)return;let n=1;while(n<S.N&&!S.changeAt(k+n))n++;strings(L,t,voice(p,center),v,n*S.step,o);}
+/* 大廳：木琴＋長笛同一條旋律、撥弦在反拍彈和弦、弦樂鋪底、撥奏低音；前 4 小節沒有鼓，第 5 小節才進來。
+   long：長笛把音拉長到下一個音、木琴只敲重拍、撥弦和沙鈴少一半 */
+function calmNew(L,i,t,long){const S=L.S,k=i%S.N,per=S.per,bar=Math.floor(k/per),light=bar<4;
+  const m=midi(S.lead[k]);
+  if(m!=null){const dur=(long?until(S.lead,k,4):held(S.lead,k))*S.step;
+    if(!long||k%4===0)marimba(L,hum(t),m,vel(long?.42:.5));
+    flute(L,hum(t),m,vel(long?.2:.13),dur*(long?1:.9));}
+  const b=midi(S.bass[k]);if(b!=null)upright(L,t,b,vel(.55),held(S.bass,k)*S.step*.95);
+  if(k%2===1){const p=chordPcs(S.chordAt(k));if(p){const v=voice(p,58),q=((k%per)>>1)%2;if(!long||q===0)pluck(L,hum(t),v[1+q],vel(.26),{bright:.45});}}
+  padAt(L,k,t,60,.035,{lp:1500,a:.5});
+  const d=S.drum[k];
+  if(d==='k'&&!light)kick(L,t,vel(.55));else if(d==='s'&&!light)snare(L,t,vel(.32),{brush:true});else if(d==='h'&&(!long||k%4===3))shaker(L,t,vel(light?.12:.18));}
+/* 遊戲中：硬一點的木琴＋短弓弦樂、低音弦樂十六分音符一直推、木魚像時鐘滴答、暗一點的弦樂鋪底 */
+function battleNew(L,i,t){const S=L.S,k=i%S.N;
+  const m=midi(S.lead[k]);if(m!=null){const dur=held(S.lead,k)*S.step;marimba(L,hum(t),m,vel(.42),{hard:true});strStac(L,t,m,vel(.11),dur);}
+  const b=midi(S.bass[k]);if(b!=null){const acc=k%4===0?1:k%2===0?.8:.62;spicc(L,t,b,vel(.42*acc),S.step*.85);}
+  padAt(L,k,t,53,.028,{lp:1100,a:.15,r:.2});
+  const d=S.drum[k];
+  if(d==='k')kick(L,t,vel(.5),KB);else if(d==='s')snare(L,t,vel(.42));else if(d==='t')wood(L,t,vel(.3),k%4===1);else if(d==='h')shaker(L,t,vel(.18));}
+/* 贏了：木琴＋鐵琴、換和弦時刷一下吉他、拍手和鈴鼓，最後一個和弦加鈸 */
+function winNew(L,i,t){const S=L.S,k=i;if(k>=S.N)return;
+  const m=midi(S.lead[k]);if(m!=null){marimba(L,hum(t),m,vel(.4));glock(L,t,m+12,vel(.16));}
+  const b=midi(S.bass[k]);if(b!=null)upright(L,t,b,vel(.5),held(S.bass,k)*S.step*.9);
+  if(S.changeAt(k)){const p=chordPcs(S.chordAt(k));if(p){const v=voice(p,62);v.concat([v[0]+12]).forEach((n,j)=>pluck(L,t+j*.014,n,vel(.2),{bright:.6}));}}
+  padAt(L,k,t,62,.03,{lp:2000,a:.25});
+  const d=S.drum[k];
+  if(d==='k'){kick(L,t,vel(.55));if(k===3*S.per)cymbal(L,t,.18,1.6);}else if(d==='s')clap(L,t,vel(.32));else if(d==='h')tamb(L,t,vel(.14));}
+/* 輸了：長號「哇哇哇」一路往下，最後一聲拉長抖音；低音號跟著 */
+function loseNew(L,i,t){const S=L.S,k=i;if(k>=S.N)return;
+  const m=midi(S.lead[k]);if(m!=null){const last=!S.lead.slice(k+1).some(x=>midi(x)!=null);bone(L,t,m,vel(.55),held(S.lead,k)*S.step,last);}
+  const b=midi(S.bass[k]);if(b!=null)tuba(L,t,b,vel(.16),held(S.bass,k)*S.step);
+  if(S.drum[k]==='s')cymbal(L,t,.1,1.4);}
+function newStep(L,i,t){const n=L.S.name;if(n==='calm')calmNew(L,i,t,L.ver==='long');else if(n==='battle')battleNew(L,i,t);else if(n==='win')winNew(L,i,t);else if(n==='lose')loseNew(L,i,t);}
+/* 這首會用到的聲音先算好，播放時不卡 */
+function prewarm(c,S){const n=S.name;
+  S.bass.forEach(x=>{const m=midi(x);if(m==null)return;if(n==='battle')spiccBuf(c,m,S.step*.85);else if(n!=='lose')ksBuf(c,m,.2);});
+  S.lead.forEach((x,k)=>{const m=midi(x);if(m==null||n==='lose')return;marimbaBuf(c,m,n==='battle');if(n==='win')glockBuf(c,m+12);if(n==='battle')stacBuf(c,m,Math.max(.06,held(S.lead,k)*S.step*.85));});
+  for(let k=0;k<S.N;k++){const p=chordPcs(S.chordAt(k));if(!p)continue;voice(p,58).forEach(m=>ksBuf(c,m,.45));if(n==='win')voice(p,62).forEach(m=>{ksBuf(c,m,.6);ksBuf(c,m+12,.6);});}
+  kickBuf(c,n==='battle'?KB:KC);snareBuf(c,true);snareBuf(c,false);shakerBuf(c);woodBuf(c,true);woodBuf(c,false);clapBuf(c);tambBuf(c);cymBuf(c,1.6);cymBuf(c,1.4);}
+
+/* ===== 音效：每個聲音分層（尖的起音＋主體＋低頻重量＋尾巴），打中時音樂壓低 ===== */
+function duck(F,t,big){const g=F.M.duck.gain;g.cancelScheduledValues(t);g.setValueAtTime(1,t);g.linearRampToValueAtTime(big?.35:.5,t+.03);g.setTargetAtTime(1,t+(big?.6:.3),.25);}
+function sOut(F,node,pv,rev){const p=pan(F.c,pv||0);node.connect(p);p.connect(F.out);if(rev){const g=F.c.createGain();g.gain.value=rev;p.connect(g);g.connect(F.rev);}return p;}
+function nz(F,t,dur,o){const c=F.c,s=c.createBufferSource();s.buffer=F.noise;s.loop=true;const fl=c.createBiquadFilter();fl.type=o.type||'bandpass';fl.frequency.setValueAtTime(o.f||1000,t);
+  if(o.f2)fl.frequency.exponentialRampToValueAtTime(o.f2,t+(o.fT||dur));fl.Q.value=o.Q!=null?o.Q:1;
+  const g=c.createGain(),a=Math.min(o.a||.002,dur*.5);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(o.g||1,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(fl);let n=fl;if(o.dist){const ws=c.createWaveShaper();ws.curve=satCurve(o.dist);fl.connect(ws);n=ws;}n.connect(g);
+  const p=sOut(F,g,o.pan,o.rev);if(o.pan2!=null&&p.pan){p.pan.setValueAtTime(o.pan||0,t);p.pan.linearRampToValueAtTime(o.pan2,t+dur);}
+  s.start(t,R()*1.5);s.stop(t+dur+.05);}
+function tn(F,t,dur,o){const c=F.c,os=c.createOscillator();os.type=o.type||'sine';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(o.f2,t+(o.fT||dur));
+  const g=c.createGain(),a=Math.min(o.a||.002,dur*.5);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(o.g||1,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  os.connect(g);sOut(F,g,o.pan,o.rev);os.start(t);os.stop(t+dur+.02);}
+function bell(F,t,m,g,dur,pv,rev){const f=mtof(m);tn(F,t,dur,{f,g,pan:pv,rev,a:.004});tn(F,t,dur*.4,{f:f*2.76,g:g*.25,pan:pv,rev,a:.003});tn(F,t,dur*.2,{f:f*5.4,g:g*.08,pan:pv,rev,a:.003});}
+/* 金屬：每個泛音兩個稍微走音的振盪器，互相干涉出「嗡嗡」；wob 是整個盆子在晃 */
+function metal(F,t,f0,parts,o){const c=F.c,bus=c.createGain();bus.gain.value=o.g||.3;let n=bus;
+  if(o.wob){const lfo=c.createOscillator(),lg=c.createGain(),am=c.createGain();am.gain.value=1-o.wob;lfo.frequency.value=o.wobF||6.5;lg.gain.value=o.wob;lfo.connect(lg);lg.connect(am.gain);bus.connect(am);n=am;lfo.start(t);lfo.stop(t+5);}
+  sOut(F,n,o.pan,o.rev);
+  /* 每個泛音的走音量不同，才不會整個一起「一陣一陣」 */
+  parts.forEach(([r,a,d],j)=>{const w=.35+.45*j+R()*.3;[-w,w].forEach(dt=>{const os=c.createOscillator(),f=f0*r+dt;os.frequency.setValueAtTime(f*1.015,t);os.frequency.exponentialRampToValueAtTime(f,t+.05);
+    const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(a,t+.001);g.gain.setTargetAtTime(0,t+.001,d/3.5);os.connect(g);g.connect(bus);os.start(t);os.stop(t+d*2+.05);});});}
+/* 丟出去：越重的越低、越慢；拖鞋和鐵盆會轉，聲音一陣一陣的；炸彈有引信的嘶嘶聲 */
+const WHOOSH={light:[650,2600,1100,.3,.5,0],soft:[1200,3800,2000,.28,.3,0],spin:[500,1900,850,.36,.5,13],heavy:[320,1300,600,.42,.55,9]};
+const KIND={tomato:'light',egg:'light',flower:'soft',heart:'soft',slipper:'spin',hammer:'heavy',bomb:'heavy'};
+function sfxThrow(F,t,item){const [f0,f1,f2,dur,g,am]=WHOOSH[KIND[item]||'light'],v=1+(R()-.5)*.08,c=F.c;
+  const s=c.createBufferSource();s.buffer=F.noise;s.loop=true;const bp=c.createBiquadFilter();bp.type='bandpass';bp.Q.value=1.5;
+  bp.frequency.setValueAtTime(f0*v,t);bp.frequency.exponentialRampToValueAtTime(f1*v,t+dur*.7);bp.frequency.exponentialRampToValueAtTime(f2*v,t+dur);
+  const ge=c.createGain();ge.gain.setValueAtTime(.0001,t);ge.gain.exponentialRampToValueAtTime(g,t+dur*.7);ge.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  s.connect(bp);let n=bp;
+  if(am){const amg=c.createGain();amg.gain.value=.55;const lfo=c.createOscillator();lfo.type='triangle';lfo.frequency.setValueAtTime(am*.8,t);lfo.frequency.linearRampToValueAtTime(am*1.2,t+dur);const lg=c.createGain();lg.gain.value=.45;lfo.connect(lg);lg.connect(amg.gain);bp.connect(amg);n=amg;lfo.start(t);lfo.stop(t+dur+.05);}
+  n.connect(ge);const p=sOut(F,ge,-.35,.06);if(p.pan)p.pan.linearRampToValueAtTime(.25,t+dur);s.start(t,R()*1.5);s.stop(t+dur+.05);
+  nz(F,t,dur,{f:f0*2*v,f2:f1*1.6*v,fT:dur*.7,Q:2,g:g*.25,a:dur*.6,pan:-.2});
+  if(item==='bomb')for(let k=0;k<14;k++)nz(F,t+k*dur/14+R()*.01,.02+R()*.02,{type:'highpass',f:3500+R()*2500,Q:.7,g:.06+R()*.06,pan:-.2+R()*.3});
+  return dur;}
+const HIT={
+  /* 番茄：低頻的「咚」＋悶悶的爛掉聲＋幾滴汁噴出去 */
+  tomato(F,t){tn(F,t,.14,{f:210,f2:85,fT:.09,g:.5});nz(F,t,.2,{type:'lowpass',f:2200,f2:350,fT:.18,Q:.7,g:.9});nz(F,t,.13,{f:760,f2:340,Q:2.5,g:.6,a:.004});nz(F,t,.06,{f:1300,Q:1.2,g:.45,a:.002});
+    for(let k=0;k<6;k++){const f=560+R()*520;tn(F,t+.025+R()*.16,.03+R()*.035,{f,f2:f*.55,g:.12+R()*.1,pan:(R()-.5)*.9});}
+    nz(F,t+.04,.16,{f:1800,f2:600,Q:3,g:.12,a:.02});duck(F,t);},
+  /* 雞蛋：殼裂開的「喀」三下，接著小小的「啪滋」 */
+  egg(F,t){for(let k=0;k<3;k++)nz(F,t+k*.011+R()*.004,.014,{f:3800+R()*1600,Q:4,g:1-.25*k,a:.0005});tn(F,t,.05,{f:2950,g:.16});
+    nz(F,t+.025,.13,{type:'lowpass',f:2600,f2:500,Q:.7,g:.85});nz(F,t+.025,.1,{f:1100,f2:520,Q:2,g:.5});
+    for(let k=0;k<3;k++){const f=850+R()*600;tn(F,t+.05+R()*.12,.03,{f,f2:f*.6,g:.12,pan:(R()-.5)*.8});}duck(F,t);},
+  /* 炸彈：爆開的「啪」＋往下沉的低頻＋有點破音的轟＋碎片掉下來 */
+  bomb(F,t){nz(F,t,.07,{type:'highpass',f:800,Q:.7,g:1,a:.001});tn(F,t,.9,{f:78,f2:28,fT:.7,g:.5});nz(F,t,.6,{type:'lowpass',f:900,f2:180,fT:.5,Q:.8,g:.7,dist:6});
+    nz(F,t,1.1,{type:'lowpass',f:3200,f2:150,fT:1,Q:.5,g:.9,dist:4,rev:.35});nz(F,t+.05,1.4,{type:'lowpass',f:420,Q:.6,g:.35,a:.06,rev:.3});
+    for(let k=0;k<9;k++)nz(F,t+.15+R()*.8,.012,{f:2000+R()*3000,Q:3,g:.08+R()*.15,pan:(R()-.5)*1.2});duck(F,t,true);},
+  /* 拖鞋：清脆的「啪」＋拍到臉的悶聲 */
+  slipper(F,t){nz(F,t,.05,{f:2300,Q:.9,g:1,a:.0008,rev:.1});nz(F,t,.09,{f:950,Q:1.2,g:.85,a:.001});tn(F,t,.08,{f:280,f2:160,g:.5});duck(F,t);},
+  /* 大鐵盆：「噹～」長長的金屬聲，盆子還在晃 */
+  hammer(F,t){nz(F,t,.022,{type:'highpass',f:2500,Q:.7,g:.6,a:.0005});
+    metal(F,t,300*(1+(R()-.5)*.04),[[1,1,2.2],[2.14,.75,1.6],[3.37,.55,1.15],[4.82,.42,.8],[6.55,.3,.55],[8.1,.2,.4]],{g:.22,wob:.3,wobF:6.5,rev:.3});tn(F,t,.12,{f:150,f2:80,g:.4});duck(F,t,true);},
+  /* 花：輕輕的「噗」＋豎琴往上刷 */
+  flower(F,t){nz(F,t,.05,{type:'lowpass',f:900,g:.25});[72,74,76,79,81,84,86,88,91].forEach((m,k)=>bell(F,t+.02+k*.035,m,.1,.5,-.5+k*.12,.35));nz(F,t+.05,.7,{type:'highpass',f:6000,f2:9000,Q:.5,g:.05,a:.2,rev:.4});},
+  /* 愛心：泡泡「啵」＋「叮咚」 */
+  heart(F,t){tn(F,t,.07,{f:260,f2:900,fT:.045,g:.4});bell(F,t+.06,88,.2,.7,-.1,.3);bell(F,t+.17,92,.2,.9,.1,.35);[95,100].forEach((m,k)=>bell(F,t+.3+k*.08,m,.06,.4,k?.4:-.4,.4));}};
+const ETC={
+  /* 眼冒金星：小鈴鐺繞圈（左右來回） */
+  stars(F,t){const sc=[88,91,95,98,95,91];for(let k=0;k<16;k++)bell(F,t+k*.09,sc[k%6],.11*(1-k/22),.28,Math.sin(k/6*2*Math.PI)*.65,.3);},
+  /* 閃掉：從左邊咻到右邊 */
+  dodge(F,t){nz(F,t,.24,{f:900,f2:3200,fT:.2,Q:1.5,g:.45,a:.12,pan:-.7,pan2:.7});tn(F,t+.04,.1,{f:900,f2:1900,fT:.09,g:.07});},
+  /* 鍋蓋擋掉：「鏘」短的金屬聲＋一點撞擊 */
+  block(F,t){tn(F,t,.08,{f:160,f2:90,g:.45});nz(F,t,.015,{type:'highpass',f:3000,g:.5,a:.0005});metal(F,t,820,[[1,1,.45],[1.73,.6,.35],[2.61,.45,.25],[3.9,.3,.18]],{g:.2,rev:.2});duck(F,t);},
+  /* 被打倒：身體倒地的「碰」，再彈一下 */
+  knock(F,t){tn(F,t,.22,{f:170,f2:70,fT:.18,g:.5});nz(F,t,.16,{type:'lowpass',f:1600,f2:450,Q:.7,g:1});nz(F,t,.04,{f:1500,Q:.8,g:.55});tn(F,t+.13,.12,{f:150,f2:75,g:.3});nz(F,t+.13,.09,{type:'lowpass',f:1000,f2:350,g:.35});}};
+const DIZZY={slipper:1,hammer:1};
+/* kind：throw 丟出去、hit 打中、both 整段，或 ETC 裡的名字 */
+function fire(F,t,kind,item){
+  if(kind==='throw')return sfxThrow(F,t,item);
+  if(kind==='hit'){HIT[item](F,t);if(DIZZY[item])ETC.stars(F,t+.12);return;}
+  if(kind==='both'){const d=sfxThrow(F,t,item),h=t+d*.92;HIT[item](F,h);if(DIZZY[item])ETC.stars(F,h+.12);return;}
+  if(ETC[kind])ETC[kind](F,t);}
+
+/* ===== 播放 ===== */
+const ST={ac:null,M:null,cur:null,timer:null};
+function ctx(){if(!ST.ac){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){alert('這個瀏覽器不能播放聲音');return null;}
+    /* 試聽頁：iPhone 側邊靜音開關打開時也聽得到（iOS 17 以後才有這個設定，遊戲本體不會這樣做） */
+    try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+    ST.ac=new AC();ST.M=master(ST.ac);setVol();
+    /* 其他幾首的聲音趁空檔先算好，之後按下去馬上有聲音 */
+    ['calm','battle','win','lose'].forEach((n,i)=>setTimeout(()=>{try{prewarm(ST.ac,model(n));}catch(e){}},600+i*500));}
+  if(ST.ac.state!=='running')ST.ac.resume().catch(()=>{});return ST.ac;}
+function setVol(){if(!ST.M)return;const f=v=>Math.pow(v/80,2);const vm=f(+document.getElementById('vm').value),vs=f(+document.getElementById('vs').value);ST.M.music.gain.value=vm;ST.M.old.gain.value=vm;ST.M.sfx.gain.value=vs;}
+function play(name,ver,onEnd){const c=ctx();if(!c)return;stop();const S=model(name);if(ver!=='old')prewarm(c,S);R=rng(42);
+  const cur={S,L:lane(ST.M,ver,S),ver,i:0,t:c.currentTime+.08,onEnd};ST.cur=cur;tick();ST.timer=setInterval(tick,50);}
+function tick(){const cur=ST.cur;if(!cur)return;const c=ST.ac;if(cur.t<c.currentTime)cur.t=c.currentTime+.03;
+  while(cur.t<c.currentTime+.25){
+    if(cur.S.once&&cur.i>=cur.S.N){clearInterval(ST.timer);ST.timer=null;cur.endT=setTimeout(()=>{if(ST.cur===cur){release(cur);ST.cur=null;if(cur.onEnd)cur.onEnd();}},(cur.t-c.currentTime+2.4)*1000);return;}
+    (cur.ver==='old'?oldStep:newStep)(cur.L,cur.i,cur.t);cur.t+=cur.S.step;cur.i++;}}
+function release(cur){const o=cur.L.out,t=ST.ac.currentTime;o.gain.cancelScheduledValues(t);o.gain.setValueAtTime(o.gain.value,t);o.gain.linearRampToValueAtTime(0,t+.04);setTimeout(()=>{try{o.disconnect();}catch(e){}},400);}
+function stop(){const cur=ST.cur;if(!cur)return;clearInterval(ST.timer);ST.timer=null;clearTimeout(cur.endT);release(cur);ST.cur=null;if(cur.onEnd)cur.onEnd();}
+function sfx(kind,item){const c=ctx();if(!c)return;const out=c.createGain();out.connect(ST.M.sfx);setTimeout(()=>{try{out.disconnect();}catch(e){}},6000);fire({c,M:ST.M,out,rev:ST.M.sfxRev,noise:ST.M.noise},c.currentTime+.02,kind,item);}
+
+/* ===== 測試用：離線算出聲音（檢查音量、有沒有爆音、頻譜） ===== */
+async function renderOffline(w,sec,sr){sr=sr||44100;const oc=new OfflineAudioContext(2,Math.ceil(sec*sr),sr),M=master(oc);R=rng(42);
+  if(w.song){const S=model(w.song);if(w.ver!=='old')prewarm(oc,S);const L=lane(M,w.ver,S),fn=w.ver==='old'?oldStep:newStep;for(let i=0,t=.05;t<sec-.02;i++,t+=S.step){if(S.once&&i>=S.N)break;fn(L,i,t);}}
+  if(w.fx){const out=oc.createGain();out.connect(M.sfx);fire({c:oc,M,out,rev:M.sfxRev,noise:M.noise},w.at||.05,w.fx,w.item);}
+  return oc.startRendering();}
+async function pcm(w,sec){const b=await renderOffline(w,sec),L=b.getChannelData(0),Rr=b.getChannelData(1),n=L.length,i16=new Int16Array(n*2);let nan=0,pk=0;
+  for(let i=0;i<n;i++){let l=L[i],r=Rr[i];if(!isFinite(l)||!isFinite(r)){nan++;l=r=0;}const a=Math.max(Math.abs(l),Math.abs(r));if(a>pk)pk=a;
+    i16[2*i]=Math.max(-32767,Math.min(32767,Math.round(l*32767)));i16[2*i+1]=Math.max(-32767,Math.min(32767,Math.round(r*32767)));}
+  const u8=new Uint8Array(i16.buffer);let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return{b64:btoa(s),nan,pk,sr:b.sampleRate,n};}
+window.LAB={renderOffline,pcm,model,SONGS};
+
+/* ===== 畫面 ===== */
+const ITEMS=[['tomato','番茄'],['egg','雞蛋'],['bomb','炸彈'],['slipper','拖鞋'],['hammer','大鐵盆'],['flower','花'],['heart','愛心']];
+document.getElementById('items').innerHTML=ITEMS.map(([k,n])=>`<div class="row"><span class="lbl">${n}</span><div class="btns"><button type="button" data-fx="throw" data-item="${k}">丟出去</button><button type="button" data-fx="hit" data-item="${k}">打中</button><button type="button" data-fx="both" data-item="${k}">整段</button></div></div>`).join('');
+function mark(b){document.querySelectorAll('[data-song]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on);x.textContent=(on?'■ ':'▶ ')+x.dataset.label;});}
+mark(null);
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.song){const on=b.classList.contains('on');stop();if(!on){play(b.dataset.song,b.dataset.ver,()=>mark(null));mark(b);}return;}
+  if(b.dataset.fx){sfx(b.dataset.fx,b.dataset.item);return;}
+  if(b.id==='stopAll')stop();});
+document.getElementById('vm').addEventListener('input',setVol);document.getElementById('vs').addEventListener('input',setVol);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+</script>
+</body>
+</html>
