@@ -36,6 +36,35 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     <p class="tip">把音量調大再按 ▶。iPhone 側邊的靜音開關打開時，iOS 17 以後這一頁也聽得到；聽不到的話先把靜音關掉。</p>
   </header>
 
+  <section class="card" aria-labelledby="h-v4">
+    <h2 id="h-v4">第四版音效（你的回饋＋Google 的修正）</h2>
+    <p class="tip">同一列左邊是第三版，右邊是第四版，輪流按來比。想聽音樂被壓低，先按下面的「戰鬥」再按音效。</p>
+    <div class="row"><span class="lbl">音樂</span><div class="btns">
+      <button type="button" data-v2="battle" data-label="戰鬥（第三版）">▶ 戰鬥（第三版）</button></div></div>
+    <div class="row"><span class="lbl">大鐵盆</span><div class="btns">
+      <button type="button" data-fx4="pot">第三版</button>
+      <button type="button" data-fx4="pot4g">第四版 A（照 Google）</button>
+      <button type="button" data-fx4="pot4">第四版 B（手機版）</button></div></div>
+    <p class="tip">A 照 Google 的數字（130～340Hz、低通關到 350Hz）：戴耳機很低沉，但手機喇叭放不太出 300Hz 以下，用手機聽會小聲、悶掉。B 是 Claude 改的：同樣變低、變悶，另外疊上手機放得出來的泛音（耳朵會自己補回低音），再加一點很暗的殘響。</p>
+    <div class="row"><span class="lbl">輸了</span><div class="btns">
+      <button type="button" data-fx4="lose">第三版</button>
+      <button type="button" data-fx4="lose4">第四版（哇哇＋發抖）</button>
+      <button type="button" data-song="lose" data-ver="old" data-label="現在（哇哇哇）">▶ 現在（哇哇哇）</button></div></div>
+    <div class="row"><span class="lbl">拖鞋</span><div class="btns">
+      <button type="button" data-fx4="slipper">第三版</button>
+      <button type="button" data-fx4="slipper4">第四版</button></div></div>
+    <div class="row"><span class="lbl">鍋蓋</span><div class="btns">
+      <button type="button" data-fx4="shield">第三版</button>
+      <button type="button" data-fx4="shield4">第四版</button></div></div>
+    <div class="row"><span class="lbl">被打倒</span><div class="btns">
+      <button type="button" data-fx4="knock">第三版</button>
+      <button type="button" data-fx4="knock4">第四版</button></div></div>
+    <div class="row"><span class="lbl">眼冒金星</span><div class="btns">
+      <button type="button" data-fx4="dizzy">第三版</button>
+      <button type="button" data-fx4="dizzy4">第四版</button></div></div>
+    <p class="tip">第四版的振盪器都加了一點解諧（聲音比較厚、不像蜂鳴器），拖鞋和被打倒多了手機聽得到的中低頻，音量都和第三版一樣大。猜中 4A 你說 OK，沒改；閃掉只有雜音，也沒改。</p>
+  </section>
+
   <section class="card" aria-labelledby="h-v3">
     <h2 id="h-v3">第三版（Google 的完整規格）</h2>
     <div class="row"><span class="lbl">大廳</span><div class="btns">
@@ -105,9 +134,9 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 
   <section class="card" aria-labelledby="h-tell">
     <h2 id="h-tell">聽完跟我說</h2>
-    <p class="tip" style="margin:0 0 4px">每首選「現在」還是「新版」；哪個音效要改，用自己的話說就好，例如「番茄不夠濕」「鐵盆再重一點」。</p>
+    <p class="tip" style="margin:0 0 4px">每個音效選第三版還是第四版；大鐵盆選 A 還是 B；輸了選哪一個。還要改的地方，用自己的話說就好，例如「鐵盆再悶一點」「哇哇太慢」。</p>
   </section>
-  <p class="ver">試聽頁 3（2026-11-09）· 這一頁不會改到遊戲</p>
+  <p class="ver">試聽頁 4（2026-11-09）· 這一頁不會改到遊戲</p>
 </main>
 <script src="chip-audio.js"></script>
 <script>
@@ -488,6 +517,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)r
   try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
   if(b.dataset.song){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();if(!on){play(b.dataset.song,b.dataset.ver,()=>mark(null));mark(b);}return;}
   if(b.dataset.v2){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();mark(null);if(!on){setVol();const v=b.dataset.v2,o={version:/2$/.test(v)?2:3};if(/^lobby/.test(v))ChipAudio.playLobbyBGM(o);else ChipAudio.playBattleBGM(o);mark(b);}return;}
+  if(b.dataset.fx4){setVol();ChipAudio.playSfx(b.dataset.fx4);return;}
   if(b.dataset.v3fx){setVol();({slipper:ChipAudio.playSlipperSFX,pot:ChipAudio.playIronPotSFX,evade:ChipAudio.playEvadeSFX,shield:ChipAudio.playShieldBlockSFX,knock:ChipAudio.playKnockoutSFX,dizzy:ChipAudio.playDizzySFX,lose:ChipAudio.playLoseSFX,win:ChipAudio.playWinSFX})[b.dataset.v3fx]();return;}
   if(b.id==='hot'){const h=!ChipAudio.intensity;ChipAudio.setBattleIntensity(h);b.setAttribute('aria-pressed',h);b.classList.toggle('on',h);b.textContent='熱血爆發：'+(h?'開':'關');return;}
   if(b.dataset.fx){sfx(b.dataset.fx,b.dataset.item);return;}

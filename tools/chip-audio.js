@@ -1,15 +1,16 @@
 /* =====================================================================
- * chip-audio.js ── 幾A幾B 第三版音樂與音效（試聽中，還沒放進遊戲）
+ * chip-audio.js ── 幾A幾B 第三版音樂、第三和第四版音效（試聽中，還沒放進遊戲）
  * 全部用 Web Audio API 當場合成，沒有任何音檔。
  *
  * 用法（手機瀏覽器規定：第一次一定要在「點擊／觸控」的事件裡呼叫才會出聲）：
  *   ChipAudio.playLobbyBGM();          大廳背景音樂（無限循環）
  *   ChipAudio.playBattleBGM();         戰鬥解謎背景音樂（無限循環）
- *   ChipAudio.setBattleIntensity(true) 熱血爆發：戰鬥旋律的低通濾波從 1500Hz 打開到 5200Hz（false 收回）
+ *   ChipAudio.setBattleIntensity(true) 熱血爆發：戰鬥旋律的低通濾波從 1500Hz 打開到 6000Hz、大聲一點（false 收回）
  *   ChipAudio.stopBGM();               停止背景音樂（0.05 秒內收乾淨，回音殘響也一起收，不會漏拍）
  *   音效：playSlipperSFX() 拖鞋打中、playIronPotSFX() 大鐵盆打中、playEvadeSFX() 閃掉、
  *         playShieldBlockSFX() 鍋蓋擋掉、playKnockoutSFX() 被打倒、playDizzySFX() 眼冒金星、
  *         playLoseSFX() 輸了、playWinSFX() 猜中 4A
+ *   第四版音效（試聽中）：ChipAudio.playSfx('pot4')，名字見 render 的說明；上面那些函式現在還是播第三版
  *   ChipAudio.setVolume({music: 1, sfx: 1});
  *   打中類的音效會讓背景音樂瞬間壓低（ducking），音效才不會被蓋過。
  *   試聽頁要比較上一版：playLobbyBGM({version: 2})、playBattleBGM({version: 2})。
@@ -117,29 +118,31 @@
   function freeverb(c, room, damp) {
     const input = c.createGain();
     input.channelCount = 1; input.channelCountMode = 'explicit';   // 先混成單聲道再做殘響
-    const output = c.createChannelMerger(2);
+    const output = c.createChannelMerger(2), nodes = [input, output];   // nodes：音效用完要全部斷開（迴路才不會一直佔運算）
     const k = c.sampleRate / 44100, COMB = [1116, 1188, 1277, 1356], AP = [556, 441], SPREAD = 23;
     for (let ch = 0; ch < 2; ch++) {
       const sum = c.createGain(); sum.gain.value = 0.25;              // 4 個梳狀濾波平均起來
+      nodes.push(sum);
       COMB.forEach((n) => {
         const d = c.createDelay(0.1); d.delayTime.value = (n + ch * SPREAD) * k / c.sampleRate;
         const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = damp; lp.Q.value = -3;
         const fb = c.createGain(); fb.gain.value = room;
         input.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d);   // 反饋迴路
-        d.connect(sum);
+        d.connect(sum); nodes.push(d, lp, fb);
       });
       let node = sum;
-      AP.forEach((n) => { node = allpass(c, node, (n + ch * SPREAD) * k / c.sampleRate, 0.5); });
+      AP.forEach((n) => { node = allpass(c, node, (n + ch * SPREAD) * k / c.sampleRate, 0.5, nodes); });
       node.connect(output, 0, ch);
     }
-    return { input, output };
+    return { input, output, nodes };
   }
   /** 全通濾波器：v = 輸入 + g × (延遲後的 v)；輸出 = −g × v + (延遲後的 v) */
-  function allpass(c, src, delay, g) {
+  function allpass(c, src, delay, g, nodes) {
     const v = c.createGain(), d = c.createDelay(0.1), fb = c.createGain(), ff = c.createGain(), out = c.createGain();
     d.delayTime.value = delay; fb.gain.value = g; ff.gain.value = -g;
     src.connect(v); v.connect(d); d.connect(fb); fb.connect(v);
     v.connect(ff); ff.connect(out); d.connect(out);
+    if (nodes) nodes.push(v, d, fb, ff, out);
     return out;
   }
 
@@ -592,7 +595,208 @@
     sq.start(t); tr.start(t); sq.stop(tl + 0.82); tr.stop(tl + 0.82);
     return { end: tl + 0.85, nodes: [] };
   }
-  const SFX = { slipper: slipperSfx, pot: potSfx, evade: evadeSfx, shield: shieldSfx, knock: knockSfx, dizzy: dizzySfx, lose: loseSfx, win: winSfx };
+  /* ================= 第四版音效（11/09：使用者用手機聽完第三版的回饋＋Google 的修正） =================
+   * 使用者：大鐵盆太清脆，大鐵鍋應該更低沉、有吸音擴散感；整體有點像電子蜂鳴器、廉價；贏了 OK，輸了有點無趣
+   * 改法：
+   *   ① 解諧（Google）：同一個音用兩個振盪器 +8／−8 音分（音分＝半音的百分之一）一起響，兩個波形慢慢互相干涉，
+   *      聲音變厚、微微晃動，不像單一振盪器那麼乾淨（金屬被敲時本來就有兩個很接近的頻率互相拍打）
+   *   ② 手機喇叭（Claude 加的）：手機放不出 300Hz 以下，150Hz 以下幾乎沒有聲音。要低沉又要手機聽得到，
+   *      就讓低音帶著 2～5 倍頻的泛音（疊高八度的音，或微幅失真）→ 手機放得出泛音，耳朵會自己把很低的基音補回來
+   *   贏了（4A）使用者說 OK，沒有改；閃掉只有雜音、沒有振盪器，也沒有改
+   */
+  const DET = 8;
+  /**
+   * 解諧的一對振盪器（type：'sine'、'square'、'triangle'、'pulse'＝25% 方波）；out 是兩個合起來。改頻率時 os 兩個都要改
+   *   bal：第二個的音量比例（預設 1＝一樣大）。注意：一樣大的兩個方波或三角波，每隔 1／(2×頻率差) 秒會完全抵消一次（瞬間沒聲音），
+   *   短而高的音（例如 2200Hz 的鍋蓋，每秒抵消 20 次）用 bal 0.5，最多只小聲 10dB，聽起來是閃爍而不是斷掉
+   */
+  function pair(c, type, f, cents, bal) {
+    const out = c.createGain(); bal = bal == null ? 1 : bal;
+    const os = [-1, 1].map((s, i) => {
+      const o = c.createOscillator(), g = c.createGain();
+      if (type === 'pulse') o.setPeriodicWave(pulse25(c)); else o.type = type;
+      o.frequency.value = f; o.detune.value = s * (cents == null ? DET : cents);
+      g.gain.value = (i ? bal : 1) / (1 + bal); o.connect(g); g.connect(out); return o;
+    });
+    return { os, out, start: (t) => os.forEach((o) => o.start(t)), stop: (t) => os.forEach((o) => o.stop(t)) };
+  }
+  /** 微幅失真（飽和）：tanh 曲線，小聲幾乎不變、大聲時圓圓地壓扁 → 多出 3、5 倍頻的泛音；drive 越大越髒 */
+  const CURVES = {};
+  function saturator(c, drive) {
+    let cv = CURVES[drive];
+    if (!cv) { const n = 1024; cv = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; cv[i] = Math.tanh(drive * x) / drive; } CURVES[drive] = cv; }
+    const ws = c.createWaveShaper(); ws.curve = cv; ws.oversample = '2x'; return ws;
+  }
+  /** 一個音量包絡：t 時 1 毫秒內衝到 peak（at 秒），dec 秒內收到 0 */
+  function hitEnv(g, t, peak, at, dec) { g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(peak, t + at); g.gain.exponentialRampToValueAtTime(1e-4, t + dec); }
+  /**
+   * 大鐵盆打中（第四版）：variant 'g'＝照 Google 的數字；'p'＝手機版（Claude 建議）
+   *   四個不協和頻率照第三版的比例一起往下移（÷2.9，低一個半八度）：130、178、257、341Hz，每個都是一對解諧振盪器
+   *   快速吸音：低通在敲到的 0.02 秒內全開（「鏗」一下），之後 0.1 秒內關到 350Hz（照 Google）／1200Hz（手機版）→ 只剩悶悶的「咚ーー」
+   *   延遲迴路：31 毫秒、回授 0.75，迴路裡只留中低頻（照 Google 600Hz 以下／手機版 1000Hz 以下）→ 空心、低沉的嗡嗡尾巴
+   *   手機版另外：① 低音的泛音：260、390Hz（130 的 2、3 倍）、356Hz（178 的 2 倍）、514Hz（257 的 2 倍）一起響，
+   *                  手機喇叭放得出來，耳朵聽到這些泛音會自己補回 130Hz 的低音；130Hz 本身小聲一點
+   *               ② 敲到時一聲失真過的「咚」（95→55Hz，泛音手機聽得到）③ 一點點很暗的殘響 → 聲音散開（擴散感）
+   */
+  function potSfx4(c, out, B, t, variant) {
+    const ph = variant !== 'g', nodes = [];
+    const sum = c.createGain(); sum.gain.value = 0.5;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = -3;
+    lp.frequency.setValueAtTime(8000, t); lp.frequency.setValueAtTime(8000, t + 0.02); lp.frequency.exponentialRampToValueAtTime(ph ? 1200 : 350, t + 0.12);
+    const post = c.createGain(); post.gain.value = ph ? 0.9 : 0.7;
+    sum.connect(lp); lp.connect(post); post.connect(out);
+    const modes = ph
+      ? [[130, 'sine', 0.3, 1.8], [178, 'square', 0.18, 1.4], [257, 'sine', 0.4, 0.35], [341, 'square', 0.16, 0.25],
+        [260, 'sine', 0.45, 1.6], [390, 'sine', 1.0, 1.3], [356, 'sine', 0.5, 1.2], [514, 'sine', 0.4, 0.35]]
+      : [[130, 'sine', 1.0, 1.8], [178, 'square', 0.22, 1.4], [257, 'sine', 0.6, 0.3], [341, 'square', 0.16, 0.25]];
+    modes.forEach(([f, type, a, dec]) => {
+      const p = pair(c, type, f), g = c.createGain(); hitEnv(g, t, a, 0.002, dec);
+      p.out.connect(g); g.connect(sum); p.start(t); p.stop(t + dec + 0.02);
+    });
+    const n = noiseSrc(c, B, t, 0.03), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3000; bp.Q.value = 0.7;
+    const gn = c.createGain(); gn.gain.setValueAtTime(0.6, t); gn.gain.exponentialRampToValueAtTime(1e-4, t + 0.02);   // 敲到的瞬間（跟著低通一起被吸掉）
+    n.connect(bp); bp.connect(gn); gn.connect(sum);
+    if (ph) {
+      const th = pair(c, 'sine', 95), gt = c.createGain(), s = saturator(c, 3);
+      th.os.forEach((o) => { o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(55, t + 0.15); });
+      hitEnv(gt, t, 0.9, 0.004, 0.18); th.out.connect(gt); gt.connect(s); s.connect(sum); th.start(t); th.stop(t + 0.2);
+    }
+    const d = c.createDelay(1); d.delayTime.value = 0.031;
+    const fl = c.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = ph ? 1000 : 600; fl.Q.value = -3;
+    const fh = c.createBiquadFilter(); fh.type = 'highpass'; fh.frequency.value = ph ? 140 : 70; fh.Q.value = -3;
+    const fb = c.createGain(); fb.gain.value = 0.75;
+    const wet = c.createGain(); wet.gain.value = 0.5;
+    post.connect(d); d.connect(fl); fl.connect(fh); fh.connect(fb); fb.connect(d); fh.connect(wet); wet.connect(out);
+    nodes.push(d, fl, fh, fb, wet);
+    if (ph) {
+      const rv = freeverb(c, 0.8, 1400), send = c.createGain(); send.gain.value = 0.3;
+      post.connect(send); send.connect(rv.input); rv.output.connect(out); nodes.push(send, ...rv.nodes);
+    }
+    duck(B, t, 0.35, 0.6);
+    return { end: t + 2.8, nodes };
+  }
+  /**
+   * 輸了（第四版）：保留 C5 → G#4 → G4 → F#4 往下走，每個音都變成「哇～」，融合原本「哇哇哇」的滑稽感
+   *   節奏：140 BPM 的八分音符（每 0.214 秒一個音），規格裡的 140 BPM 和 0.15 秒這樣就都對得上
+   *   滑音：每個音 0.15 秒內往下滑半音（G#4 滑到 G4、G4 滑到 F#4，剛好接到下一個音）
+   *   哇：有共振的低通（Q 10dB），每個音 0.04 秒內從 350Hz 打開到 2600Hz（ㄨ→ㄚ），再跟著音高收回來（ㄚ→ㄨ）
+   *   最後的 F#4 拉長：滑下來後再慢慢垂下半音，加上 15Hz 的振幅顫音（全身發抖），1 秒內淡出
+   *   音色：方波 +8 音分、三角波 −8 音分（照 Google 的寫法：疊在一起的振盪器互相解諧；
+   *         用兩個一樣的方波的話，每 0.2 秒會完全抵消一次，「哇」會斷成「哇-ㄚ」；方波 65%、三角波 35%，抵消時最多只小聲 6dB）
+   */
+  function loseSfx4(c, out, B, t) {
+    const NOTES = ['C5', 'G#4', 'G4', 'F#4'].map((x) => hz(midi(x))), STEP = 60 / 140 / 2, GL = 0.15, DN = Math.pow(2, -1 / 12);
+    const sq = c.createOscillator(); sq.type = 'square'; sq.detune.value = DET;
+    const tr = c.createOscillator(); tr.type = 'triangle'; tr.detune.value = -DET;
+    const gs = c.createGain(); gs.gain.value = 0.65; const gt = c.createGain(); gt.gain.value = 0.35;   // 方波大聲一點：兩個基音差比較多，互相抵消時最多只小聲 6dB
+    const wah = c.createBiquadFilter(); wah.type = 'lowpass'; wah.Q.value = 10;
+    const amp = c.createGain(), trem = c.createGain();
+    sq.connect(gs); tr.connect(gt); gs.connect(wah); gt.connect(wah); wah.connect(amp); amp.connect(trem); trem.connect(out);
+    const os = [sq, tr], A = 0.125, last = NOTES.length - 1, tl = t + last * STEP;
+    NOTES.forEach((f, i) => {
+      const t0 = t + i * STEP;
+      os.forEach((o) => { o.frequency.setValueAtTime(f, t0); o.frequency.exponentialRampToValueAtTime(f * DN, t0 + GL); });
+      wah.frequency.setValueAtTime(350, t0); wah.frequency.exponentialRampToValueAtTime(2600, t0 + 0.04);
+      amp.gain.setValueAtTime(1e-4, t0); amp.gain.exponentialRampToValueAtTime(A, t0 + 0.012);
+      if (i < last) {
+        wah.frequency.exponentialRampToValueAtTime(450, t0 + GL);
+        amp.gain.exponentialRampToValueAtTime(A * 0.5, t0 + GL); amp.gain.exponentialRampToValueAtTime(1e-4, t0 + STEP - 0.005);   // 音和音之間斷開：哇、哇、哇
+      }
+    });
+    const low = NOTES[last] * DN * DN;
+    os.forEach((o) => o.frequency.exponentialRampToValueAtTime(low, tl + 1.0));   // 最後再慢慢垂下半音（洩氣）
+    wah.frequency.exponentialRampToValueAtTime(600, tl + 1.0);
+    amp.gain.setValueAtTime(A, tl + 0.3); amp.gain.exponentialRampToValueAtTime(1e-4, tl + 1.05);
+    const lfo = c.createOscillator(); lfo.frequency.value = 15;                    // 15Hz 振幅顫音：最後一個音滑下來後才開始抖
+    const dep = c.createGain(); dep.gain.setValueAtTime(0, t); dep.gain.setValueAtTime(0, tl + GL); dep.gain.linearRampToValueAtTime(0.35, tl + GL + 0.08);
+    trem.gain.setValueAtTime(1, t); trem.gain.setValueAtTime(1, tl + GL); trem.gain.linearRampToValueAtTime(0.65, tl + GL + 0.08);   // 0.3～1.0 之間抖
+    lfo.connect(dep); dep.connect(trem.gain);
+    const te = tl + 1.08; sq.start(t); tr.start(t); lfo.start(t); sq.stop(te); tr.stop(te); lfo.stop(te);
+    return { end: te + 0.05, nodes: [] };
+  }
+  /**
+   * 拖鞋打中（第四版）：三層
+   *   ① 「啪」：白噪音 → 1000Hz 高通，1 毫秒衝到最大、0.03 秒收掉（同第三版）
+   *   ② 中頻的聲體：白噪音 → 700Hz 帶通，0.05 秒收掉（手機喇叭最擅長的頻段，第三版沒有）
+   *   ③ 打到肉的重量：180Hz 解諧正弦 → 微幅失真（多出 540、900Hz，手機才聽得到）→ 1500Hz 低通，0.08 秒收掉
+   */
+  function slipperSfx4(c, out, B, t) {
+    const n = noiseSrc(c, B, t, 0.06);
+    const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1000;
+    const g1 = c.createGain(); hitEnv(g1, t, 0.9, 0.001, 0.03); n.connect(hp); hp.connect(g1); g1.connect(out);
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 700; bp.Q.value = 1.2;
+    const g2 = c.createGain(); hitEnv(g2, t, 3.0, 0.002, 0.05); n.connect(bp); bp.connect(g2); g2.connect(out);
+    const p = pair(c, 'sine', 180), g3 = c.createGain(), s = saturator(c, 3), lp = c.createBiquadFilter(), go = c.createGain();
+    lp.type = 'lowpass'; lp.frequency.value = 1500; lp.Q.value = -3; go.gain.value = 1.2;
+    hitEnv(g3, t, 0.9, 0.003, 0.08); p.out.connect(g3); g3.connect(s); s.connect(lp); lp.connect(go); go.connect(out);
+    p.start(t); p.stop(t + 0.1);
+    duck(B, t, 0.5, 0.15);
+    return { end: t + 0.12, nodes: [] };
+  }
+  /**
+   * 鍋蓋擋掉（第四版）：同第三版（2200、2850Hz 三角波＋4000Hz 以上雜音，0.06 秒後彈一下），兩個三角波都改成解諧的一對 → 金屬的閃爍感
+   *   2200Hz 的解諧一對每秒互相抵消約 20 次 → 第二個只用一半音量（bal 0.5），變成閃爍而不是斷掉；平均小聲一點，音量乘 1.55 補回來
+   */
+  function shieldSfx4(c, out, B, t) {
+    const hit = (t0, v) => {
+      [2200, 2850].forEach((f) => {
+        const p = pair(c, 'triangle', f, DET, 0.5), g = c.createGain(); hitEnv(g, t0, v * 1.55, 0.01, 0.1);
+        p.out.connect(g); g.connect(out); p.start(t0); p.stop(t0 + 0.12);
+      });
+      const n = noiseSrc(c, B, t0, 0.03), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4000;
+      const gn = c.createGain(); gn.gain.setValueAtTime(v * 0.25, t0); gn.gain.exponentialRampToValueAtTime(1e-4, t0 + 0.025);
+      n.connect(hp); hp.connect(gn); gn.connect(out);
+    };
+    hit(t, 0.35); hit(t + 0.06, 0.12);
+    duck(B, t, 0.6, 0.1);
+    return { end: t + 0.2, nodes: [] };
+  }
+  /**
+   * 被打倒（第四版）：四層
+   *   ① 最底層：三角波（解諧）0.3 秒內 120→40Hz → 重重落地（同第三版，耳機聽得到，手機放不出來）
+   *   ② 手機聽得到的「嗚—咚」：三角波（解諧）0.18 秒內 220→70Hz → 微幅失真（多出 660→210、1100→350Hz 往下掉的泛音）→ 1200Hz 低通
+   *   ③ 中層：白噪音 → 600Hz 低通（第三版 400Hz，手機聽不太到），3 毫秒爆開、0.25 秒收掉
+   *   ④ 高層：25% 方波（解諧）C6 G5 D#5 C5 G4 每 40 毫秒往下跳（解諧後平均小聲一點，音量乘 1.4 補回來）
+   */
+  function knockSfx4(c, out, B, t) {
+    const p = pair(c, 'triangle', 120), g = c.createGain();
+    p.os.forEach((o) => { o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(40, t + 0.3); });
+    hitEnv(g, t, 0.5, 0.005, 0.38); p.out.connect(g); g.connect(out); p.start(t); p.stop(t + 0.4);
+    const q = pair(c, 'triangle', 220), gq = c.createGain(), s = saturator(c, 3), lb = c.createBiquadFilter(), gb = c.createGain();
+    q.os.forEach((o) => { o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.18); });
+    lb.type = 'lowpass'; lb.frequency.value = 1200; lb.Q.value = -3; gb.gain.value = 2.0;
+    hitEnv(gq, t, 0.9, 0.004, 0.22); q.out.connect(gq); gq.connect(s); s.connect(lb); lb.connect(gb); gb.connect(out); q.start(t); q.stop(t + 0.25);
+    const n = noiseSrc(c, B, t, 0.3), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 600;
+    const gn = c.createGain(); hitEnv(gn, t, 1.1, 0.003, 0.25); n.connect(lp); lp.connect(gn); gn.connect(out);
+    const NOTES = ['C6', 'G5', 'D#5', 'C5', 'G4'].map((x) => hz(midi(x))), t0 = t + 0.02, tE = t0 + NOTES.length * 0.04;
+    const a = pair(c, 'pulse', NOTES[0]);
+    NOTES.forEach((f, i) => a.os.forEach((o) => o.frequency.setValueAtTime(f, t0 + i * 0.04)));
+    const la = c.createBiquadFilter(); la.type = 'lowpass'; la.frequency.value = 5000; la.Q.value = -3;
+    const ga = c.createGain(); ga.gain.setValueAtTime(1e-4, t); ga.gain.setValueAtTime(1e-4, t0); ga.gain.exponentialRampToValueAtTime(0.24, t0 + 0.008);
+    ga.gain.exponentialRampToValueAtTime(0.085, tE); ga.gain.exponentialRampToValueAtTime(1e-4, tE + 0.08);
+    a.out.connect(la); la.connect(ga); ga.connect(out); a.start(t); a.stop(tE + 0.1);
+    duck(B, t, 0.35, 0.35);
+    return { end: tE + 0.12, nodes: [] };
+  }
+  /** 眼冒金星（第四版）：同第三版（方波每 15 毫秒亂跳、整體 1200→300Hz、13Hz LFO），方波改成解諧的一對（第二個 6 成音量），兩個一起跳 */
+  function dizzySfx4(c, out, B, t) {
+    const p = pair(c, 'square', 1200, DET, 0.6);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3500; lp.Q.value = -3;
+    const g = c.createGain(); p.out.connect(lp); lp.connect(g); g.connect(out);
+    const STEP = 0.015, N = Math.round(0.5 / STEP);
+    for (let i = 0; i < N; i++) { const f = 1200 * Math.pow(300 / 1200, i / (N - 1)) * (0.78 + Math.random() * 0.44); p.os.forEach((o) => o.frequency.setValueAtTime(f, t + i * STEP)); }
+    const lfo = c.createOscillator(); lfo.frequency.value = 13;
+    const dep = c.createGain(); dep.gain.value = 70; lfo.connect(dep); p.os.forEach((o) => dep.connect(o.frequency));
+    g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(0.075, t + 0.01); g.gain.setValueAtTime(0.075, t + 0.35); g.gain.exponentialRampToValueAtTime(1e-4, t + 0.5);
+    p.start(t); lfo.start(t); p.stop(t + 0.52); lfo.stop(t + 0.52);
+    return { end: t + 0.55, nodes: [] };
+  }
+
+  const SFX = {
+    slipper: slipperSfx, pot: potSfx, evade: evadeSfx, shield: shieldSfx, knock: knockSfx, dizzy: dizzySfx, lose: loseSfx, win: winSfx,
+    slipper4: slipperSfx4, pot4: (c, o, B, t) => potSfx4(c, o, B, t, 'p'), pot4g: (c, o, B, t) => potSfx4(c, o, B, t, 'g'),
+    shield4: shieldSfx4, knock4: knockSfx4, dizzy4: dizzySfx4, lose4: loseSfx4,
+  };
 
   /* ================= 播放、排程 ================= */
   const AHEAD = 0.12, TICK_MS = 25;
@@ -658,7 +862,7 @@
   }
   /** 播一個音效；結束後把有反饋迴路的節點斷開 */
   function playSfx(name) {
-    const c = ensure(); if (!c) return;
+    const c = ensure(); if (!c || !SFX[name]) return;
     const out = c.createGain(); out.connect(bus.sfx);
     const r = SFX[name](c, out, bus, c.currentTime + 0.02);
     setTimeout(() => { [out].concat(r.nodes).forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - c.currentTime) * 1000 + 200);
@@ -670,7 +874,8 @@
   /**
    * 測試用：離線算出一段聲音，檢查音量、有沒有爆音、熱血開關有沒有變亮
    *   曲子：'lobby'、'battle'（第三版）、'lobby2'、'battle2'（第二版）、'battleHot'（第三版熱血）
-   *   音效：'slipper'、'pot'、'evade'、'shield'、'knock'、'dizzy'、'lose'、'win'
+   *   音效：'slipper'、'pot'、'evade'、'shield'、'knock'、'dizzy'、'lose'、'win'（第三版）；
+   *         'slipper4'、'pot4'（手機版）、'pot4g'（照 Google）、'shield4'、'knock4'、'dizzy4'、'lose4'（第四版）
    */
   async function render(name, sec, sr) {
     sr = sr || 44100;
@@ -690,6 +895,8 @@
     playLobbyBGM: (opts) => startSong(opts && opts.version === 2 ? LOBBY : LOBBY3),
     playBattleBGM: (opts) => startSong(opts && opts.version === 2 ? BATTLE : BATTLE3),
     stopBGM, setBattleIntensity, setVolume, render,
+    /** 用名字播音效（試聽頁比較用）：名字見 render 的說明，例如 'pot4'、'lose4' */
+    playSfx,
     playSlipperSFX: () => playSfx('slipper'),
     playIronPotSFX: () => playSfx('pot'),
     playEvadeSFX: () => playSfx('evade'),
