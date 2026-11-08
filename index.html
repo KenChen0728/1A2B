@@ -121,6 +121,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .slot{width:54px;height:54px;border-bottom:4px solid var(--ink);display:grid;place-items:center;font-family:var(--f-num);font-size:38px;color:var(--ink)}
 .slot.empty{border-bottom-color:var(--line)}
 .slot.lock{color:var(--ok);border-bottom-color:var(--ok)}
+.rpwhy{border-left:3px solid var(--line);padding-left:10px;display:grid;gap:4px}.rpwhy b{font-size:14px;color:var(--muted)}.rpwhy p{margin:0;font-size:14px;line-height:1.55}
 .slot .pnote{font-size:.5em;color:var(--muted);opacity:.7;align-self:end;margin-bottom:4px}
 .err{min-height:20px;color:var(--a);font-size:15px;text-align:center;margin:0}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -724,7 +725,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.08-9';
+const APP_VERSION='2026.11.08-10';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -2575,11 +2576,21 @@ const clearAngel=()=>document.querySelectorAll('.angelcard,.angeltab').forEach(n
 function angelHelp(L,len,rep){const W=deduce(L,len,rep);
   /* 只標數字有沒有；位置不填進筆記，不然只剩一種時等於把答案排好給你 */
   W.yes.forEach(d=>{notes.d[+d]=1;});W.no.forEach(d=>{notes.d[+d]=2;});saveNotes();renderNotes();
+  /* 提醒上一手確定了什麼（11/08 語音討論：猜得不好的一手也別當沒看過，先把它的結果用完）。不講第幾位是誰 */
+  let last='';const li=L.map((x,i)=>x.hint||x.A==null||x.A===len?-1:i).filter(i=>i>=0).pop();
+  if(li!=null&&!rep){const W0=deduce(L.slice(0,li),len,rep),x=L[li],K1=rpKnow(W.cands,len),seen=L.slice(0,li+1).filter(y=>y.hint||y.A!=null),
+      nn=W.no.filter(d=>!W0.no.includes(d)),ny=W.yes.filter(d=>!W0.yes.includes(d)),np=W.pos.length-W0.pos.length,pt=[],grp={};
+    const it=[],g1={},g2={};nn.forEach(d=>{const w=whyNo(d,seen,K1,W0.yes,len,true);(g1[w]=g1[w]||[]).push(d);});
+    ny.forEach(d=>{const w=whyYes(d,seen,K1,len,true,W0.no);(g2[w]=g2[w]||[]).push(d);});
+    for(const w in g1)it.push({ds:g1[w],w:w.replace('§',g1[w].join('、')),k:'沒有'});for(const w in g2)it.push({ds:g2[w],w,k:'一定有'});
+    whyOrder(it).forEach(x=>pt.push(`${x.k} ${x.ds.join('、')}${x.w?`：${x.w}`:''}`));
+    if(np>0)pt.push(`多了 ${np} 個位置確定（想想 ${x.A}A 是誰）`);
+    last=pt.length?`上一手 ${x.g}（${x.A}A${x.B}B）讓你確定了：\n${pt.map(t=>'・'+t).join('\n')}`:`上一手 ${x.g}（${x.A}A${x.B}B）沒有確定新的數字，但可能的答案從 ${W0.left} 種變成 ${W.left} 種。`;}
   const K=rpKnow(W.cands,len),typed=input.length===len&&!locks.some(Boolean)?input:(input.length===len?input:'');let line;
   if(W.left<=1)line='線索已經足夠推出答案了！數字標好了，位置自己排排看。';
   else if(typed){const ok=W.cands.includes(typed),seen=L.map((x,i)=>Object.assign({i},x)).filter(x=>x.hint||x.A!=null);line=ok?`你打的 ${typed} 還可能是答案，可以猜。`:`你打的 ${typed} 不可能：${exConflict(typed,seen,len)}。`;}
-  else line=`鍵盤上劃掉的數字不用再猜。${W.pos.length?`其實已經有 ${W.pos.length} 個位置確定了，找找看是哪${W.pos.length>1?'幾':'一'}個。`:''}打好數字再叫我，我幫你檢查。`;
-  return`<p class="angeln">${W.left<=1?'只剩 1 種可能':`還剩 <b>${W.left}</b> 種可能`}</p>${dStrip(K)}<p>${esc(line)}</p>`;}
+  else line=`鍵盤上劃掉的數字不用再猜。${W.pos.length&&!last.includes('位置確定')?`其實已經有 ${W.pos.length} 個位置確定了，找找看是哪${W.pos.length>1?'幾':'一'}個。`:''}打好數字再叫我，我幫你檢查。`;
+  return`<p class="angeln">${W.left<=1?'只剩 1 種可能':`還剩 <b>${W.left}</b> 種可能`}</p>${dStrip(K)}${last?`<p class="alast">${esc(last).replace(/\n/g,'<br>')}</p>`:''}<p>${esc(line)}</p>`;}
 function ghostsLeft(){const w=(g().watchers||{})[me]||{},u=w.gh&&w.gh.r===g().round?w.gh.n:0;return Math.max(0,GHOSTS-u);}
 function ghostTargets(){const s=g();
   if(s.phase==='coop'){const C=coopState();return (C.over||C.countdown)?[]:C.order.slice();}
@@ -3123,10 +3134,41 @@ function exPick(b,G){return G.filter(g=>g.n>0).map(g=>`${g.ds.join('、')} 要 $
 /* 只看每一手對了幾個數字（不管位置）時，哪些數字已經不可能 */
 function noByCount(seen,len,rep){const Q=seen.filter(q=>!q.hint),cc=allCands(len,rep).filter(x=>Q.every(q=>{const r=score(x,q.g);return r.A+r.B===q.A+q.B;}));
   const out=[];for(let d=0;d<10;d++){const D=String(d);if(cc.length&&!cc.some(x=>x.includes(D)))out.push(D);}return out;}
-function exKnow(left,G,K,seen,len,rep){if(left.length<=4)return left.length===1?`答案只剩 ${left[0]}`:`只剩 ${left.length} 種：${left.join('、')}`;
+/* 人跟得上的理由（11/08 語音討論）：一個數字為什麼確定沒有、確定有，只用一兩手線索就看得懂的說法。
+   沒有：①某手 0A0B ②B 是 0 的那手，數字有的話一定在原位：兩手位置不同就矛盾，或那一位已經是別的數字 ③那手的名額已經被確定有的數字用完。
+   noPos：小天使用，不講「第幾位是誰」 */
+function whyNo(d,seen,K,prevYes,len,noPos){const Q=seen.filter(q=>!q.hint&&q.A!=null&&q.g.includes(d));
+  const z=Q.find(q=>q.A+q.B===0);if(z)return `${z.g} 是 0A0B，裡面的數字都沒有`;
+  let allow=[...Array(len).keys()];const need=[];
+  for(const q of Q){const p=q.g.indexOf(d);if(q.B===0){allow=allow.filter(i=>i===p);need.push([q,p]);}else if(q.A===0)allow=allow.filter(i=>i!==p);}
+  if(need.length){for(let a=0;a<need.length;a++)for(let b=a+1;b<need.length;b++)if(need[a][1]!==need[b][1])
+      return `${need[a][0].g} 和 ${need[b][0].g} 都是 0B，數字有的話一定在原位；§ 在兩手的位置不同，有的話一定有一手會變成 B`;
+    const [q,p]=need[need.length-1],za=Q.find(y=>y.A===0&&y.g.indexOf(d)===p);
+    if(za)return `${q.g} 是 0B，有 § 的話要在第 ${p+1} 位；可是 ${za.g} 是 0A，第 ${p+1} 位不行`;
+    const h=seen.find(y=>y.hint&&+y.pos===p&&y.g!==d);if(h)return `${q.g} 是 0B，有 § 的話要在第 ${p+1} 位，但提示說第 ${p+1} 位是 ${h.g}`;
+    if(!noPos&&K.pos[p]&&K.pos[p]!==d)return `${q.g} 是 0B，有 § 的話要在第 ${p+1} 位，但第 ${p+1} 位已經是 ${K.pos[p]}`;}
+  for(const Y of [prevYes,K.yes])for(const q of Q){const hit=q.A+q.B,ys=[...new Set(q.g)].filter(x=>x!==d&&Y.includes(x));
+    if(ys.length>=hit)return `${q.g} 只有 ${hit} 個對，已經確定是 ${ys.join('、')}，名額用完了`;}
+  return '';}
+/* § 是「這些數字」，同樣理由的數字合併後再換掉 */
+/* 有：某手對了 n 個，其他數字都確定沒有，剩下的就一定有；那手是 0B 的話也知道位置 */
+function whyYes(d,seen,K,len,noPos,pkNo){for(const NO of [pkNo||[],K.no])for(const q of seen){if(q.hint||q.A==null||!q.g.includes(d))continue;const hit=q.A+q.B,ds=[...new Set(q.g)],no=ds.filter(x=>x!==d&&NO.includes(x)),rest=ds.filter(x=>!no.includes(x));
+    if(rest.length===hit)return (no.length?`${q.g} 有 ${hit} 個對，${no.join('、')} 沒有，所以剩下的 ${rest.join('、')} 都有`:`${q.g} 的數字全部都對`)+(q.B===0&&!noPos?`；而且是 0B，所以都在原本的位置`:'');}
+  return '';}
+/* 理由排順序：用到別條結論的放後面（例如「名額用完」要先知道誰確定有） */
+const whyUses=w=>((w.match(/確定是 ([\d、]+)|已經是 (\d)|，([\d、]+) 沒有/)||[]).slice(1).find(Boolean)||'').split('、').filter(Boolean);
+function whyOrder(items){const out=[],left=items.slice();while(left.length){let k=left.findIndex(it=>{const u=whyUses(it.w);return !left.some(o=>o!==it&&o.ds.some(d=>u.includes(d)));});if(k<0)k=0;out.push(left.splice(k,1)[0]);}return out;}
+/* 這一手新確定的事和理由，同樣理由的數字放一起 */
+function whyNew(pk,K,seen,len){const it=[],grp={},gy={};
+  K.no.filter(d=>!pk.no.includes(d)).forEach(d=>{const w=whyNo(d,seen,K,pk.yes,len);if(w)(grp[w]=grp[w]||[]).push(d);});
+  K.yes.filter(d=>!pk.yes.includes(d)).forEach(d=>{const w=whyYes(d,seen,K,len,false,pk.no);if(w)(gy[w]=gy[w]||[]).push(d);});
+  for(const w in grp)it.push({ds:grp[w],w:w.replace('§',grp[w].join('、')),k:'沒有'});
+  for(const w in gy)it.push({ds:gy[w],w,k:'有'});
+  return{txt:whyOrder(it).slice(0,4).map(x=>`${x.k} ${x.ds.join('、')}：${x.w}`),done:Object.values(grp).flat()};}
+function exKnow(left,G,K,seen,len,rep,done){if(left.length<=4)return left.length===1?`答案只剩 ${left[0]}`:`只剩 ${left.length} 種：${left.join('、')}`;
   const t=[exGroupTxt(G)];K.pos.forEach((d,i)=>{if(d)t.push(`第 ${i+1} 位是 ${d}`);});if(K.yes.length)t.push(`確定有 ${K.yes.join('、')}`);
   /* 有些數字只看個數還湊得進去，是排位置時才排不出來，要講清楚，不然看起來沒道理 */
-  if(K.no.length){const cnt=seen?noByCount(seen,len,rep):K.no,byPos=K.no.filter(d=>!cnt.includes(d));
+  if(K.no.length){const cnt=seen?noByCount(seen,len,rep):K.no,byPos=K.no.filter(d=>!cnt.includes(d)&&!(done||[]).includes(d));
     t.push(`確定沒有 ${K.no.join('、')}`+(byPos.length?`（只看個數 ${byPos.join('、')} 還有可能，但放進去後，位置排不出每一手的 A、B）`:''));}
   return t.filter(Boolean).join('；');}
 function rpAdvice(x,before,after,seen,len,rep,ans,r,legal){const b=r.best,G=rep?[]:exGroups(seen,len),same=!rep&&!legal?before.filter(c=>[...c].sort().join('')===[...x.g].sort().join('')):[];
@@ -3158,10 +3200,14 @@ function rpMine(L,len,rep,ans){const all=allCands(len,rep);let left=all;const se
       else{tip=`${x.g} 已經不可能是答案：${exConflict(x.g,seen,len)}。`;
         if(adv.fix&&adv.fix.length)tip+=`同樣這 ${len} 個數字，改成 ${adv.fix.join(' 或 ')} 就符合線索。`;
         else if(tag==='good'||tag==='ok')tip+='不過它幫你篩了數字，也算有用。';}
-      if(lucky)tip+=`當時平均會剩 ${r.mine} 種，這次一下剩 ${after.length} 種，運氣不錯。`;}
+      if(lucky)tip+=`當時平均會剩 ${r.mine} 種，這次一下剩 ${after.length} 種，運氣不錯。`;
+}
+      /* 重複測已經知道沒有的數字：這手等於只測了剩下的那幾個 */
+      if(!legal&&!rep&&!win&&i>0){const pk=rpKnow(before,len),ds=[...new Set(x.g)],waste=ds.filter(d=>pk.no.includes(d)),test=ds.filter(d=>!pk.no.includes(d)&&pk.pos[x.g.indexOf(d)]!==d);
+        if(waste.length)tip+=`${waste.join('、')} 前面已經確定沒有，${test.length?`這手其實只測了 ${test.join('、')}`:'這手沒有測到新的數字'}；換成還不確定的數字，可以知道更多。`;}
     left=after;seen.push(Object.assign({i},x));
-    const G=rep?[]:exGroups(seen,len),know=rpKnow(after,len),hit=x.A+x.B,kt=exKnow(after,G,know,seen,len,rep)||(rep?`${x.g} 裡有 ${hit} 個對`:`${[...x.g].join('、')} 裡有 ${hit} 個，其他 ${10-len} 個數字裡有 ${len-hit} 個`);
-    steps.push({i,x,tag,before:before.length,after:after.length,know,say:exPlain(x,len)+(win?'':ex0A(x)),tip,adv,more:win?'':`猜完現在知道：${kt}`});});
+    const G=rep?[]:exGroups(seen,len),know=rpKnow(after,len),hit=x.A+x.B,W=rep||win?{txt:[],done:[]}:whyNew(rpKnow(before,len),know,seen,len),kt=exKnow(after,G,know,seen,len,rep,W.done)||(rep?`${x.g} 裡有 ${hit} 個對`:`${[...x.g].join('、')} 裡有 ${hit} 個，其他 ${10-len} 個數字裡有 ${len-hit} 個`);
+    steps.push({i,x,tag,before:before.length,after:after.length,know,say:exPlain(x,len)+(win?'':ex0A(x)),tip,adv,more:win?'':`猜完現在知道：${kt}`,why:W.txt});});
   return{steps,total:all.length};}
 function rpBoss(L,len,rep,diff,name){const all=allCands(len,rep),hard=diff==='hard',st={diff},P=PROBES[len]||[];let left=all;const seen=[],steps=[];
   L.forEach((x,i)=>{const before=left,after=before.filter(c=>mindFits(st,c,[x])),win=x.A===len,probe=!hard&&P[i]===x.g,G=rep?[]:exGroups(seen,len);
@@ -3190,7 +3236,7 @@ function openReplay(tabs,t0){let el=document.getElementById('rpM');if(!el){el=do
       `<div class="rphead">${st.hint?`<b>用了提示</b>`:`<span class="htile">${rpTiles(st.x.g,T.ans)}</span><span class="score">${ab(st.x)}</span>`}</div>
       <div class="rpdrop"><span>${st.before} 種</span>${rpBar(st.before,T.total)}<span>→ 剩 <b>${st.after}</b> 種</span>${rpBar(st.after,T.total)}</div>
       ${dStrip(st.know)}
-      <p class="exp">${st.say}</p>${st.tip?`<p class="exw">${st.tip}</p>`:''}${st.adv?`<div class="rpadv"><b>${esc(st.adv.title)}</b><p>${esc(st.adv.txt)}</p>${st.adv.chk.length?`<div class="rpchk"><span style="color:var(--muted)">當時的線索</span>${st.adv.chk.map(c=>`<span>${esc(c)} ✓</span>`).join('')}</div>`:''}</div>`:''}${st.more?`<p class="exw">${esc(st.more)}</p>`:''}`;
+      <p class="exp">${st.say}</p>${st.tip?`<p class="exw">${st.tip}</p>`:''}${st.adv?`<div class="rpadv"><b>${esc(st.adv.title)}</b><p>${esc(st.adv.txt)}</p>${st.adv.chk.length?`<div class="rpchk"><span style="color:var(--muted)">當時的線索</span>${st.adv.chk.map(c=>`<span>${esc(c)} ✓</span>`).join('')}</div>`:''}</div>`:''}${st.more?`<p class="exw">${esc(st.more)}</p>`:''}${st.why&&st.why.length?`<div class="rpwhy"><b>為什麼</b>${st.why.map(w=>`<p>${esc(w)}</p>`).join('')}</div>`:''}`;
     const nav=`<div class="hnav"><button class="btn ghost" type="button" data-rp="p" ${i<0?'hidden':''}>上一手</button><div class="hdots">${i<0?'':`${i+1} / ${n}`}</div><button class="btn" type="button" data-rp="n" ${i>=n-1?'hidden':''}>${i<0?'一手一手看':'下一手'}</button></div>`;
     el.innerHTML=`<div class="card rpbox">${hd}${body}${nav}</div>`;};
   el.onclick=e=>{const b=e.target.closest('button');if(!b){if(e.target===el)close();return;}
