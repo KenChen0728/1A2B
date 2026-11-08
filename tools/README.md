@@ -18,12 +18,12 @@ node tools/test-join.js      # 換瀏覽器接回位子、合作中途排進輪�
 node tools/test-watch.js     # 大廳改觀戰、重新整理還是觀眾
 node tools/test-angel.js     # 小天使：合作全隊共用
 node tools/test-music.js     # 背景音樂：曲子格式、音量不爆、觀眾預設開、玩家預設關、遊戲中換曲子、切到背景就停
-node tools/test-sound-lab.js # 試聽頁（tools/sound-lab.html）：每首新版和每個音效離線算一次，沒有 NaN、不爆音、新版和現在差不多大聲
+node tools/test-sound-lab.js # 試聽頁（tools/sound-lab.html）：第一版、第二版（tools/chip-audio.js）每首和每個音效離線算一次，沒有 NaN、不爆音、和現在差不多大聲、回音殘響不會越積越大聲
 node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
 node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）
 ```
 
-音樂和音效的新版先放在試聽頁 `tools/sound-lab.html`（網址 https://kenchen0728.github.io/1A2B/tools/sound-lab.html ），不影響遊戲；使用者用手機聽過選好才搬進 index.html。曲子資料是從 index.html 的 SONGS 複製過去的，改曲子時兩邊要一起改。
+音樂和音效的新版先放在試聽頁 `tools/sound-lab.html`（第二版的程式在 `tools/chip-audio.js`，可以單獨拿去用）（網址 https://kenchen0728.github.io/1A2B/tools/sound-lab.html ），不影響遊戲；使用者用手機聽過選好才搬進 index.html。曲子資料是從 index.html 的 SONGS 複製過去的，改曲子時兩邊要一起改。
 
 畫面改版後要重新產生說明截圖：先跑 `node tools/make-help.js`，再跑 `python3 tools/help-webp.py`。
 

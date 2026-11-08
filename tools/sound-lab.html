@@ -33,11 +33,25 @@ input[type=range]{width:100%;accent-color:var(--ink)}
 <main>
   <header>
     <h1>音樂試聽</h1>
-    <p class="tip">方向 ②：溫暖可愛（木琴、長笛、撥弦、弦樂）。先關掉手機側邊的靜音開關、把音量調大，再按 ▶。</p>
+    <p class="tip">把音量調大再按 ▶。iPhone 側邊的靜音開關打開時，iOS 17 以後這一頁也聽得到；聽不到的話先把靜音關掉。</p>
   </header>
 
+  <section class="card" aria-labelledby="h-v2">
+    <h2 id="h-v2">第二版（照你給的規格）</h2>
+    <div class="row"><span class="lbl">大廳</span><div class="btns">
+      <button type="button" data-song="calm" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-v2="lobby" data-label="第二版">▶ 第二版</button></div></div>
+    <div class="row"><span class="lbl">戰鬥</span><div class="btns">
+      <button type="button" data-song="battle" data-ver="old" data-label="現在">▶ 現在</button>
+      <button type="button" data-v2="battle" data-label="第二版">▶ 第二版</button></div></div>
+    <div class="row"><span class="lbl">猜中 4A</span><div class="btns">
+      <button type="button" data-v2fx="win">▶ 第二版</button>
+      <button type="button" data-song="win" data-ver="old" data-label="現在的勝利短曲">▶ 現在的勝利短曲</button></div></div>
+    <p class="tip">大廳：方波加三角波的旋律，帶 5.5Hz 顫音，回音左右來回、殘響很長；前 4 小節最空，第 9 小節才有很輕的節奏。戰鬥：126 BPM，鋸齒波一顆一顆的斷音，三角波低音上下跳。旋律都是原創，只參考速度、音色和氣氛。</p>
+  </section>
+
   <section class="card" aria-labelledby="h-bgm">
-    <h2 id="h-bgm">背景音樂</h2>
+    <h2 id="h-bgm">第一版 ②：背景音樂</h2>
     <div class="row"><span class="lbl">大廳</span><div class="btns">
       <button type="button" data-song="calm" data-ver="old" data-label="現在">▶ 現在</button>
       <button type="button" data-song="calm" data-ver="new" data-label="新版">▶ 新版</button>
@@ -55,7 +69,7 @@ input[type=range]{width:100%;accent-color:var(--ink)}
   </section>
 
   <section class="card" aria-labelledby="h-fx">
-    <h2 id="h-fx">丟東西</h2>
+    <h2 id="h-fx">第一版 ②：丟東西</h2>
     <div id="items"></div>
     <p class="tip">拖鞋和大鐵盆打中後會接「眼冒金星」。可以一邊放「遊戲中」的新版一邊按，聽打中時音樂被壓低的感覺。</p>
   </section>
@@ -80,8 +94,9 @@ input[type=range]{width:100%;accent-color:var(--ink)}
     <h2 id="h-tell">聽完跟我說</h2>
     <p class="tip" style="margin:0 0 4px">每首選「現在」還是「新版」；哪個音效要改，用自己的話說就好，例如「番茄不夠濕」「鐵盆再重一點」。</p>
   </section>
-  <p class="ver">試聽頁 1（2026-11-09）· 這一頁不會改到遊戲</p>
+  <p class="ver">試聽頁 2（2026-11-09）· 這一頁不會改到遊戲</p>
 </main>
+<script src="chip-audio.js"></script>
 <script>
 'use strict';
 /* ===== 曲子：從遊戲 index.html 的 SONGS 複製過來（旋律、低音、鼓都一樣） ===== */
@@ -424,13 +439,11 @@ function fire(F,t,kind,item){
 /* ===== 播放 ===== */
 const ST={ac:null,M:null,cur:null,timer:null};
 function ctx(){if(!ST.ac){const AC=window.AudioContext||window.webkitAudioContext;if(!AC){alert('這個瀏覽器不能播放聲音');return null;}
-    /* 試聽頁：iPhone 側邊靜音開關打開時也聽得到（iOS 17 以後才有這個設定，遊戲本體不會這樣做） */
-    try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
     ST.ac=new AC();ST.M=master(ST.ac);setVol();
     /* 其他幾首的聲音趁空檔先算好，之後按下去馬上有聲音 */
     ['calm','battle','win','lose'].forEach((n,i)=>setTimeout(()=>{try{prewarm(ST.ac,model(n));}catch(e){}},600+i*500));}
   if(ST.ac.state!=='running')ST.ac.resume().catch(()=>{});return ST.ac;}
-function setVol(){if(!ST.M)return;const f=v=>Math.pow(v/80,2);const vm=f(+document.getElementById('vm').value),vs=f(+document.getElementById('vs').value);ST.M.music.gain.value=vm;ST.M.old.gain.value=vm;ST.M.sfx.gain.value=vs;}
+function setVol(){const f=v=>Math.pow(v/80,2),vm=f(+document.getElementById('vm').value),vs=f(+document.getElementById('vs').value);if(window.ChipAudio)ChipAudio.setVolume({music:vm,sfx:vs});if(!ST.M)return;ST.M.music.gain.value=vm;ST.M.old.gain.value=vm;ST.M.sfx.gain.value=vs;}
 function play(name,ver,onEnd){const c=ctx();if(!c)return;stop();const S=model(name);if(ver!=='old')prewarm(c,S);R=rng(42);
   const cur={S,L:lane(ST.M,ver,S),ver,i:0,t:c.currentTime+.08,onEnd};ST.cur=cur;tick();ST.timer=setInterval(tick,50);}
 function tick(){const cur=ST.cur;if(!cur)return;const c=ST.ac;if(cur.t<c.currentTime)cur.t=c.currentTime+.03;
@@ -455,14 +468,18 @@ window.LAB={renderOffline,pcm,model,SONGS};
 /* ===== 畫面 ===== */
 const ITEMS=[['tomato','番茄'],['egg','雞蛋'],['bomb','炸彈'],['slipper','拖鞋'],['hammer','大鐵盆'],['flower','花'],['heart','愛心']];
 document.getElementById('items').innerHTML=ITEMS.map(([k,n])=>`<div class="row"><span class="lbl">${n}</span><div class="btns"><button type="button" data-fx="throw" data-item="${k}">丟出去</button><button type="button" data-fx="hit" data-item="${k}">打中</button><button type="button" data-fx="both" data-item="${k}">整段</button></div></div>`).join('');
-function mark(b){document.querySelectorAll('[data-song]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on);x.textContent=(on?'■ ':'▶ ')+x.dataset.label;});}
+function mark(b){document.querySelectorAll('[data-song],[data-v2]').forEach(x=>{const on=x===b;x.classList.toggle('on',on);x.setAttribute('aria-pressed',on);x.textContent=(on?'■ ':'▶ ')+x.dataset.label;});}
 mark(null);
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
-  if(b.dataset.song){const on=b.classList.contains('on');stop();if(!on){play(b.dataset.song,b.dataset.ver,()=>mark(null));mark(b);}return;}
+  /* 試聽頁：iPhone 靜音開關打開時也聽得到（iOS 17 以後才有，遊戲本體不會這樣做） */
+  try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(e){}
+  if(b.dataset.song){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();if(!on){play(b.dataset.song,b.dataset.ver,()=>mark(null));mark(b);}return;}
+  if(b.dataset.v2){const on=b.classList.contains('on');stop();ChipAudio.stopBGM();mark(null);if(!on){setVol();if(b.dataset.v2==='lobby')ChipAudio.playLobbyBGM();else ChipAudio.playBattleBGM();mark(b);}return;}
+  if(b.dataset.v2fx){setVol();ChipAudio.playWinSFX();return;}
   if(b.dataset.fx){sfx(b.dataset.fx,b.dataset.item);return;}
-  if(b.id==='stopAll')stop();});
+  if(b.id==='stopAll'){stop();ChipAudio.stopBGM();mark(null);}});
 document.getElementById('vm').addEventListener('input',setVol);document.getElementById('vs').addEventListener('input',setVol);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();ChipAudio.stopBGM();mark(null);}});
 </script>
 </body>
 </html>
