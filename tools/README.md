@@ -17,7 +17,7 @@ node tools/test-fit.js all   # 各種手機尺寸每個畫面要不要滑（FIT=
 node tools/test-join.js      # 換瀏覽器接回位子、合作中途排進輪流、輪到離線的人到場邊、觀眾維持觀眾、舊邀請連結
 node tools/test-watch.js     # 大廳改觀戰、重新整理還是觀眾
 node tools/test-angel.js     # 小天使：合作全隊共用
-node tools/test-music.js     # 背景音樂：曲子格式、音量不爆、觀眾預設開、玩家預設關、遊戲中換曲子、切到背景就停
+node tools/test-music.js     # 聲音：音量不爆、觀眾預設開、玩家預設關、遊戲中換曲子、猜到 3A 熱血爆發、切到背景就停；音效只有丟的人和被丟的人聽得到、開關會記住、結算短曲只放一次
 node tools/test-sound-lab.js # 試聽頁（tools/sound-lab.html）：第一版、第二到四版（tools/chip-audio.js）每首和每個音效離線算一次，沒有 NaN、不爆音、和現在（音效：和第三版）差不多大聲、回音殘響不會越積越大聲；手機喇叭模擬（500Hz、300Hz 高通）下大鐵盆手機版要聽得到
 node tools/make-help.js       # 重新截說明用的真實畫面（畫面改版後跑）
 node tools/make-icons.js      # 重新產生全部圖示（不用開伺服器）

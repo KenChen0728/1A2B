@@ -103,7 +103,7 @@
     fL.connect(gLR); gLR.connect(dR);                      // 左 → 右
     dR.connect(fR); fR.connect(pR); pR.connect(output);   // 第 2、4、6… 次回音在右邊
     fR.connect(gRL); gRL.connect(dL);                      // 右 → 左：迴路接起來
-    return { input, output };
+    return { input, output, nodes: [input, output, dL, dR, fL, fR, gLR, gRL, pL, pR] };
   }
 
   /**
@@ -160,6 +160,8 @@
     const rev = freeverb(c, fx.room, fx.roomDamp);
     const revSend = c.createGain(); revSend.connect(rev.input);
     const revRet = c.createGain(); revRet.gain.value = fx.revLevel; rev.output.connect(revRet); revRet.connect(level);
+    /* nodes：這條軌道的所有固定節點；換曲子或短曲放完時全部 disconnect，回音、殘響的反饋迴路才會真的斷掉、不再佔運算 */
+    const nodes = [out, level, dry, echoSend, echoRet, revSend, revRet].concat(echo.nodes, rev.nodes);
     const tracks = {};
     /** 取得音軌（第一次用到才建立）：gain 音量、pan 左右、echo／rev 送到回音／殘響的量、
      *  lp：在音軌上串一個低通濾波器（BiquadFilter lowpass），頻率之後可以動態改（存在 .lp） */
@@ -167,15 +169,15 @@
       if (tracks[name]) return tracks[name];
       o = o || {};
       const g = c.createGain(); g.gain.value = o.gain || 1;
-      const p = panner(c, o.pan || 0);
-      if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = -3; g.connect(f); f.connect(p); g.lp = f; }
+      const p = panner(c, o.pan || 0); nodes.push(g, p);
+      if (o.lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; f.Q.value = -3; g.connect(f); f.connect(p); g.lp = f; nodes.push(f); }
       else g.connect(p);
       p.connect(dry);
-      if (o.echo) { const s = c.createGain(); s.gain.value = o.echo; p.connect(s); s.connect(echoSend); }
-      if (o.rev) { const s = c.createGain(); s.gain.value = o.rev; p.connect(s); s.connect(revSend); }
+      if (o.echo) { const s = c.createGain(); s.gain.value = o.echo; p.connect(s); s.connect(echoSend); nodes.push(s); }
+      if (o.rev) { const s = c.createGain(); s.gain.value = o.rev; p.connect(s); s.connect(revSend); nodes.push(s); }
       return (tracks[name] = g);
     }
-    return { c, out, track, noise };
+    return { c, out, track, noise, nodes };
   }
 
   /* ================= 樂器 ================= */
@@ -628,7 +630,8 @@
     const ws = c.createWaveShaper(); ws.curve = cv; ws.oversample = '2x'; return ws;
   }
   /** 一個音量包絡：t 時 1 毫秒內衝到 peak（at 秒），dec 秒內收到 0 */
-  function hitEnv(g, t, peak, at, dec) { g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(peak, t + at); g.gain.exponentialRampToValueAtTime(1e-4, t + dec); }
+  /* 開始前也要是 0：GainNode 預設是 1，聲音比 t 早開始的話會先漏出來 */
+  function hitEnv(g, t, peak, at, dec) { g.gain.setValueAtTime(1e-4, 0); g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(peak, t + at); g.gain.exponentialRampToValueAtTime(1e-4, t + dec); }
   /**
    * 大鐵盆打中（第四版）：variant 'g'＝照 Google 的數字；'p'＝手機版（Claude 建議）
    *   四個不協和頻率照第三版的比例一起往下移（÷2.9，低一個半八度）：130、178、257、341Hz，每個都是一對解諧振盪器
@@ -792,10 +795,173 @@
     return { end: t + 0.55, nodes: [] };
   }
 
+  /* ================= 上線版（11/09）：結算短曲、其他道具、丟出去 =================
+   * 使用者選：大鐵盆 B、其他第四版；輸了＝現在「哇哇哇」的長節奏＋第四版的哇哇和發抖；
+   * 贏了＝現在的勝利短曲＋解諧、每個音的濾波、回音殘響；番茄、雞蛋、炸彈、花、愛心、丟出去做晶片版 */
+  /** 丟出去「咻」：雜音過帶通，0.12 秒內 500→1700Hz（重的東西 300→1000Hz、慢一點）；輕的再加一聲往上的 25% 方波 */
+  function throwSfx(c, out, B, t, heavy) {
+    const d = heavy ? 0.16 : 0.12, n = noiseSrc(c, B, t, d + 0.05), bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2.5;
+    bp.frequency.setValueAtTime(heavy ? 300 : 500, t); bp.frequency.exponentialRampToValueAtTime(heavy ? 1000 : 1700, t + d);
+    const g = c.createGain(); g.gain.setValueAtTime(1e-4, t); g.gain.exponentialRampToValueAtTime(heavy ? 1.4 : 1.1, t + d * 0.6); g.gain.exponentialRampToValueAtTime(1e-4, t + d + 0.03);
+    n.connect(bp); bp.connect(g); g.connect(out);
+    if (!heavy) {
+      const p = pair(c, 'pulse', 420, DET, 0.5), gp = c.createGain();
+      p.os.forEach((o) => { o.frequency.setValueAtTime(420, t); o.frequency.exponentialRampToValueAtTime(950, t + 0.07); });
+      hitEnv(gp, t, 0.05, 0.005, 0.08); p.out.connect(gp); gp.connect(out); p.start(t); p.stop(t + 0.1);
+    }
+    return { end: t + d + 0.1, nodes: [] };
+  }
+  /** 番茄：「啪」（1300Hz 帶通雜音）＋「噗啾」（有共振的低通 0.14 秒內 2600→350Hz，濕濕的）＋「啵」往下掉（三角波 700→170Hz 過失真） */
+  function tomatoSfx(c, out, B, t) {
+    const n = noiseSrc(c, B, t, 0.2);
+    const b1 = c.createBiquadFilter(); b1.type = 'bandpass'; b1.frequency.value = 1300; b1.Q.value = 0.8;
+    const g1 = c.createGain(); hitEnv(g1, t, 1.0, 0.001, 0.025); n.connect(b1); b1.connect(g1); g1.connect(out);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 4; lp.frequency.setValueAtTime(2600, t); lp.frequency.exponentialRampToValueAtTime(350, t + 0.14);
+    const g2 = c.createGain(); hitEnv(g2, t, 1.0, 0.004, 0.17); n.connect(lp); lp.connect(g2); g2.connect(out);
+    const p = pair(c, 'triangle', 700, DET, 0.6), g3 = c.createGain(), s = saturator(c, 2);
+    p.os.forEach((o) => { o.frequency.setValueAtTime(700, t + 0.01); o.frequency.exponentialRampToValueAtTime(170, t + 0.11); });
+    hitEnv(g3, t + 0.01, 0.5, 0.004, 0.12); p.out.connect(g3); g3.connect(s); s.connect(out); p.start(t); p.stop(t + 0.16);
+    duck(B, t, 0.55, 0.12);
+    return { end: t + 0.22, nodes: [] };
+  }
+  /** 雞蛋：蛋殼「喀喀喀」（2500Hz 以上的雜音連敲三下）＋破掉的聲體（900Hz 帶通）＋蛋液滑下來（正弦 520→200Hz 過失真） */
+  function eggSfx(c, out, B, t) {
+    const n = noiseSrc(c, B, t, 0.16), hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500; n.connect(hp);
+    [0, 0.016, 0.03].forEach((dt, i) => { const g = c.createGain(); hitEnv(g, t + dt, [0.9, 0.6, 0.45][i], 0.001, 0.008); hp.connect(g); g.connect(out); });
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.5;
+    const g2 = c.createGain(); hitEnv(g2, t + 0.01, 1.0, 0.003, 0.07); n.connect(bp); bp.connect(g2); g2.connect(out);
+    const p = pair(c, 'sine', 520, DET, 0.6), g3 = c.createGain(), s = saturator(c, 2);
+    p.os.forEach((o) => { o.frequency.setValueAtTime(520, t + 0.03); o.frequency.exponentialRampToValueAtTime(200, t + 0.12); });
+    hitEnv(g3, t + 0.03, 0.45, 0.005, 0.11); p.out.connect(g3); g3.connect(s); s.connect(out); p.start(t); p.stop(t + 0.18);
+    duck(B, t, 0.6, 0.1);
+    return { end: t + 0.22, nodes: [] };
+  }
+  /** 炸彈：雜音越放越慢（播放速度 1→0.18，像紅白機爆炸的顆粒）過 6000→400Hz 低通＋失真的「轟」（正弦 110→35Hz，泛音手機聽得到） */
+  function bombSfx(c, out, B, t) {
+    const s1 = c.createBufferSource(); s1.buffer = B.noise; s1.loop = true;
+    s1.playbackRate.setValueAtTime(1, t); s1.playbackRate.exponentialRampToValueAtTime(0.18, t + 0.7);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = -3; lp.frequency.setValueAtTime(6000, t); lp.frequency.exponentialRampToValueAtTime(400, t + 0.7);
+    const g1 = c.createGain(); g1.gain.setValueAtTime(1e-4, t); g1.gain.exponentialRampToValueAtTime(1.2, t + 0.004); g1.gain.exponentialRampToValueAtTime(0.35, t + 0.25); g1.gain.exponentialRampToValueAtTime(1e-4, t + 0.9);
+    s1.connect(lp); lp.connect(g1); g1.connect(out); s1.start(t, Math.random() * 1.5); s1.stop(t + 0.95);
+    const p = pair(c, 'sine', 110), g2 = c.createGain(), s = saturator(c, 3), lb = c.createBiquadFilter(); lb.type = 'lowpass'; lb.frequency.value = 1000; lb.Q.value = -3;
+    p.os.forEach((o) => { o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(35, t + 0.45); });
+    hitEnv(g2, t, 1.0, 0.003, 0.5); p.out.connect(g2); g2.connect(s); s.connect(lb); lb.connect(out); p.start(t); p.stop(t + 0.55);
+    duck(B, t, 0.3, 0.6);
+    return { end: t + 1.0, nodes: [] };
+  }
+  /** 花：三角波（解諧）E6 G#6 B6 E7 每 45 毫秒往上「叮鈴」，加短短的左右回音 */
+  function flowerSfx(c, out, B, t) {
+    const echo = pingPong(c, 0.09, 0.35, 5000), send = c.createGain(); send.gain.value = 0.35; send.connect(echo.input); echo.output.connect(out);
+    ['E6', 'G#6', 'B6', 'E7'].forEach((n0, i) => {
+      const t0 = t + i * 0.045, p = pair(c, 'triangle', hz(midi(n0)), DET, 0.5), g = c.createGain();
+      hitEnv(g, t0, 0.22, 0.003, 0.25); p.out.connect(g); g.connect(out); g.connect(send); p.start(t0); p.stop(t0 + 0.28);
+    });
+    return { end: t + 1.2, nodes: [send].concat(echo.nodes) };
+  }
+  /** 愛心：正弦（解諧）＋高八度的三角波，G5 → C6「啵～叮」，第二個音有 5.5Hz 顫音，加短回音 */
+  function heartSfx(c, out, B, t) {
+    const echo = pingPong(c, 0.12, 0.3, 4000), send = c.createGain(); send.gain.value = 0.3; send.connect(echo.input); echo.output.connect(out);
+    [['G5', 0], ['C6', 0.11]].forEach(([n0, dt]) => {
+      const t0 = t + dt, f = hz(midi(n0)), p = pair(c, 'sine', f, DET, 0.6), q = c.createOscillator(); q.type = 'triangle'; q.frequency.value = f * 2;
+      const g = c.createGain(), gq = c.createGain(); gq.gain.value = 0.25;
+      const lfo = c.createOscillator(); lfo.frequency.value = 5.5; const dep = c.createGain(); dep.gain.value = dt ? f * 0.008 : 0; lfo.connect(dep); p.os.forEach((o) => dep.connect(o.frequency));
+      hitEnv(g, t0, 0.3, 0.012, dt ? 0.45 : 0.16); p.out.connect(g); q.connect(gq); gq.connect(g); g.connect(out); g.connect(send);
+      const e = t0 + (dt ? 0.47 : 0.18); p.start(t0); q.start(t0); lfo.start(t0); p.stop(e); q.stop(e); lfo.stop(e);
+    });
+    return { end: t + 1.0, nodes: [send].concat(echo.nodes) };
+  }
+
+  /* 結算短曲：旋律、低音、鼓都和現在遊戲裡的一樣（使用者喜歡的節奏和長度），只換音色 */
+  const WIN5 = { bpm: 150, perBeat: 4, tail: 1.6,
+    lead: 'G4 B4 D5 G5 B4 D5 G5 B5 - - - . A5 . B5 .|C6 - - . B5 - - . A5 - G5 - F#5 - G5 -|A5 - - - D5 - - - F#5 - - - A5 - - -|G5 - - - - - - - . . . . . . . .',
+    bass: 'G2 . G3 . G2 . G3 . G2 . G3 . G2 . G3 .|C3 . C4 . C3 . C4 . D3 . D4 . D3 . D4 .|D3 . D4 . D3 . D4 . D3 . D4 . D3 . D4 .|G2 - - - - - - - . . . . . . . .',
+    drum: 'k.h.s.h.k.h.s.h.|k.h.s.h.k.h.s.h.|k.h.s.h.k.s.s.ss|k...............',
+    fx: { level: 1, echoTime: 0.3, echoFeedback: 0.3, echoDamp: 3500, echoLevel: 0.45, room: 0.8, roomDamp: 3000, revLevel: 0.4 } };
+  const LOSE5 = { bpm: 96, perBeat: 2, tail: 1.5,
+    lead: 'G4 - - - F#4 - - -|F4 - - - - - - -|E4 - - - - - - .|. . . . . . . .',
+    bass: 'C3 - - - B2 - - -|A#2 - - - - - - -|A2 - - - - - - .|. . . . . . . .',
+    drum: '........|........|s.......|........',
+    fx: { level: 1, echoTime: 0.3125, echoFeedback: 0.25, echoDamp: 1800, echoLevel: 0.3, room: 0.82, roomDamp: 2000, revLevel: 0.35 } };
+  /** 勝利主旋律：25% 方波（解諧）＋每個音自己的低通（7000Hz 起，0.1 秒內收到 3000Hz → 亮、有顆粒）；最後的長音加 6Hz 顫音 */
+  function winLead(L, t, m, dur, vel, final) {
+    const c = L.c, f = hz(m), end = t + Math.max(0.03, dur - GAP), rel = final ? 0.35 : 0;
+    const p = pair(c, 'pulse', f, DET, 0.6), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.5;
+    lp.frequency.setValueAtTime(7000, t); lp.frequency.exponentialRampToValueAtTime(final ? 2400 : 3000, t + (final ? 0.4 : 0.1));
+    const amp = c.createGain(); p.out.connect(lp); lp.connect(amp); amp.connect(L.track('lead', { pan: -0.05, echo: 0.3, rev: 0.2 }));
+    amp.gain.setValueAtTime(1e-4, t); amp.gain.exponentialRampToValueAtTime(vel, t + 0.004);
+    amp.gain.exponentialRampToValueAtTime(vel * 0.7, Math.min(end - 0.012, t + 0.08)); amp.gain.setValueAtTime(vel * 0.7, end - 0.012);
+    amp.gain.exponentialRampToValueAtTime(1e-4, end + rel);
+    if (final) {
+      const lfo = c.createOscillator(); lfo.frequency.value = 6; const dep = c.createGain();
+      dep.gain.setValueAtTime(0, t); dep.gain.setValueAtTime(0, t + 0.15); dep.gain.linearRampToValueAtTime(f * 0.007, t + 0.4);
+      lfo.connect(dep); p.os.forEach((o) => dep.connect(o.frequency)); lfo.start(t); lfo.stop(end + rel + 0.02);
+    }
+    p.start(t); p.stop(end + rel + 0.02);
+  }
+  /** 結算的低音：方波（解諧）過 800Hz 低通 → 手機也聽得到；legato＝長音（輸了用） */
+  function sqBass(L, t, m, dur, vel, legato) {
+    const c = L.c, end = t + Math.max(0.03, dur - (legato ? 0.04 : GAP));
+    const p = pair(c, 'square', hz(m), DET, 0.6), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 800; lp.Q.value = -3;
+    const amp = c.createGain(); p.out.connect(lp); lp.connect(amp); amp.connect(L.track('bass', { pan: 0, rev: 0.06 }));
+    amp.gain.setValueAtTime(1e-4, t); amp.gain.exponentialRampToValueAtTime(vel, t + 0.006);
+    if (legato) amp.gain.exponentialRampToValueAtTime(vel * 0.6, Math.min(end - 0.03, t + 0.4));
+    amp.gain.setValueAtTime(legato ? vel * 0.6 : vel, end - 0.015); amp.gain.exponentialRampToValueAtTime(1e-4, end);
+    p.start(t); p.stop(end + 0.02);
+  }
+  /**
+   * 輸了的「哇～」：方波 +8 音分（65%）＋三角波 −8 音分（35%）→ 有共振的低通（哇）
+   *   每個音從高半音的地方 0.15 秒滑下來（第四版的墜落感）、維持，結束前 0.25 秒再往下垂四分之一個音（嘆氣），音和音之間斷開
+   *   哇：每個音 0.06 秒內 350→2400Hz（ㄨ→ㄚ），之後慢慢收回 400Hz（ㄚ→ㄨ）
+   *   最後一個音：0.35 秒後開始 15Hz 發抖，整個音慢慢垂下半音，最後 1.2 秒淡出
+   */
+  function wahNote(L, t, m, dur, vel, final) {
+    const c = L.c, f = hz(m), UP = Math.pow(2, 1 / 12), end = t + dur - (final ? 0 : 0.03);
+    const sq = c.createOscillator(); sq.type = 'square'; sq.detune.value = DET;
+    const tr = c.createOscillator(); tr.type = 'triangle'; tr.detune.value = -DET;
+    const gs = c.createGain(); gs.gain.value = 0.65; const gt = c.createGain(); gt.gain.value = 0.35;
+    const wah = c.createBiquadFilter(); wah.type = 'lowpass'; wah.Q.value = 10;
+    const amp = c.createGain(), trem = c.createGain();
+    sq.connect(gs); tr.connect(gt); gs.connect(wah); gt.connect(wah); wah.connect(amp); amp.connect(trem); trem.connect(L.track('lead', { pan: -0.05, echo: 0.25, rev: 0.25 }));
+    [sq, tr].forEach((o) => {
+      o.frequency.setValueAtTime(f * UP, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.15);
+      if (final) o.frequency.exponentialRampToValueAtTime(f / UP, end);
+      else { o.frequency.setValueAtTime(f, end - 0.25); o.frequency.exponentialRampToValueAtTime(f / Math.pow(2, 0.5 / 12), end); }
+    });
+    wah.frequency.setValueAtTime(350, t); wah.frequency.exponentialRampToValueAtTime(2400, t + 0.06);
+    wah.frequency.exponentialRampToValueAtTime(final ? 900 : 700, t + Math.min(dur * 0.6, 1.2)); wah.frequency.exponentialRampToValueAtTime(400, end);
+    amp.gain.setValueAtTime(1e-4, t); amp.gain.exponentialRampToValueAtTime(vel, t + 0.015);
+    amp.gain.exponentialRampToValueAtTime(vel * 0.7, t + Math.min(dur * 0.5, 0.8));
+    if (final) { amp.gain.setValueAtTime(vel * 0.7, end - 1.2); amp.gain.exponentialRampToValueAtTime(1e-4, end); }
+    else { amp.gain.exponentialRampToValueAtTime(vel * 0.45, end - 0.05); amp.gain.exponentialRampToValueAtTime(1e-4, end); }
+    const stop = end + 0.02;
+    if (final) {
+      const lfo = c.createOscillator(); lfo.frequency.value = 15; const dep = c.createGain();
+      dep.gain.setValueAtTime(0, t); dep.gain.setValueAtTime(0, t + 0.35); dep.gain.linearRampToValueAtTime(0.35, t + 0.45);
+      trem.gain.setValueAtTime(1, t); trem.gain.setValueAtTime(1, t + 0.35); trem.gain.linearRampToValueAtTime(0.65, t + 0.45);
+      lfo.connect(dep); dep.connect(trem.gain); lfo.start(t); lfo.stop(stop);
+    }
+    sq.start(t); tr.start(t); sq.stop(stop); tr.stop(stop);
+  }
+  /** 結算短曲：開一條臨時軌道（有回音、殘響），一次把所有音排好；放完整條軌道斷開 */
+  function stinger(c, out, B, t, S) {
+    if (!S.Ld) { S.Ld = tokens(S.lead); S.Bs = tokens(S.bass); S.Dr = S.drum.replace(/\|/g, '').split(''); S.sd = 60 / S.bpm / S.perBeat; S.last = S.Ld.reduce((k, x, i) => (midi(x) != null ? i : k), -1); }
+    const L = makeLane(c, out, S.fx, B.noise), sd = S.sd, win = S === WIN5;
+    for (let i = 0; i < S.Ld.length; i++) {
+      const tt = t + i * sd, a = midi(S.Ld[i]), b = midi(S.Bs[i]), d = S.Dr[i];
+      if (a != null) { if (win) winLead(L, tt, a, cells(S.Ld, i) * sd, 0.22, i === S.last); else wahNote(L, tt, a, cells(S.Ld, i) * sd, 0.15, i === S.last); }
+      if (b != null) sqBass(L, tt, b, cells(S.Bs, i) * sd, win ? 0.13 : 0.11, !win);
+      if (d === 'k') kick(L, tt, 0.45); else if (d === 's') snare(L, tt, win ? 0.32 : 0.4); else if (d === 'h') hat(L, tt, 0.12);
+    }
+    return { end: t + S.Ld.length * sd + S.tail, nodes: L.nodes };
+  }
+
   const SFX = {
     slipper: slipperSfx, pot: potSfx, evade: evadeSfx, shield: shieldSfx, knock: knockSfx, dizzy: dizzySfx, lose: loseSfx, win: winSfx,
     slipper4: slipperSfx4, pot4: (c, o, B, t) => potSfx4(c, o, B, t, 'p'), pot4g: (c, o, B, t) => potSfx4(c, o, B, t, 'g'),
     shield4: shieldSfx4, knock4: knockSfx4, dizzy4: dizzySfx4, lose4: loseSfx4,
+    throw: (c, o, B, t) => throwSfx(c, o, B, t, false), throwHeavy: (c, o, B, t) => throwSfx(c, o, B, t, true),
+    tomato: tomatoSfx, egg: eggSfx, bomb: bombSfx, flower: flowerSfx, heart: heartSfx,
+    win5: (c, o, B, t) => stinger(c, o, B, t, WIN5), lose5: (c, o, B, t) => stinger(c, o, B, t, LOSE5),
   };
 
   /* ================= 播放、排程 ================= */
@@ -837,14 +1003,19 @@
    * 熱血爆發：true 時戰鬥旋律的低通濾波 0.12 秒時間常數打開到 6000Hz、音量 +4dB（鋸齒波整個亮起來），
    * false 時 0.4 秒時間常數收回 1500Hz、原本音量（溫和、退到後面）。只影響第三版戰鬥；先設好再開始播也可以
    */
-  function setBattleIntensity(high) {
+  function setBattleIntensity(high, opts) {
     hot = !!high;
     if (!cur || !cur.L.track) return;
     cur.L.hot = hot;
     const tr = cur.L.track('lead'), f = tr.lp; if (!f) return;
-    const t = ctx.currentTime, tc = hot ? 0.12 : 0.4;
-    f.frequency.cancelScheduledValues(t); f.frequency.setValueAtTime(f.frequency.value, t); f.frequency.setTargetAtTime(hot ? HOT_HZ : CALM_HZ, t, tc);
-    tr.gain.cancelScheduledValues(t); tr.gain.setValueAtTime(tr.gain.value, t); tr.gain.setTargetAtTime(hot ? HOT_GAIN : 1, t, tc);
+    const now = ctx.currentTime, tc = hot ? 0.12 : 0.4;
+    /* opts.atBar：等到下一個小節開頭才切（遊戲裡自動切換用，聽起來比較順） */
+    let t = now;
+    if (opts && opts.atBar && cur.S.per) { const per = cur.S.per, k = Math.ceil(cur.i / per) * per; t = Math.max(now, cur.t + (k - cur.i) * cur.S.stepDur); }
+    if (t === now) { f.frequency.cancelScheduledValues(t); f.frequency.setValueAtTime(f.frequency.value, t); tr.gain.cancelScheduledValues(t); tr.gain.setValueAtTime(tr.gain.value, t); }
+    else { f.frequency.cancelScheduledValues(t); tr.gain.cancelScheduledValues(t); }
+    f.frequency.setTargetAtTime(hot ? HOT_HZ : CALM_HZ, t, tc);
+    tr.gain.setTargetAtTime(hot ? HOT_GAIN : 1, t, tc);
   }
   /** 時鐘排程：把「現在 ～ 現在＋0.12 秒」之間該響的格子都排好 */
   function tick() {
@@ -855,17 +1026,35 @@
   function stopBGM() {
     if (!cur) return;
     clearInterval(timer); timer = null;
-    const o = cur.L.out, t = ctx.currentTime;
+    const o = cur.L.out, t = ctx.currentTime, ns = cur.L.nodes;
     o.gain.cancelScheduledValues(t); o.gain.setValueAtTime(o.gain.value, t); o.gain.linearRampToValueAtTime(0, t + 0.05);
-    setTimeout(() => { try { o.disconnect(); } catch (e) {} }, 300);
+    setTimeout(() => { ns.forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, 300);   // 整條軌道（含回音殘響的迴路）都斷開
     cur = null;
   }
   /** 播一個音效；結束後把有反饋迴路的節點斷開 */
+  const VOICES = [], CAP = { pot4: 2, pot4g: 2, bomb: 3, win5: 1, lose5: 1 };
   function playSfx(name) {
-    const c = ensure(); if (!c || !SFX[name]) return;
+    const c = ensure(); if (!c || !SFX[name]) return false;
+    const now = c.currentTime;
+    for (let i = VOICES.length - 1; i >= 0; i--) if (VOICES[i].end < now) VOICES.splice(i, 1);
+    /* 一次響太多就略過（連點丟東西時）：最多同時 12 個，鐵盆 2 個、炸彈 3 個，舊手機才不會卡 */
+    if (VOICES.length >= 12 || VOICES.filter((v) => v.name === name).length >= (CAP[name] || 4)) return false;
     const out = c.createGain(); out.connect(bus.sfx);
-    const r = SFX[name](c, out, bus, c.currentTime + 0.02);
-    setTimeout(() => { [out].concat(r.nodes).forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - c.currentTime) * 1000 + 200);
+    const r = SFX[name](c, out, bus, now + 0.02);
+    VOICES.push({ name, end: r.end });
+    setTimeout(() => { [out].concat(r.nodes).forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - now) * 1000 + 200);
+    return true;
+  }
+  /** 手機要在手指點一下的當下才能出聲：點畫面時呼叫，順便放一個無聲的音（iPhone 解鎖用） */
+  function unlock() {
+    const c = ensure(); if (!c) return;
+    try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
+  }
+  /** 省電：沒有音樂、也沒有音效在響時把聲音暫停（下次播放或點畫面會自動接上） */
+  function idle() {
+    if (!ctx || cur || ctx.state !== 'running') return;
+    const now = ctx.currentTime; if (VOICES.some((v) => v.end > now)) return;
+    ctx.suspend().catch(() => {});
   }
   function setVolume(v) {
     Object.assign(vol, v || {});
@@ -875,7 +1064,8 @@
    * 測試用：離線算出一段聲音，檢查音量、有沒有爆音、熱血開關有沒有變亮
    *   曲子：'lobby'、'battle'（第三版）、'lobby2'、'battle2'（第二版）、'battleHot'（第三版熱血）
    *   音效：'slipper'、'pot'、'evade'、'shield'、'knock'、'dizzy'、'lose'、'win'（第三版）；
-   *         'slipper4'、'pot4'（手機版）、'pot4g'（照 Google）、'shield4'、'knock4'、'dizzy4'、'lose4'（第四版）
+   *         'slipper4'、'pot4'（手機版）、'pot4g'（照 Google）、'shield4'、'knock4'、'dizzy4'、'lose4'（第四版）；
+   *         'throw'、'throwHeavy'、'tomato'、'egg'、'bomb'、'flower'、'heart'、'win5'、'lose5'（上線版）
    */
   async function render(name, sec, sr) {
     sr = sr || 44100;
@@ -896,7 +1086,8 @@
     playBattleBGM: (opts) => startSong(opts && opts.version === 2 ? BATTLE : BATTLE3),
     stopBGM, setBattleIntensity, setVolume, render,
     /** 用名字播音效（試聽頁比較用）：名字見 render 的說明，例如 'pot4'、'lose4' */
-    playSfx,
+    playSfx, unlock, idle,
+    get state() { return ctx ? ctx.state : 'none'; },
     playSlipperSFX: () => playSfx('slipper'),
     playIronPotSFX: () => playSfx('pot'),
     playEvadeSFX: () => playSfx('evade'),

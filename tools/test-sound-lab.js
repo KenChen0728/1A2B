@@ -1,6 +1,9 @@
 // 試聽頁：第一版、chip-audio.js（第二、三版音樂，第三、四版音效）每首和每個音效離線算一次；第四版音效要和第三版一樣大聲、手機喇叭模擬下大鐵盆 B 要聽得到；熱血爆發要比平時亮，檢查沒有錯誤、沒有 NaN、不爆音、新版和「現在」差不多大聲（比較才公平）
 const {chromium}=require('playwright');const BASE=process.env.BASE||'http://localhost:8123/1A2B/';
 let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
+/* 遊戲 index.html 裡內嵌的聲音程式要和 tools/chip-audio.js 一模一樣（試聽頁聽到的就是遊戲裡的） */
+{const fs=require('fs'),path=require('path'),h=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8'),c=fs.readFileSync(path.join(__dirname,'chip-audio.js'),'utf8');
+ const m=/\/\* ===== chip-audio\.js 開始 ===== \*\/\n([\s\S]*?)\n\/\* ===== chip-audio\.js 結束 ===== \*\//.exec(h);ok(!!m&&m[1]===c.replace(/\n+$/,''),'index.html 裡的聲音程式和 tools/chip-audio.js 一樣');}
 (async()=>{const b=await chromium.launch();const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
  await p.goto(BASE+'tools/sound-lab.html');await p.waitForTimeout(300);
  const r=await p.evaluate(async()=>{const rms=async w=>{const bf=await LAB.renderOffline(w,w.sec);let s=0,pk=0,nan=0,n=0;for(let ch=0;ch<2;ch++){const d=bf.getChannelData(ch);for(let i=0;i<d.length;i++){const v=d[i];if(!isFinite(v)){nan++;continue;}s+=v*v;n++;const a=Math.abs(v);if(a>pk)pk=a;}}return{db:10*Math.log10(s/n+1e-12),pk,nan};};
