@@ -726,7 +726,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.09-1';
+const APP_VERSION='2026.11.09-2';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -4347,17 +4347,28 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
     cur = null;
   }
   /** 播一個音效；結束後把有反饋迴路的節點斷開 */
-  const VOICES = [], CAP = { pot4: 2, pot4g: 2, bomb: 3, win5: 1, lose5: 1 };
+  const VOICES = [], CAP = { pot4: 2, pot4g: 2, bomb: 3, win5: 1, lose5: 1 }, KEEP = { win5: 1, lose5: 1 };
+  /** 把一個還在響的音效 0.04 秒內收掉、斷開（迴路和殘響也一起斷，不再佔運算） */
+  function release(v, now) {
+    try { v.out.gain.cancelScheduledValues(now); v.out.gain.setValueAtTime(v.out.gain.value, now); v.out.gain.linearRampToValueAtTime(0, now + 0.04); } catch (e) {}
+    clearTimeout(v.timer); setTimeout(() => v.nodes.forEach((n) => { try { n.disconnect(); } catch (e) {} }), 120);
+    VOICES.splice(VOICES.indexOf(v), 1);
+  }
   function playSfx(name) {
     const c = ensure(); if (!c || !SFX[name]) return false;
     const now = c.currentTime;
     for (let i = VOICES.length - 1; i >= 0; i--) if (VOICES[i].end < now) VOICES.splice(i, 1);
-    /* 一次響太多就略過（連點丟東西時）：最多同時 12 個，鐵盆 2 個、炸彈 3 個，舊手機才不會卡 */
-    if (VOICES.length >= 12 || VOICES.filter((v) => v.name === name).length >= (CAP[name] || 4)) return false;
+    /* 連點丟東西時同時響太多，舊手機會卡：同一種最多鐵盆 2 個、炸彈 3 個、其他 4 個，全部 12 個。
+       超過時把最早的那個收掉，新的一定響（11/09-2：原本是新的不放，鐵盆一個拖 2.8 秒，第一下把人打倒後，接著幾下都沒聲音）。
+       結算短曲不會被收掉，也不會重疊 */
+    const same = VOICES.filter((v) => v.name === name);
+    if (same.length >= (CAP[name] || 4)) { if (KEEP[name]) return false; release(same[0], now); }
+    if (VOICES.length >= 12) { const v = VOICES.find((x) => !KEEP[x.name]); if (!v) return false; release(v, now); }
     const out = c.createGain(); out.connect(bus.sfx);
     const r = SFX[name](c, out, bus, now + 0.02);
-    VOICES.push({ name, end: r.end });
-    setTimeout(() => { [out].concat(r.nodes).forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - now) * 1000 + 200);
+    const v = { name, end: r.end, out, nodes: [out].concat(r.nodes) };
+    v.timer = setTimeout(() => { v.nodes.forEach((n) => { try { n.disconnect(); } catch (e) {} }); }, (r.end - now) * 1000 + 200);
+    VOICES.push(v);
     return true;
   }
   /** 手機要在手指點一下的當下才能出聲：點畫面時呼叫，順便放一個無聲的音（iPhone 解鎖用） */

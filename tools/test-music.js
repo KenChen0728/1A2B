@@ -2,7 +2,7 @@
 const {chromium,ctx,page,name,reset,room,layout,guess,BASE}=require('./lib');
 let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
 /* 記下每支手機放了哪些音效 */
-const spy=p=>p.evaluate(()=>{window.__sfx=[];const o=ChipAudio.playSfx;ChipAudio.playSfx=n=>{__sfx.push(n);return o(n);};});
+const spy=p=>p.evaluate(()=>{window.__sfx=[];const o=ChipAudio.playSfx;ChipAudio.playSfx=n=>{const r=o(n);if(r)__sfx.push(n);return r;};});   // 只記真的有放出來的
 const log=p=>p.evaluate(()=>__sfx.slice());
 (async()=>{const b=await chromium.launch({args:['--autoplay-policy=no-user-gesture-required']});
  await reset();const c0=await ctx(b,{vp:{width:360,height:640}});const p=await page(c0,BASE);await name(p,'阿明');
@@ -41,6 +41,14 @@ const log=p=>p.evaluate(()=>__sfx.slice());
  await a.waitForTimeout(3600);const la=await log(a),lx=await log(x);
  ok(la.includes('tomato')&&!la.includes('throw'),'被丟的人：聽到打中（沒有丟出去的聲音） '+JSON.stringify(la));
  ok(lx.length===0,'旁邊的人：不出聲 '+JSON.stringify(lx));
+ /* 大鐵盆：第一下把人打倒後，接著丟（他躺著）也要有聲音；連丟 5 下每下都響 */
+ for(const q of [h,a])await q.evaluate(()=>{__sfx.length=0;});
+ await h.waitForTimeout(1000);await h.evaluate(id=>{fxItem='hammer';throwAt(id);},aid);await h.waitForTimeout(900);
+ ok(await h.evaluate(id=>isDown(id),aid),'大鐵盆打中：被打倒');
+ for(let i=0;i<4;i++){await h.evaluate(id=>throwAt(id),aid);await h.waitForTimeout(250);}await h.waitForTimeout(800);
+ const ph=(await log(h)).filter(n=>n==='pot4').length;ok(ph===5,`丟的人：大鐵盆連丟 5 下（被打倒後也是）每下都有聲音（${ph} 下）`);
+ await a.waitForTimeout(3600);const pa=(await log(a)).filter(n=>n==='pot4').length;ok(pa===5,`被丟的人：躺著被大鐵盆打也有聲音（${pa} 下）`);
+ await h.waitForTimeout(3200);
  await h.evaluate(()=>{const s=document.querySelector('input[data-sfx]');s.click();});await h.waitForTimeout(300);
  ok(await h.evaluate(()=>localStorage.getItem('ab_sfx')==='0'&&[...document.querySelectorAll('input[data-sfx]')].every(s=>!s.checked)),'按「音效」關掉：記住');
  await h.evaluate(()=>{__sfx.length=0;});await h.waitForTimeout(4200);await h.evaluate(id=>{fxItem='egg';throwAt(id);},aid);await h.waitForTimeout(800);
