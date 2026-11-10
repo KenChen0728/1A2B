@@ -966,16 +966,16 @@
 
   /* ================= 播放、排程 ================= */
   const AHEAD = 0.12, TICK_MS = 25;
-  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 }, hot = false;
+  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 }, hot = false, hushed = false;
   /** 總混音：音樂、音效各一個音量 → 壓縮器（大聲小聲比較平均，也避免爆音）→ 喇叭 */
   function masterChain(c) {
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.2;
-    comp.connect(c.destination);
+    const master = c.createGain(); comp.connect(master); master.connect(c.destination);   // 最後一層總音量：切到背景時先收到 0 才暫停
     const music = c.createGain(); music.gain.value = MUSIC_LEVEL * vol.music;
     const duckG = c.createGain(); music.connect(duckG); duckG.connect(comp);       // 音效打中時把音樂壓低（ducking）
     const sfx = c.createGain(); sfx.gain.value = vol.sfx; sfx.connect(comp);
-    return { comp, music, duck: duckG, sfx, noise: noiseBuffer(c) };
+    return { comp, master, music, duck: duckG, sfx, noise: noiseBuffer(c) };
   }
   const MUSIC_LEVEL = 0.5;
   function ensure() {
@@ -985,6 +985,7 @@
       ctx = new AC(); bus = masterChain(ctx);
     }
     if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    if (hushed) { const t = ctx.currentTime, g = bus.master.gain; g.cancelScheduledValues(t); g.setValueAtTime(0, t); g.linearRampToValueAtTime(1, t + HUSH); hushed = false; }
     return ctx;
   }
   /** 建一條軌道；第三版戰鬥先把旋律音軌連同低通濾波器建好，熱血開關才有東西可以調 */
@@ -1061,11 +1062,25 @@
     const c = ensure(); if (!c) return;
     try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
   }
-  /** 省電：沒有音樂、也沒有音效在響時把聲音暫停（下次播放或點畫面會自動接上） */
+  /**
+   * 切到背景、關掉畫面時：總音量 0.03 秒內收到 0，還在響的音效一起收掉，0.12 秒後才暫停（11/11 修正）
+   *   原本一停音樂就馬上暫停，音樂的淡出（0.05 秒）還沒做完，iPhone 在還有聲音的地方停住，會「滋」一聲破音；
+   *   還在響的音效（例如鐵盆的尾巴）也會被凍住，回到遊戲時接著響。淡出是在聲音那條執行緒上做的，網頁被暫停也會做完
+   */
+  const HUSH = 0.03;
+  function hush() {
+    if (!ctx || !bus) return;
+    const t = ctx.currentTime, g = bus.master.gain;
+    VOICES.slice().forEach((v) => release(v, t));
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + HUSH);
+    hushed = true;
+    setTimeout(() => { if (hushed && ctx.state === 'running') ctx.suspend().catch(() => {}); }, 120);
+  }
+  /** 省電：沒有音樂、也沒有音效在響時，照上面的方式把聲音收掉、暫停（下次播放或點畫面會自動接上） */
   function idle() {
-    if (!ctx || cur || ctx.state !== 'running') return;
+    if (!ctx || cur || hushed || ctx.state !== 'running') return;
     const now = ctx.currentTime; if (VOICES.some((v) => v.end > now)) return;
-    ctx.suspend().catch(() => {});
+    hush();
   }
   function setVolume(v) {
     Object.assign(vol, v || {});
@@ -1078,9 +1093,11 @@
    *         'slipper4'、'pot4'（手機版）、'pot4g'（照 Google）、'shield4'、'knock4'、'dizzy4'、'lose4'（第四版）；
    *         'throw'、'throwHeavy'、'tomato'、'egg'、'bomb'、'flower'、'heart'、'win5'、'lose5'（上線版）
    */
-  async function render(name, sec, sr) {
+  /** hushAt：測試用，在那個時間點照 hush() 的方式把總音量收掉（檢查不會有破音） */
+  async function render(name, sec, sr, hushAt) {
     sr = sr || 44100;
     const oc = new OfflineAudioContext(2, Math.ceil(sec * sr), sr), b = masterChain(oc);
+    if (hushAt) { b.master.gain.setValueAtTime(1, hushAt); b.master.gain.linearRampToValueAtTime(0, hushAt + HUSH); }
     if (SFX[name]) { const out = oc.createGain(); out.connect(b.sfx); SFX[name](oc, out, b, 0.05); }
     else {
       const S = prepare({ lobby: LOBBY3, battle: BATTLE3, lobby2: LOBBY, battle2: BATTLE, battleHot: BATTLE3 }[name]);
@@ -1097,8 +1114,10 @@
     playBattleBGM: (opts) => startSong(opts && opts.version === 2 ? BATTLE : BATTLE3),
     stopBGM, setBattleIntensity, setVolume, render,
     /** 用名字播音效（試聽頁比較用）：名字見 render 的說明，例如 'pot4'、'lose4' */
-    playSfx, unlock, idle,
+    playSfx, unlock, idle, hush,
     get state() { return ctx ? ctx.state : 'none'; },
+    get hushed() { return hushed; },
+    get voices() { return VOICES.length; },
     playSlipperSFX: () => playSfx('slipper'),
     playIronPotSFX: () => playSfx('pot'),
     playEvadeSFX: () => playSfx('evade'),

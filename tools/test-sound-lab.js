@@ -24,6 +24,10 @@ let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
   o.v4={};for(const n of ['slipper','slipper4','pot','pot4','pot4g','shield','shield4','knock','knock4','dizzy','dizzy4','lose','lose4']){const bf=await ChipAudio.render(n,/^pot/.test(n)?3:/^lose/.test(n)?2.2:1),m=mono(bf),tail=m.subarray(m.length-13230);
    o.v4[n]=Object.assign(st2(bf),{stm:stm(m,.05),phone:stm(bq(bq(m,0,500),0,300),.3),low:100*en(bq(bq(m,1,400),1,400))/en(m),tail:10*Math.log10(en(tail)/tail.length+1e-15)});
    if(/^lose/.test(n)){const tl=.05+3*(n==='lose4'?60/140/2:.15);o.v4[n].trem=trem(m,tl+.25,tl+.85,15);}}
+  {const bf=await ChipAudio.render('battle',1.6,44100,1.0),L=bf.getChannelData(0),sr=44100;let after=0,jump=0,normal=0;
+   for(let i=Math.round(1.035*sr);i<L.length;i++)after=Math.max(after,Math.abs(L[i]));
+   for(let i=Math.round(1.0*sr);i<Math.round(1.035*sr);i++)jump=Math.max(jump,Math.abs(L[i]-L[i-1]));
+   for(let i=Math.round(0.5*sr);i<Math.round(0.95*sr);i++)normal=Math.max(normal,Math.abs(L[i]-L[i-1]));o.hush={after,jump,normal};}
   for(const k of ['tomato','egg','bomb','slipper','hammer','flower','heart'])o.fx[k]=await rms({fx:'both',item:k,sec:3});for(const k of ['dodge','block','knock','stars'])o.fx[k]=await rms({fx:k,sec:2.2});return o;});
  for(const [s,v] of Object.entries(r.songs)){if(s==='calmLong'){ok(!v.nan&&v.pk<.99,`大廳長音版：沒有 NaN、不爆音（最大 ${v.pk.toFixed(2)}）`);continue;}
    ok(!v.new.nan&&v.new.pk<.99,`${s} 新版：沒有 NaN、不爆音（最大 ${v.new.pk.toFixed(2)}）`);ok(Math.abs(v.new.db-v.old.db)<3,`${s} 新版和現在差不多大聲（${v.new.db.toFixed(1)} / ${v.old.db.toFixed(1)} dB）`);}
@@ -43,5 +47,6 @@ let fails=0;const ok=(c,m)=>{console.log((c?'✓ ':'✗ ')+m);if(!c)fails++;};
  ok(v4.slipper4.phone>v4.slipper.phone+1,`手機喇叭模擬：拖鞋第四版比第三版有聲音（${f1(v4.slipper4.phone)} / ${f1(v4.slipper.phone)} dB）`);
  ok(v4.lose4.trem>.4&&v4.lose.trem<.3,`輸了第四版最後一個音有 15Hz 發抖（調變 ${v4.lose4.trem.toFixed(2)}，第三版 ${v4.lose.trem.toFixed(2)}）`);
  for(const k of ['pot4','pot4g'])ok(v4[k].tail<-60,`${k} 的嗡嗡尾巴和殘響會停（最後 0.3 秒 ${v4[k].tail.toFixed(0)} dB）`);
+ const hu=r.hush;ok(hu.after<1e-4&&hu.jump<=hu.normal*1.05+1e-4,`切到背景時 0.03 秒內收到 0，沒有突然斷掉的跳動（收完後最大 ${hu.after.toExponential(1)}，收的時候每一格最大跳 ${hu.jump.toFixed(3)}，平常 ${hu.normal.toFixed(3)}）`);
  ok(!errs.length,'沒有錯誤 '+errs.join(' | '));
  console.log(fails?'失敗':'全部通過');await b.close();process.exit(fails?1:0);})().catch(e=>{console.error(e);process.exit(1);});

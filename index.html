@@ -726,7 +726,7 @@ try{
 </script>
 <script>
 const app=document.getElementById('app');
-const APP_VERSION='2026.11.09-2';
+const APP_VERSION='2026.11.11-1';
 /* 房間資料格式的版本：資料結構沒變就不要動它，新舊版手機才能同房。ROOM_MIN 以前的房間格式不確定，不接。 */
 const ROOM_VER='2026.11.05-6', ROOM_MIN='2026.11.03-2';
 const MAXP=8, CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -4281,16 +4281,16 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
 
   /* ================= 播放、排程 ================= */
   const AHEAD = 0.12, TICK_MS = 25;
-  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 }, hot = false;
+  let ctx = null, bus = null, cur = null, timer = null, vol = { music: 1, sfx: 1 }, hot = false, hushed = false;
   /** 總混音：音樂、音效各一個音量 → 壓縮器（大聲小聲比較平均，也避免爆音）→ 喇叭 */
   function masterChain(c) {
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 3; comp.attack.value = 0.004; comp.release.value = 0.2;
-    comp.connect(c.destination);
+    const master = c.createGain(); comp.connect(master); master.connect(c.destination);   // 最後一層總音量：切到背景時先收到 0 才暫停
     const music = c.createGain(); music.gain.value = MUSIC_LEVEL * vol.music;
     const duckG = c.createGain(); music.connect(duckG); duckG.connect(comp);       // 音效打中時把音樂壓低（ducking）
     const sfx = c.createGain(); sfx.gain.value = vol.sfx; sfx.connect(comp);
-    return { comp, music, duck: duckG, sfx, noise: noiseBuffer(c) };
+    return { comp, master, music, duck: duckG, sfx, noise: noiseBuffer(c) };
   }
   const MUSIC_LEVEL = 0.5;
   function ensure() {
@@ -4300,6 +4300,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
       ctx = new AC(); bus = masterChain(ctx);
     }
     if (ctx.state !== 'running') ctx.resume().catch(() => {});
+    if (hushed) { const t = ctx.currentTime, g = bus.master.gain; g.cancelScheduledValues(t); g.setValueAtTime(0, t); g.linearRampToValueAtTime(1, t + HUSH); hushed = false; }
     return ctx;
   }
   /** 建一條軌道；第三版戰鬥先把旋律音軌連同低通濾波器建好，熱血開關才有東西可以調 */
@@ -4376,11 +4377,25 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
     const c = ensure(); if (!c) return;
     try { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); } catch (e) {}
   }
-  /** 省電：沒有音樂、也沒有音效在響時把聲音暫停（下次播放或點畫面會自動接上） */
+  /**
+   * 切到背景、關掉畫面時：總音量 0.03 秒內收到 0，還在響的音效一起收掉，0.12 秒後才暫停（11/11 修正）
+   *   原本一停音樂就馬上暫停，音樂的淡出（0.05 秒）還沒做完，iPhone 在還有聲音的地方停住，會「滋」一聲破音；
+   *   還在響的音效（例如鐵盆的尾巴）也會被凍住，回到遊戲時接著響。淡出是在聲音那條執行緒上做的，網頁被暫停也會做完
+   */
+  const HUSH = 0.03;
+  function hush() {
+    if (!ctx || !bus) return;
+    const t = ctx.currentTime, g = bus.master.gain;
+    VOICES.slice().forEach((v) => release(v, t));
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + HUSH);
+    hushed = true;
+    setTimeout(() => { if (hushed && ctx.state === 'running') ctx.suspend().catch(() => {}); }, 120);
+  }
+  /** 省電：沒有音樂、也沒有音效在響時，照上面的方式把聲音收掉、暫停（下次播放或點畫面會自動接上） */
   function idle() {
-    if (!ctx || cur || ctx.state !== 'running') return;
+    if (!ctx || cur || hushed || ctx.state !== 'running') return;
     const now = ctx.currentTime; if (VOICES.some((v) => v.end > now)) return;
-    ctx.suspend().catch(() => {});
+    hush();
   }
   function setVolume(v) {
     Object.assign(vol, v || {});
@@ -4393,9 +4408,11 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
    *         'slipper4'、'pot4'（手機版）、'pot4g'（照 Google）、'shield4'、'knock4'、'dizzy4'、'lose4'（第四版）；
    *         'throw'、'throwHeavy'、'tomato'、'egg'、'bomb'、'flower'、'heart'、'win5'、'lose5'（上線版）
    */
-  async function render(name, sec, sr) {
+  /** hushAt：測試用，在那個時間點照 hush() 的方式把總音量收掉（檢查不會有破音） */
+  async function render(name, sec, sr, hushAt) {
     sr = sr || 44100;
     const oc = new OfflineAudioContext(2, Math.ceil(sec * sr), sr), b = masterChain(oc);
+    if (hushAt) { b.master.gain.setValueAtTime(1, hushAt); b.master.gain.linearRampToValueAtTime(0, hushAt + HUSH); }
     if (SFX[name]) { const out = oc.createGain(); out.connect(b.sfx); SFX[name](oc, out, b, 0.05); }
     else {
       const S = prepare({ lobby: LOBBY3, battle: BATTLE3, lobby2: LOBBY, battle2: BATTLE, battleHot: BATTLE3 }[name]);
@@ -4412,8 +4429,10 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
     playBattleBGM: (opts) => startSong(opts && opts.version === 2 ? BATTLE : BATTLE3),
     stopBGM, setBattleIntensity, setVolume, render,
     /** 用名字播音效（試聽頁比較用）：名字見 render 的說明，例如 'pot4'、'lose4' */
-    playSfx, unlock, idle,
+    playSfx, unlock, idle, hush,
     get state() { return ctx ? ctx.state : 'none'; },
+    get hushed() { return hushed; },
+    get voices() { return VOICES.length; },
     playSlipperSFX: () => playSfx('slipper'),
     playIronPotSFX: () => playSfx('pot'),
     playEvadeSFX: () => playSfx('evade'),
@@ -4476,7 +4495,7 @@ function bgmScene(){bgmTag='';try{
     return st==='lobby'?'calm':'battle';}
 }catch(e){}return null;}
 function bgmSync(){const sc=bgmScene(),want=bgmOn()&&!document.hidden?sc:null;if(want)BGM.play(want,bgmTag);else BGM.stop();
-  resultSfx(sc);hotSync();if(!want&&(document.hidden||!(code||solo)))ChipAudio.idle();
+  resultSfx(sc);hotSync();if(document.hidden)ChipAudio.hush();else if(!want&&!(code||solo))ChipAudio.idle();
   document.querySelectorAll('.musbtn').forEach(b=>{const on=bgmOn();b.classList.toggle('off',!on);b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'背景音樂：開（按一下關掉）':'背景音樂：關（按一下打開）');});}
 const musBtn=()=>`<button class="helpbtn musbtn${bgmOn()?'':' off'}" type="button" aria-pressed="${bgmOn()}" aria-label="${bgmOn()?'背景音樂：開（按一下關掉）':'背景音樂：關（按一下打開）'}"><span class="mon">${uiIcon('music')}</span><span class="moff">${uiIcon('musicoff')}</span></button>`;
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#watchBtn,#toWatch,#toFan')&&ls.get('ab_bgm')!=='0')BGM.prime();
@@ -4487,6 +4506,7 @@ document.addEventListener('change',e=>{const x=e.target;if(!x||!x.matches||!x.ma
   document.querySelectorAll('input[data-sfx]').forEach(y=>{y.checked=on;});if(on){ChipAudio.unlock();sfx('throw');}
   toast(on?'音效開了：只有丟的人和被丟的人聽得到':'音效關了');});
 document.addEventListener('visibilitychange',bgmSync);
+addEventListener('pagehide',()=>{BGM.stop();ChipAudio.hush();});   /* 關掉、滑掉主畫面 App：先把聲音收掉，不會破音 */
 setInterval(bgmSync,2000);
 /* 400KB 的像素字型只用在角色名字和對話框：等畫面出來才在背景下載，省流量模式不下載，沒下載時用內建字體 */
 function loadPixelFont(){try{const c=navigator.connection;if(c&&(c.saveData||/2g/.test(c.effectiveType||'')))return;const f=new FontFace('Cubic11','url(Cubic_11.woff2)',{display:'swap'});document.fonts.add(f);f.load().catch(()=>{});}catch(e){}}
